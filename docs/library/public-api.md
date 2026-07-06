@@ -16,9 +16,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 ## Required Decisions
 
-- Public API ownership: `redactPrompt`, `redactCompletion`, `redactToolArguments`,
-  provider adapters, detector hooks, replacement-token configuration, redaction result
-  reports, and OpenTelemetry metadata mapper helpers.
+- Public API ownership: `redactText` first, then prompt/completion/tool argument
+  helpers, provider adapters, detector hooks, replacement-token configuration,
+  redaction result reports, and OpenTelemetry metadata mapper helpers.
 - Package boundary ownership: core redaction must stay provider-agnostic; adapters
   own provider shapes; OTel helpers own safe metadata mapping; SDK helpers own caller
   ergonomics only.
@@ -37,6 +37,14 @@ This repository type owns public API surface, package compatibility, semantic ve
   optional policy.
 - Output: sanitized value, redaction report, warnings, and safe telemetry metadata.
 - Default: content capture disabled and raw input never written to logs.
+
+## Implemented Core Surface
+
+- `redactText(input, options)`: async provider-agnostic text redaction.
+- `createBuiltInDetectors(names)`: built-in detector construction.
+- `defaultReplacementToken(reason)`: category-only replacement token policy.
+- Public types for detectors, detections, warnings, reports, safe errors, and
+  redaction results.
 
 ## Review Blockers
 

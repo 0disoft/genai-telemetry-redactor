@@ -1,6 +1,6 @@
 # GenAI Telemetry Redactor
 
-Status: Product-shaping
+Status: Implementation-started
 Scope: backend
 Repository Type: library
 Addons: sdk
@@ -28,6 +28,10 @@ and reports redaction counts and reasons without preserving raw user content.
 - docs/engineering/04-security-baseline.md: security and redaction safety baseline
 - docs/non-goals/backend-placeholders/: parked API and DB placeholders that are not
   active product contracts
+- package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package and
+  validation runner setup
+- packages/core/: initial provider-agnostic redaction core
+- scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 
 ## Repository Shape Notes
 
@@ -39,6 +43,11 @@ and reports redaction counts and reasons without preserving raw user content.
 The first useful version should support OpenAI-compatible request and response shapes,
 nested tool arguments, a small detector set, replacement-token policy, and safe
 OpenTelemetry GenAI metadata mapping.
+
+The current implementation starts with `packages/core`: async `redactText`,
+built-in detectors for email, bearer token, API-key-like strings, and URLs,
+category-only replacement tokens, redaction reports, and fail-closed detector
+failure behavior.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

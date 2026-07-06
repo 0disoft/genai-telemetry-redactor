@@ -42,12 +42,16 @@ Addons: sdk
   docs/security/fixture-safety-policy.md
 - Architecture decisions: docs/adr/*.md
 - Validation: VALIDATION.md
+- Initial core implementation: packages/core/src/index.ts
+- Secret safety script: scripts/check-no-live-secrets.ts
 - Agent routing: .agents/context-map.md
 - Repository hygiene: .editorconfig, .gitattributes, .gitignore
 
 ## Hard Rules
 
-- Do not generate or infer application source code from this scaffold.
+- Do not generate hosted application, API server, database, gateway, frontend, or
+  deployment source code from this repository.
+- Keep library source changes inside documented package boundaries.
 - Do not invent technology choices. Use UNDECIDED when a decision is not known.
 - Do not create fake credentials, tokens, secrets, or private values.
 - Do not rely on generated, cache, or build output as source truth.

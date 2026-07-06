@@ -1,0 +1,38 @@
+{
+  "name": "genai-telemetry-redactor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./core": {
+      "types": "./packages/core/src/index.ts",
+      "default": "./packages/core/src/index.ts"
+    }
+  },
+  "scripts": {
+    "format": "prettier --check package.json pnpm-workspace.yaml tsconfig.base.json tsconfig.json vitest.config.ts \"src/**/*.ts\" \"packages/**/*.ts\" \"scripts/**/*.ts\"",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "contract": "tsx scripts/check-no-live-secrets.ts",
+    "docs": "tsx scripts/check-no-live-secrets.ts --docs-only",
+    "smoke": "vitest run packages/core/test/redact-text.test.ts",
+    "check": "pnpm run format && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run docs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  }
+}
