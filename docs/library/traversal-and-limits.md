@@ -7,14 +7,16 @@ Status: Product-shaping
 Traversal must redact nested JSON-like data without creating a denial-of-service
 path or leaking raw tool arguments.
 
-## Required Decisions Before Implementation
+## Implemented Limits
 
-- Maximum string length.
-- Maximum object depth.
-- Maximum key count.
-- Maximum array length.
-- Circular reference behavior.
-- How malformed JSON tool arguments are represented.
+- Maximum string length: configurable through `maxStringLength`.
+- Maximum object depth: configurable through `maxObjectDepth`.
+- Maximum key count: configurable through `maxObjectKeys`.
+- Maximum array length: configurable through `maxArrayLength`.
+- Circular reference behavior: fail closed with `circular_reference`.
+
+Malformed JSON string parsing is not implemented yet; callers can pass parsed
+tool argument objects or strings for text redaction.
 
 ## Safety Rules
 

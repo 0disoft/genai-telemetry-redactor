@@ -1,15 +1,14 @@
 import { createBuiltInDetectors } from "./built-in-detectors.js";
+import { createFailure, createRedactionReport } from "./report.js";
 import type {
   BuiltInDetectorName,
   Detection,
   Detector,
   RedactionOptions,
   RedactionReason,
-  RedactionReport,
   RedactionResult,
   RedactionWarning,
   ReplacementTokenPolicy,
-  SafeRedactionError,
 } from "./types.js";
 
 const DEFAULT_MAX_STRING_LENGTH = 128_000;
@@ -27,7 +26,7 @@ export async function redactText(
 
   if (input.length > maxStringLength) {
     warnings.push({ code: "max_string_length_exceeded" });
-    return failure(
+    return createFailure(
       "max_string_length_exceeded",
       "Input exceeded the configured redaction limit.",
       warnings,
@@ -49,7 +48,7 @@ export async function redactText(
       );
     } catch {
       warnings.push({ code: "detector_failed", detectorId: detector.id });
-      return failure(
+      return createFailure(
         "detector_failed",
         "A detector failed before content could be safely redacted.",
         warnings,
@@ -66,7 +65,7 @@ export async function redactText(
           detectorId: detector.id,
           reason: detection.reason,
         });
-        return failure(
+        return createFailure(
           "invalid_detection_range",
           "A detector returned an invalid range.",
           warnings,
@@ -86,7 +85,10 @@ export async function redactText(
   );
   const replacement = options.replacement ?? defaultReplacementToken;
   const value = applyRedactions(input, selectedDetections, replacement);
-  const report = createReport(selectedDetections, warnings);
+  const report = createRedactionReport(
+    selectedDetections.map((detection) => detection.reason),
+    warnings,
+  );
 
   return {
     ok: true,
@@ -170,46 +172,4 @@ function applyRedactions(
 
   output += input.slice(cursor);
   return output;
-}
-
-function createReport(
-  detections: readonly Detection[],
-  warnings: RedactionWarning[],
-): RedactionReport {
-  const countsByReason: Record<string, number> = {};
-
-  for (const detection of detections) {
-    countsByReason[detection.reason] =
-      (countsByReason[detection.reason] ?? 0) + 1;
-  }
-
-  return {
-    status: detections.length > 0 ? "redacted" : "unchanged",
-    totalRedactions: detections.length,
-    countsByReason,
-    warnings,
-  };
-}
-
-function failure(
-  code: SafeRedactionError["code"],
-  message: string,
-  warnings: RedactionWarning[],
-  fields: Pick<SafeRedactionError, "detectorId"> = {},
-): RedactionResult<string> {
-  return {
-    ok: false,
-    report: {
-      status: "failed",
-      totalRedactions: 0,
-      countsByReason: {},
-      warnings,
-    },
-    warnings,
-    error: {
-      code,
-      message,
-      ...fields,
-    },
-  };
 }

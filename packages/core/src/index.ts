@@ -16,4 +16,5 @@ export type {
 } from "./types.js";
 
 export { createBuiltInDetectors } from "./built-in-detectors.js";
+export { redactJsonLike, redactToolArguments } from "./redact-json-like.js";
 export { defaultReplacementToken, redactText } from "./redact-text.js";

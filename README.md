@@ -45,9 +45,10 @@ nested tool arguments, a small detector set, replacement-token policy, and safe
 OpenTelemetry GenAI metadata mapping.
 
 The current implementation starts with `packages/core`: async `redactText`,
-built-in detectors for email, bearer token, API-key-like strings, and URLs,
-category-only replacement tokens, redaction reports, and fail-closed detector
-failure behavior.
+`redactJsonLike`, and `redactToolArguments`; built-in detectors for email,
+bearer token, API-key-like strings, and URLs; category-only replacement tokens;
+redaction reports; shape-preserving JSON-like traversal; and fail-closed
+detector, traversal, circular-reference, and limit behavior.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

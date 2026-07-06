@@ -41,6 +41,10 @@ This repository type owns public API surface, package compatibility, semantic ve
 ## Implemented Core Surface
 
 - `redactText(input, options)`: async provider-agnostic text redaction.
+- `redactJsonLike(input, options)`: async JSON-like traversal that redacts string
+  leaves while preserving object and array shape.
+- `redactToolArguments(input, options)`: tool-argument redaction wrapper over
+  JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.
 - `defaultReplacementToken(reason)`: category-only replacement token policy.
 - Public types for detectors, detections, warnings, reports, safe errors, and
