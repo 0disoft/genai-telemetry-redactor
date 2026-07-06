@@ -50,6 +50,19 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Public types for detectors, detections, warnings, reports, safe errors, and
   redaction results.
 
+## Implemented OpenAI-Compatible Adapter Surface
+
+- `redactOpenAICompatibleRequest(input, options)`: structural request redaction for
+  `messages`, `prompt`, and `input` fields without importing a provider SDK.
+- `redactOpenAICompatibleResponse(input, options)`: structural response redaction
+  for `choices`, completion text, message content, tool calls, and tool-call
+  function arguments.
+- `redactOpenAICompatibleStreamEvent(input)`: metadata-only streaming helper that
+  omits chunk content and emits `streaming_content_omitted`.
+- `OpenAICompatibleOptions`: core redaction options plus explicit
+  `redactToolNames` opt-in for tool names when caller policy treats names as
+  content-bearing.
+
 ## Review Blockers
 
 - Public exports change without semver and migration notes.

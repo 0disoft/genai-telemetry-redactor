@@ -1,12 +1,16 @@
 # OpenAI-Compatible Shape
 
-Status: Product-shaping
+Status: Implementation-started
 
 ## Contract
 
 The first adapter targets OpenAI-compatible request and response shapes without
 depending on a provider SDK. It should use structural handling and explicitly
 warn on unsupported shapes.
+
+The implemented surface is a payload adapter, not a provider client wrapper. It
+does not own credentials, retries, routing, HTTP transport, span export, or model
+gateway behavior.
 
 ## Content-Bearing Areas
 
@@ -16,11 +20,32 @@ warn on unsupported shapes.
 - Tool call function arguments and nested argument payloads.
 - Streaming chunks only as metadata-only until streaming redaction is proven.
 
+## Implemented Behavior
+
+- `redactOpenAICompatibleRequest` redacts `messages[].content`, `prompt`, and
+  `input`. String content is handled by core text redaction; structured input and
+  multimodal content parts are handled by JSON-like traversal.
+- `redactOpenAICompatibleResponse` redacts `choices[].text`,
+  `choices[].message.content`, `choices[].message.tool_calls`, and nested
+  `function.arguments`.
+- Tool-call `function.arguments` strings are parsed as JSON when possible,
+  redacted through tool-argument traversal, and serialized back to a JSON string.
+  Malformed argument strings are redacted as text and return
+  `malformed_tool_arguments`.
+- Tool names are treated as metadata by default. Callers must opt in with
+  `redactToolNames` when their policy treats tool names as content-bearing.
+- `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
+  metadata with `streaming_content_omitted`.
+
 ## Unknown Shape Policy
 
 Unknown or unsupported shapes must not be assumed safe. The adapter should omit
 content-bearing telemetry and emit a safe warning such as
 `unsupported_provider_shape`.
+
+The implementation fails closed for non-object payloads, missing known request
+content fields, missing `choices` response arrays, malformed message arrays,
+malformed tool-call arrays, and unsupported content-bearing substructures.
 
 ## Review Blockers
 

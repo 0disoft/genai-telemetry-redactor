@@ -26,6 +26,8 @@ importers:
 
   packages/core: {}
 
+  packages/openai-compatible: {}
+
 packages:
 
   '@emnapi/core@1.11.1':

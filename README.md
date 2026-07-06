@@ -31,6 +31,8 @@ and reports redaction counts and reasons without preserving raw user content.
 - package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package and
   validation runner setup
 - packages/core/: initial provider-agnostic redaction core
+- packages/openai-compatible/: structural OpenAI-compatible request, response, and
+  streaming metadata adapter
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 
 ## Repository Shape Notes
@@ -49,6 +51,13 @@ The current implementation starts with `packages/core`: async `redactText`,
 bearer token, API-key-like strings, and URLs; category-only replacement tokens;
 redaction reports; shape-preserving JSON-like traversal; and fail-closed
 detector, traversal, circular-reference, and limit behavior.
+
+It also includes `packages/openai-compatible`: provider-SDK-free request and
+response shape helpers for `messages`, `prompt`, `input`, `choices`, completion
+text, message content, and tool-call function arguments. Unsupported shapes fail
+closed with `unsupported_provider_shape`, malformed JSON tool arguments are
+redacted as text with a warning, and streaming events return metadata-only
+`streaming_content_omitted` results instead of exporting chunk content.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

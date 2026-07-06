@@ -37,7 +37,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - test: Vitest test suite.
 - contract: live-looking secret guard across docs, packages, and scripts.
 - docs: live-looking secret guard for documentation surfaces.
-- smoke: focused core text and JSON-like redaction smoke tests.
+- smoke: focused core text, JSON-like redaction, and OpenAI-compatible adapter smoke
+  tests.
 - check: format, typecheck, test, contract, and docs.
 
 ## Hygiene Validation

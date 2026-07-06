@@ -46,7 +46,10 @@ export type RedactionWarningCode =
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
-  | "circular_reference";
+  | "circular_reference"
+  | "unsupported_provider_shape"
+  | "streaming_content_omitted"
+  | "malformed_tool_arguments";
 
 export type RedactionWarning = {
   code: RedactionWarningCode;
@@ -69,7 +72,8 @@ export type SafeRedactionErrorCode =
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
-  | "circular_reference";
+  | "circular_reference"
+  | "unsupported_provider_shape";
 
 export type SafeRedactionError = {
   code: SafeRedactionErrorCode;
