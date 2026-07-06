@@ -20,7 +20,7 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - SDK public contract: redaction policy input, detector hook registration, sanitized
   result output, redaction report output, and safe telemetry mapper output.
 - SDK validation evidence: fixture corpus for prompts, completions, tool arguments,
-  nested objects, and streaming chunks.
+  nested objects, and streaming metadata-only behavior.
 - SDK release or rollout policy: no SDK release should enable content capture by
   default.
 - SDK compatibility and migration policy: examples must stay aligned with public API

@@ -4,8 +4,8 @@ Status: Active
 
 ## Boundary
 
-This repository does not currently publish an HTTP API. The OpenAPI file is a
-placeholder that documents this non-service boundary.
+This repository does not currently publish an HTTP API. The parked OpenAPI file
+under `docs/non-goals/backend-placeholders/` documents this non-service boundary.
 
 ## Library Equivalent
 
@@ -21,5 +21,5 @@ The active public contract is the package API:
 
 - A change documents routes, handlers, auth, or persistence as implemented
   without a new product decision.
-- OpenAPI examples become the source of truth for package behavior.
+- Parked OpenAPI examples become the source of truth for package behavior.
 - HTTP-style examples contain raw GenAI content or realistic secrets.

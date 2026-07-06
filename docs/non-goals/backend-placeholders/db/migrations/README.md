@@ -9,9 +9,9 @@ database or migration stream.
 
 ## Source of Truth
 
-- Product scope: ../../docs/product/02-spec.md
-- Architecture boundary: ../../docs/adr/0001-initial-architecture-boundaries.md
-- Contract source of truth: ../../docs/adr/0002-contract-source-of-truth.md
+- Product scope: ../../../../product/02-spec.md
+- Architecture boundary: ../../../../adr/0001-initial-architecture-boundaries.md
+- Contract source of truth: ../../../../adr/0002-contract-source-of-truth.md
 
 ## Review Blockers
 

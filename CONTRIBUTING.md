@@ -26,8 +26,9 @@ safe OpenTelemetry GenAI metadata.
 - Do not claim complete DLP, PII, or compliance coverage.
 - Add fixture evidence when detector behavior, replacement tokens, provider
   shape support, or telemetry mapping changes.
-- Treat OpenAPI, DBML, migration, and backend service files as placeholders
-  unless an ADR makes them active product surfaces.
+- Treat OpenAPI, DBML, migration, and backend service placeholders under
+  `docs/non-goals/backend-placeholders/` as non-product surfaces unless an ADR
+  makes them active product surfaces.
 
 ## Review Blockers
 

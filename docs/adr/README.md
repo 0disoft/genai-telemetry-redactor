@@ -12,6 +12,16 @@ LLM prompt, completion, and tool argument content before telemetry export.
 
 - 0001: Initial architecture boundaries.
 - 0002: Contract source of truth.
+- 0003: Single repository package boundaries.
+- 0004: Runtime and module format.
+- 0005: Fail-closed content export.
+- 0006: Detector contract and index semantics.
+- 0007: Replacement token policy.
+- 0008: Streaming content policy.
+- 0009: OpenTelemetry GenAI mapping version policy.
+- 0010: License and dependency policy.
+- 0011: Public release and npm provenance.
+- 0012: Remove hosted API and DB placeholders.
 - 0000: Template for future decisions.
 
 ## Source of Truth

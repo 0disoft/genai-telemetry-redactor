@@ -27,7 +27,7 @@ library while leaving room for provider adapters and telemetry integrations.
 1. Core redaction model: detector interface, replacement token policy, redaction report,
    and fixture-driven tests.
 2. OpenAI-compatible adapter: messages, completions, tool calls, nested arguments, and
-   partial streaming chunks.
+   streaming metadata-only behavior.
 3. OpenTelemetry mapper: safe GenAI metadata, redaction summaries, and content-capture
    opt-in behavior.
 4. SDK ergonomics: middleware/wrapper examples, custom detector hooks, and migration
@@ -41,3 +41,4 @@ library while leaving room for provider adapters and telemetry integrations.
   registry.
 - Provider support is added without negative fixtures and unknown-shape behavior.
 - Roadmap wording implies perfect sensitive-data detection.
+- Streaming content export appears before chunk-boundary redaction is proven.

@@ -16,6 +16,7 @@ internal URLs, or tool arguments to logs, traces, events, examples, or fixtures.
 - Streaming chunk boundaries split a sensitive value across chunks.
 - Errors or debug logs include raw content before redaction.
 - Examples teach consumers to log raw prompt or completion bodies.
+- Report field paths reveal customer business domain even after values are redacted.
 
 ## Controls
 
@@ -32,3 +33,4 @@ internal URLs, or tool arguments to logs, traces, events, examples, or fixtures.
 - Any claim treats this package as full DLP or legal compliance automation.
 - Streaming support ships without chunk-boundary test evidence.
 - Provider support expands without shape-specific tests.
+- Telemetry summaries export field paths by default.

@@ -52,4 +52,4 @@ export and may emit only safe error metadata.
   logs, spans, fixtures, examples, docs, or error messages.
 - The library exports content by default.
 - A change presents detector output as complete DLP or compliance evidence.
-- A change treats placeholder API or DB files as active product contracts.
+- A change treats parked placeholder API or DB files as active product contracts.

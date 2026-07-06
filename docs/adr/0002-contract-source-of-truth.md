@@ -4,9 +4,10 @@ Status: Accepted
 
 ## Context
 
-The scaffold contains backend-shaped placeholder files because the repository
-was initialized with backend scope. The actual product boundary is a library
-plus SDK middleware for GenAI telemetry redaction.
+The scaffold originally contained backend-shaped placeholder files because the
+repository was initialized with backend scope. Those placeholders are parked
+under `docs/non-goals/backend-placeholders/`. The actual product boundary is a
+library plus SDK middleware for GenAI telemetry redaction.
 
 ## Decision
 
@@ -23,7 +24,7 @@ priority is:
 6. `docs/adr/*.md` for durable architecture decisions.
 7. `VALIDATION.md` for stable validation names.
 
-Placeholder OpenAPI, DBML, migration, and backend API documents are not product
+Parked OpenAPI, DBML, migration, and backend API documents are not product
 contracts unless a future ADR explicitly expands the repository into a service.
 
 ## Drift Rules
@@ -38,8 +39,8 @@ contracts unless a future ADR explicitly expands the repository into a service.
 
 ## Review Blockers
 
-- A change updates placeholder API or DB files while leaving public API and SDK
-  docs stale.
+- A change updates parked placeholder API or DB files while leaving public API
+  and SDK docs stale.
 - A change makes examples look like live credentials, private URLs, or customer
   content.
 - A change adds a new public contract without naming validation evidence.

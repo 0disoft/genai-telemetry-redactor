@@ -4,8 +4,9 @@ Status: Product-shaping
 
 ## Backend Contract
 
-There is no active hosted API server boundary in the current product. `api/openapi.yaml`
-is a placeholder and must not be treated as an implemented API contract.
+There is no active hosted API server boundary in the current product.
+`docs/non-goals/backend-placeholders/api/openapi.yaml` is a parked placeholder
+and must not be treated as an implemented API contract.
 
 If a hosted adapter is introduced later, it needs an ADR that explains why a library
 boundary is no longer enough, how auth is owned, and how raw GenAI content is kept out
@@ -23,5 +24,5 @@ of request logs and telemetry.
 ## Merge Blockers
 
 - API endpoints are added without an ADR and tests for request-log redaction.
-- Placeholder API examples are cited as implemented behavior.
+- Parked placeholder API examples are cited as implemented behavior.
 - API errors leak redaction input or detector match values.

@@ -26,6 +26,7 @@ export while preserving safe GenAI metadata and useful redaction summaries.
 - OpenAI-compatible request and response shape handling.
 - OpenTelemetry GenAI metadata mapping.
 - Streaming content policy, especially chunk-boundary false negatives.
+- Synthetic fixture safety and no-live-secret repository scanning.
 
 ## Review Blockers
 
@@ -33,3 +34,4 @@ export while preserving safe GenAI metadata and useful redaction summaries.
 - Detector default changes lack fixture evidence and migration notes.
 - Content export behavior changes without explicit `capture_content` coverage.
 - A skipped test, docs, or check validation lacks a reason and remaining risk.
+- Streaming content export lacks chunk-boundary fixtures and fail-closed evidence.

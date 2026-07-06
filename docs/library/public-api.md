@@ -19,10 +19,14 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Public API ownership: `redactPrompt`, `redactCompletion`, `redactToolArguments`,
   provider adapters, detector hooks, replacement-token configuration, redaction result
   reports, and OpenTelemetry metadata mapper helpers.
+- Package boundary ownership: core redaction must stay provider-agnostic; adapters
+  own provider shapes; OTel helpers own safe metadata mapping; SDK helpers own caller
+  ergonomics only.
 - Semantic versioning policy: detector defaults, replacement token categories, result
   field names, and mapper output shape are public contracts once released.
-- Runtime and platform compatibility: exact runtime targets are UNDECIDED, but APIs
-  must avoid assuming a server, database, or telemetry backend.
+- Runtime and platform compatibility: Node.js `>=22.14.0` with ESM-only
+  TypeScript output; APIs must avoid assuming a server, database, or telemetry
+  backend.
 - Package artifact and export surface: library package with documented exports only.
 - Deprecation and migration policy: breaking output-shape or default-detector changes
   require migration notes and corpus examples.
@@ -40,3 +44,5 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Compatibility claims lack runtime or consumer evidence.
 - Package artifacts drift from documented public API.
 - API examples include real secrets or private customer text.
+- Core APIs accept provider SDK objects, telemetry exporters, or raw span writers
+  directly.

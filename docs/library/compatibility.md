@@ -18,8 +18,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Public API ownership: core redaction contracts and mapper outputs.
 - Semantic versioning policy: changes to default detector behavior and replacement
   categories require compatibility notes.
-- Runtime and platform compatibility: exact runtime matrix remains UNDECIDED until
-  package tooling exists.
+- Runtime and platform compatibility: implementation targets Node.js `>=22.14.0`
+  with ESM-only TypeScript output; avoid promising browser or edge support.
 - Package artifact and export surface: compatibility applies to documented library and
   SDK entrypoints only.
 - Deprecation and migration policy: users must be told when detector defaults become

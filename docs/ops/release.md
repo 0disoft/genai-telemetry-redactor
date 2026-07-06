@@ -11,10 +11,14 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 
 - test, docs, and check validations pass or skipped risk is explicit.
 - Public API and SDK docs match package behavior.
+- LICENSE is Apache-2.0 and package metadata reflects it before package release.
+- SECURITY.md exists and public issue guidance forbids raw sensitive examples.
 - Detector default changes have fixtures and migration notes.
 - Examples use synthetic values only.
 - `capture_content: false` remains the default.
 - No release artifact includes raw GenAI content or live-looking secrets.
+- Runtime, license, package name, and publishing requirements are reflected in
+  ADRs before release workflow files are added.
 
 ## Stop Conditions
 
@@ -22,3 +26,4 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - Redaction failure exports content.
 - Detector default changes lack evidence.
 - Package surface changes lack semver or migration notes.
+- Publishing relies on long-lived credentials without an ADR-backed reason.

@@ -17,9 +17,11 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - Public API ownership: detector interfaces, redaction policy, redaction result,
   replacement-token policy, provider adapter contracts, and telemetry mapper contracts.
+- Package boundary ownership: core redaction, adapter shape handling, OTel mapping,
+  and SDK ergonomics must stay separable.
 - Semantic versioning policy: public exports and redaction result shapes follow semver.
-- Runtime and platform compatibility: TypeScript-oriented package; exact runtime floor
-  remains UNDECIDED until implementation.
+- Runtime and platform compatibility: TypeScript-oriented package targeting
+  Node.js `>=22.14.0` and ESM-only output.
 - Package artifact and export surface: library exports only; no hosted service or
   generated application code.
 - Deprecation and migration policy: security-affecting behavior changes require
@@ -33,3 +35,5 @@ This repository type owns public API surface, package compatibility, semantic ve
 - A public API makes raw content capture the default.
 - A public API exposes detector internals that would make future detector fixes
   semver-hostile.
+- Core redaction imports provider SDKs, telemetry exporters, filesystem, network,
+  or logging side effects.

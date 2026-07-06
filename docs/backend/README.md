@@ -22,7 +22,7 @@ not API routing, auth, or persistence.
 
 ## Merge Blockers
 
-- A change treats the placeholder OpenAPI or DB scaffold as active product surface.
+- A change treats parked OpenAPI or DB placeholders as active product surface.
 - A change stores raw GenAI content in logs, spans, test fixtures, examples, or
   persistence.
 - A hosted API, DB, queue, or worker is added without a new ADR and source-of-truth

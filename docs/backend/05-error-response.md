@@ -22,4 +22,4 @@ mapping failures, unsupported provider shapes, and unsafe content-export states.
 
 - Error messages include unredacted content.
 - Failure paths export partial content after redaction fails.
-- Placeholder OpenAPI error examples are treated as an implemented API server.
+- Parked OpenAPI error examples are treated as an implemented API server.

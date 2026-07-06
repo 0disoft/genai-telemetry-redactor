@@ -25,8 +25,9 @@ redacted content, redaction summaries, and safe OpenTelemetry GenAI metadata.
 
 ## Non-Product Surfaces
 
-The placeholder OpenAPI and DB files are repository scaffolding only. They do
-not describe an active service, persistence model, or migration stream.
+The parked OpenAPI and DB files under `docs/non-goals/backend-placeholders/` are
+repository scaffolding only. They do not describe an active service, persistence
+model, or migration stream.
 
 ## Quality Attributes
 

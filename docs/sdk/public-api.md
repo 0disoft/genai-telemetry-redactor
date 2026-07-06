@@ -19,6 +19,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
   model routing or telemetry storage.
 - SDK public contract: `withRedactedTelemetry`, provider adapter hooks, detector
   configuration, capture policy, and redaction report callbacks.
+- SDK non-ownership: provider credentials, retry policy, routing, tenant
+  authorization, telemetry exporter configuration, and prompt storage stay with the
+  caller.
 - SDK validation evidence: examples must use fake sample values and fixture-backed
   expected redaction reports.
 - SDK release or rollout policy: new provider wrappers ship behind explicit adapter
@@ -38,3 +41,4 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - SDK examples drift from public API.
 - Compatibility claims lack runtime or consumer evidence.
 - SDK behavior hides partial-redaction warnings from callers.
+- SDK wrappers export streaming content before streaming redaction is proven.

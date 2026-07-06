@@ -19,7 +19,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   remain private unless there is a consumer use case.
 - Semantic versioning policy: public export changes and result-shape changes are
   semver-significant.
-- Runtime and platform compatibility: exact Node/Bun/browser support is UNDECIDED.
+- Runtime and platform compatibility: Node.js `>=22.14.0`, ESM-only TypeScript
+  package output, no browser or edge support promise in the first implementation.
 - Package artifact and export surface: no CLI, server, DB migration, or hosted worker
   is part of the initial package surface.
 - Deprecation and migration policy: old redaction result shapes should receive a
