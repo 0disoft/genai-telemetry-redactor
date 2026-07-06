@@ -36,6 +36,21 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - Register a custom detector for project-specific identifiers.
 - Inspect redaction counts without reading raw content.
 
+## Documented Export Inventory
+
+<!-- sdk-api-inventory:start -->
+### Export `./sdk`
+
+- `RedactedTelemetryAdapter`
+- `RedactedTelemetryReportCallback`
+- `withRedactedTelemetry`
+- `WithRedactedTelemetryFailure`
+- `WithRedactedTelemetryOptions`
+- `WithRedactedTelemetryResult`
+- `WithRedactedTelemetrySuccess`
+- `WithRedactedTelemetryValue`
+<!-- sdk-api-inventory:end -->
+
 ## Implemented SDK Surface
 
 - `withRedactedTelemetry(options)`: explicit-adapter helper for already available

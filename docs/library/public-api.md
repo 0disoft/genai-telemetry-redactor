@@ -38,6 +38,103 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Output: sanitized value, redaction report, warnings, and safe telemetry metadata.
 - Default: content capture disabled and raw input never written to logs.
 
+## Documented Export Inventory
+
+<!-- public-api-inventory:start -->
+### Export `.`
+
+- `BuiltInDetectorName`
+- `createBuiltInDetectors`
+- `defaultReplacementToken`
+- `Detection`
+- `DetectionContext`
+- `Detector`
+- `mapRedactionReportToGenAIMetadata`
+- `OpenAICompatibleOptions`
+- `OpenAICompatibleStreamRedactionMetadata`
+- `OtelAttributeValue`
+- `OtelGenAIAttributeMap`
+- `OtelGenAIMetadata`
+- `OtelGenAIMetadataMapper`
+- `OtelGenAIMetadataOptions`
+- `OtelGenAITokenUsage`
+- `RedactedTelemetryAdapter`
+- `RedactedTelemetryReportCallback`
+- `RedactionLimits`
+- `RedactionOptions`
+- `RedactionReason`
+- `RedactionReport`
+- `RedactionResult`
+- `RedactionWarning`
+- `RedactionWarningCode`
+- `redactJsonLike`
+- `redactOpenAICompatibleRequest`
+- `redactOpenAICompatibleResponse`
+- `redactOpenAICompatibleStreamEvent`
+- `redactText`
+- `redactToolArguments`
+- `ReplacementTokenPolicy`
+- `SafeRedactionError`
+- `SafeRedactionErrorCode`
+- `withRedactedTelemetry`
+- `WithRedactedTelemetryFailure`
+- `WithRedactedTelemetryOptions`
+- `WithRedactedTelemetryResult`
+- `WithRedactedTelemetrySuccess`
+- `WithRedactedTelemetryValue`
+
+### Export `./core`
+
+- `BuiltInDetectorName`
+- `createBuiltInDetectors`
+- `defaultReplacementToken`
+- `Detection`
+- `DetectionContext`
+- `Detector`
+- `RedactionLimits`
+- `RedactionOptions`
+- `RedactionReason`
+- `RedactionReport`
+- `RedactionResult`
+- `RedactionWarning`
+- `RedactionWarningCode`
+- `redactJsonLike`
+- `redactText`
+- `redactToolArguments`
+- `ReplacementTokenPolicy`
+- `SafeRedactionError`
+- `SafeRedactionErrorCode`
+
+### Export `./openai-compatible`
+
+- `OpenAICompatibleOptions`
+- `OpenAICompatibleStreamRedactionMetadata`
+- `redactOpenAICompatibleRequest`
+- `redactOpenAICompatibleResponse`
+- `redactOpenAICompatibleStreamEvent`
+
+### Export `./otel`
+
+- `mapRedactionReportToGenAIMetadata`
+- `OtelAttributeValue`
+- `OtelGenAIAttributeMap`
+- `OtelGenAIMetadata`
+- `OtelGenAIMetadataMapper`
+- `OtelGenAIMetadataOptions`
+- `OtelGenAITokenUsage`
+
+### Export `./sdk`
+
+- `RedactedTelemetryAdapter`
+- `RedactedTelemetryReportCallback`
+- `withRedactedTelemetry`
+- `WithRedactedTelemetryFailure`
+- `WithRedactedTelemetryOptions`
+- `WithRedactedTelemetryResult`
+- `WithRedactedTelemetrySuccess`
+- `WithRedactedTelemetryValue`
+<!-- public-api-inventory:end -->
+
 ## Implemented Core Surface
 
 - `redactText(input, options)`: async provider-agnostic text redaction.

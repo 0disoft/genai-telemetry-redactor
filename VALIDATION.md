@@ -38,7 +38,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - build: TypeScript emit to ignored `dist/` for package artifact validation.
 - test: Vitest test suite.
 - contract: live-looking secret guard across docs, packages, and scripts plus
-  package export-surface, dry-run artifact, and packed consumer import guards.
+  package export-surface, public API documentation, dry-run artifact, and packed
+  consumer import guards.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, OpenAI-compatible adapter, OTel
   metadata mapper, and SDK wrapper smoke tests.
