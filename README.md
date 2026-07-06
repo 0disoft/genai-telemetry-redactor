@@ -34,6 +34,8 @@ and reports redaction counts and reasons without preserving raw user content.
 - packages/openai-compatible/: structural OpenAI-compatible request, response, and
   streaming metadata adapter
 - packages/otel/: metadata-only OpenTelemetry GenAI mapping helpers
+- packages/sdk/: caller ergonomics helpers that combine adapter redaction and safe
+  telemetry metadata
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 
 ## Repository Shape Notes
@@ -66,6 +68,12 @@ reports and safe GenAI metadata candidates, keeps content capture disabled, and
 exports official GenAI operation/provider/model/token attributes plus
 library-specific `genai_redactor.*` redaction metadata without accepting raw
 provider payloads or span writer objects.
+
+`packages/sdk` starts the SDK ergonomics boundary with `withRedactedTelemetry`:
+an explicit-adapter helper that redacts OpenAI-compatible request and response
+payloads, returns safe telemetry metadata, and invokes optional report callbacks
+without owning provider credentials, retries, routing, transport, telemetry
+exporters, or prompt storage.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

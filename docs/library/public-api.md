@@ -75,6 +75,17 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Warning paths, detector IDs, raw provider payloads, prompt text, completion text,
   tool arguments, credentials, and span writer objects are outside the mapper API.
 
+## Implemented SDK Surface
+
+- `withRedactedTelemetry(options)`: explicit-adapter helper that combines
+  OpenAI-compatible redaction and OTel metadata mapping.
+- The helper returns redacted request/response payloads only when every requested
+  redaction step succeeds.
+- On failure, the helper returns safe metadata, report, warnings, and safe error
+  details without returning partial payloads.
+- The helper accepts optional report callbacks that receive reports and metadata
+  only.
+
 ## Review Blockers
 
 - Public exports change without semver and migration notes.

@@ -24,6 +24,10 @@
     "./otel": {
       "types": "./packages/otel/src/index.ts",
       "default": "./packages/otel/src/index.ts"
+    },
+    "./sdk": {
+      "types": "./packages/sdk/src/index.ts",
+      "default": "./packages/sdk/src/index.ts"
     }
   },
   "scripts": {
@@ -33,7 +37,7 @@
     "test": "vitest run",
     "contract": "tsx scripts/check-no-live-secrets.ts",
     "docs": "tsx scripts/check-no-live-secrets.ts --docs-only",
-    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts",
+    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
     "check": "pnpm run format && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run docs"
   },
   "devDependencies": {

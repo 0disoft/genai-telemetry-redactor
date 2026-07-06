@@ -20,6 +20,13 @@ mapping, and SDK ergonomics.
 - SDK wrapper: caller ergonomics; no credential storage, retry ownership,
   routing, exporter ownership, or model gateway behavior.
 
+## Implemented Boundary Notes
+
+- `packages/sdk` may compose `packages/openai-compatible` and `packages/otel`.
+- `packages/sdk` must not import provider SDKs, HTTP clients, telemetry exporters,
+  filesystem persistence, or logging side effects.
+- SDK failure paths must not return partially redacted request or response payloads.
+
 ## External Publishing
 
 The first publishable artifact is one consumer-facing npm package:
