@@ -38,13 +38,16 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `scripts/check-package-artifact.ts` runs `npm pack --dry-run --json` and verifies
   required entrypoint files are present while scaffold, test, script, and generated
   non-goal paths stay out of the package artifact.
+- `scripts/check-package-consumer.ts` packs the package, installs the tarball into a
+  temporary ESM consumer project, then verifies public root and subpath exports with
+  runtime imports and TypeScript declaration resolution.
 - `tsconfig.build.json` emits package JavaScript and declarations under ignored
   `dist/`.
 - The root `package.json` `files` allowlist is the artifact boundary. It includes
   compiled `dist` entrypoints, internal package manifests, license/security/readme
   files, and consumer-facing docs only.
 - The `contract` runner executes the live-looking secret guard, package surface
-  guard, and dry-run artifact guard.
+  guard, dry-run artifact guard, and packed consumer import guard.
 
 ## Review Blockers
 
