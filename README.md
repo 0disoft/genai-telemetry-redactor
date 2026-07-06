@@ -28,8 +28,8 @@ and reports redaction counts and reasons without preserving raw user content.
 - docs/engineering/04-security-baseline.md: security and redaction safety baseline
 - docs/non-goals/backend-placeholders/: parked API and DB placeholders that are not
   active product contracts
-- package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package and
-  validation runner setup
+- package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package,
+  build, and validation runner setup
 - packages/core/: initial provider-agnostic redaction core
 - packages/openai-compatible/: structural OpenAI-compatible request, response, and
   streaming metadata adapter
@@ -95,6 +95,7 @@ Runtime packaging is decided as Node.js `>=22.14.0`, ESM-only TypeScript, and a
 pnpm workspace with one initial npm package named `genai-telemetry-redactor`.
 The OpenTelemetry GenAI semantic-convention source is tracked as the upstream
 Development GenAI convention, so custom redaction metadata stays under the
-`genai_redactor.*` namespace. The product boundary is already decided: redact
-before export, capture content only by explicit opt-in, and never treat redaction
-as perfect sensitive-data discovery.
+`genai_redactor.*` namespace. Package exports point at compiled `dist`
+JavaScript and declaration files emitted from the TypeScript source. The product
+boundary is already decided: redact before export, capture content only by
+explicit opt-in, and never treat redaction as perfect sensitive-data discovery.

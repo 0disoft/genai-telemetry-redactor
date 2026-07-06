@@ -12,6 +12,7 @@ library and SDK scaffold.
 - format
 - lint
 - typecheck
+- build
 - test
 - contract
 - migration-check
@@ -34,6 +35,7 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - format: Prettier check for package, TypeScript, and runner files.
 - lint: TypeScript no-emit check.
 - typecheck: TypeScript no-emit check.
+- build: TypeScript emit to ignored `dist/` for package artifact validation.
 - test: Vitest test suite.
 - contract: live-looking secret guard across docs, packages, and scripts plus
   package export-surface and dry-run artifact guards.

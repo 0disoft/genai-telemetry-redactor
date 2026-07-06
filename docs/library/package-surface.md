@@ -20,7 +20,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Semantic versioning policy: public export changes and result-shape changes are
   semver-significant.
 - Runtime and platform compatibility: Node.js `>=22.14.0`, ESM-only TypeScript
-  package output, no browser or edge support promise in the first implementation.
+  source with compiled ESM JavaScript and declaration package output, no browser or
+  edge support promise in the first implementation.
 - Package artifact and export surface: no CLI, server, DB migration, or hosted worker
   is part of the initial package surface.
 - Deprecation and migration policy: old redaction result shapes should receive a
@@ -37,9 +38,11 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `scripts/check-package-artifact.ts` runs `npm pack --dry-run --json` and verifies
   required entrypoint files are present while scaffold, test, script, and generated
   non-goal paths stay out of the package artifact.
+- `tsconfig.build.json` emits package JavaScript and declarations under ignored
+  `dist/`.
 - The root `package.json` `files` allowlist is the artifact boundary. It includes
-  source entrypoints, internal package manifests, license/security/readme files, and
-  consumer-facing docs only.
+  compiled `dist` entrypoints, internal package manifests, license/security/readme
+  files, and consumer-facing docs only.
 - The `contract` runner executes the live-looking secret guard, package surface
   guard, and dry-run artifact guard.
 

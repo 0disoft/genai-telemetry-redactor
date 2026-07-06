@@ -20,9 +20,9 @@ const violations: string[] = [];
 const packageJson = await readJson<PackageJson>(PACKAGE_JSON);
 const packageNames = await listInternalPackageNames();
 const expectedExports = new Map<string, string>([
-  [".", "./src/index.ts"],
+  [".", "./dist/src/index.js"],
   ...packageNames.map(
-    (name) => [`./${name}`, `./packages/${name}/src/index.ts`] as const,
+    (name) => [`./${name}`, `./dist/packages/${name}/src/index.js`] as const,
   ),
 ]);
 
@@ -66,9 +66,11 @@ function checkRootExports(packageJson: PackageJson) {
       continue;
     }
 
-    if (actualTarget.types !== expectedTarget) {
+    const expectedTypesTarget = expectedTarget.replace(/\.js$/, ".d.ts");
+
+    if (actualTarget.types !== expectedTypesTarget) {
       violations.push(
-        `${exportName} types target drift: expected ${expectedTarget}, got ${actualTarget.types ?? "<missing>"}`,
+        `${exportName} types target drift: expected ${expectedTypesTarget}, got ${actualTarget.types ?? "<missing>"}`,
       );
     }
 
