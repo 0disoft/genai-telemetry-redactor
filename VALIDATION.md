@@ -36,7 +36,7 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - typecheck: TypeScript no-emit check.
 - test: Vitest test suite.
 - contract: live-looking secret guard across docs, packages, and scripts plus
-  package export-surface guard.
+  package export-surface and dry-run artifact guards.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, OpenAI-compatible adapter, OTel
   metadata mapper, and SDK wrapper smoke tests.

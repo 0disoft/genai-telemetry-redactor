@@ -34,8 +34,14 @@ This repository type owns public API surface, package compatibility, semantic ve
   package.
 - The guard verifies internal workspace packages stay private, ESM-only, and named
   with the `@genai-telemetry-redactor/<package>-internal` convention.
-- The `contract` runner executes both the live-looking secret guard and the package
-  surface guard.
+- `scripts/check-package-artifact.ts` runs `npm pack --dry-run --json` and verifies
+  required entrypoint files are present while scaffold, test, script, and generated
+  non-goal paths stay out of the package artifact.
+- The root `package.json` `files` allowlist is the artifact boundary. It includes
+  source entrypoints, internal package manifests, license/security/readme files, and
+  consumer-facing docs only.
+- The `contract` runner executes the live-looking secret guard, package surface
+  guard, and dry-run artifact guard.
 
 ## Review Blockers
 

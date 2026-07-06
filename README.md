@@ -38,6 +38,7 @@ and reports redaction counts and reasons without preserving raw user content.
   telemetry metadata
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 - scripts/check-package-surface.ts: package export and internal package surface guard
+- scripts/check-package-artifact.ts: npm dry-run package artifact guard
 
 ## Repository Shape Notes
 
