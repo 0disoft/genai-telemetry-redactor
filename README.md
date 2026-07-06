@@ -37,6 +37,7 @@ and reports redaction counts and reasons without preserving raw user content.
 - packages/sdk/: caller ergonomics helpers that combine adapter redaction and safe
   telemetry metadata
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
+- scripts/check-package-surface.ts: package export and internal package surface guard
 
 ## Repository Shape Notes
 

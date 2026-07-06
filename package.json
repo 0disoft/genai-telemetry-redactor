@@ -35,7 +35,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "contract": "tsx scripts/check-no-live-secrets.ts",
+    "contract": "tsx scripts/check-no-live-secrets.ts && tsx scripts/check-package-surface.ts",
     "docs": "tsx scripts/check-no-live-secrets.ts --docs-only",
     "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
     "check": "pnpm run format && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run docs"

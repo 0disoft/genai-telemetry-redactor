@@ -1,6 +1,6 @@
 # Package Surface
 
-Status: Product-shaping
+Status: Implementation-started
 Repository Type: library
 
 ## Repository Type Contract
@@ -25,6 +25,17 @@ This repository type owns public API surface, package compatibility, semantic ve
   is part of the initial package surface.
 - Deprecation and migration policy: old redaction result shapes should receive a
   migration guide before removal.
+
+## Implemented Surface Guard
+
+- `scripts/check-package-surface.ts` verifies that each internal workspace package
+  has a matching root `package.json` subpath export.
+- The guard verifies root barrel exports in `src/index.ts` for each internal
+  package.
+- The guard verifies internal workspace packages stay private, ESM-only, and named
+  with the `@genai-telemetry-redactor/<package>-internal` convention.
+- The `contract` runner executes both the live-looking secret guard and the package
+  surface guard.
 
 ## Review Blockers
 
