@@ -1,23 +1,27 @@
 # API Server Boundary
 
-Status: Draft
+Status: Product-shaping
 
 ## Backend Contract
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+There is no active hosted API server boundary in the current product. `api/openapi.yaml`
+is a placeholder and must not be treated as an implemented API contract.
+
+If a hosted adapter is introduced later, it needs an ADR that explains why a library
+boundary is no longer enough, how auth is owned, and how raw GenAI content is kept out
+of request logs and telemetry.
 
 ## Required Decisions
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- API owner: not applicable.
+- Auth model: caller-owned.
+- Authorization checks: caller-owned.
+- Persistence model: none for the library core.
+- Error response policy: do not include raw prompt, completion, tool arguments, tokens,
+  private URLs, or customer identifiers in errors.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- API endpoints are added without an ADR and tests for request-log redaction.
+- Placeholder API examples are cited as implemented behavior.
+- API errors leak redaction input or detector match values.

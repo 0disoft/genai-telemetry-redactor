@@ -1,20 +1,30 @@
 # Performance Budget
 
-Status: Draft
+Status: Active
 
 ## Contract
 
-Performance budgets must track latency, payload size, query count, cache behavior, bundle size, background jobs, and UNDECIDED project-specific thresholds.
+Performance matters because redaction sits in the hot path of LLM requests and
+telemetry export. Security still wins over speed: unsafe fast paths are not
+acceptable.
 
-## Required Evidence
+## Budget Areas
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+- Detector latency per prompt, completion, and tool argument payload.
+- Payload size after redaction and metadata mapping.
+- Memory overhead for nested tool arguments.
+- Streaming buffer size when streaming support is implemented.
+- Package size and dependency footprint for SDK consumers.
+
+## Current Thresholds
+
+Exact numeric thresholds are not chosen yet. Until implementation begins,
+changes must document expected complexity and avoid dependencies that make the
+redaction hot path unexpectedly heavy.
 
 ## Review Blockers
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+- A performance shortcut exports content before redaction.
+- A detector can hang or backtrack badly on untrusted user text.
+- A new dependency is added without necessity, license, and bundle/runtime
+  impact review.

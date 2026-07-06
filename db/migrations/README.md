@@ -1,28 +1,22 @@
 # Migrations
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Inactive
 
-## Purpose
+## Boundary
 
-This document captures the durable design contract for Migrations.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The current product is a library and SDK middleware package. It does not own a
+database or migration stream.
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Product scope: ../../docs/product/02-spec.md
+- Architecture boundary: ../../docs/adr/0001-initial-architecture-boundaries.md
+- Contract source of truth: ../../docs/adr/0002-contract-source-of-truth.md
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A migration is added without a product decision that introduces owned
+  persistence.
+- A migration stores raw prompts, completions, tool arguments, credentials, or
+  customer identifiers.
+- Placeholder DB files are treated as implemented product behavior.

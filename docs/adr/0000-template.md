@@ -1,28 +1,38 @@
 # ADR Template
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Template
 
-## Purpose
+## Context
 
-This document captures the durable design contract for ADR Template.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Describe the product, library API, SDK, redaction, telemetry, or safety pressure
+that requires a durable decision.
+
+## Decision
+
+State the selected boundary or behavior. Name whether the decision affects
+detectors, replacement tokens, OpenTelemetry GenAI mapping, content capture,
+streaming redaction, package exports, or SDK adapters.
+
+## Consequences
+
+- Security impact:
+- Compatibility impact:
+- False-negative or false-positive impact:
+- Telemetry semantics impact:
+- Migration impact:
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Product scope:
+- Public API:
+- SDK contract:
+- Validation evidence:
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- The decision logs, stores, or documents raw sensitive GenAI content.
+- The decision changes detector defaults without migration notes and fixture
+  evidence.
+- The decision claims complete DLP, PII, or compliance coverage.
+- The decision introduces hosted API, database, gateway, or telemetry-backend
+  ownership without a new product decision.

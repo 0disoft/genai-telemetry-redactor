@@ -1,19 +1,28 @@
 # Rollback
 
-Status: Draft
+Status: Active
 
-## Operational Contract
+## Boundary
 
-Provide a short actionable decision tree with triggers, procedure, database rollback policy, validation, owners, and forward-fix criteria.
+Rollback means consumers pin or downgrade the package version. There is no
+database rollback policy for the current product.
 
-## Owners
+## Rollback Triggers
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Content capture defaults change unsafely.
+- A release exports content when redaction fails.
+- A detector regression creates known false negatives.
+- SDK wrapper behavior logs raw content before redaction.
+
+## Forward-Fix Criteria
+
+- Regression fixture added.
+- Docs describe affected behavior without raw sensitive content.
+- Migration notes tell consumers whether to pin, upgrade, or change
+  configuration.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: test, docs, check.
+- Remaining operational risk: consumers own cleanup of any already-exported
+  telemetry.

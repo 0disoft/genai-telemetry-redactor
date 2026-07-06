@@ -1,28 +1,22 @@
 # Seed Data
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Inactive
 
-## Purpose
+## Boundary
 
-This document captures the durable design contract for Seed Data.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+The current product has no owned database and no seed-data workflow. Test data
+belongs in synthetic fixtures for detector, policy, SDK, and telemetry mapping
+behavior.
 
-## Source of Truth
+## Allowed Fixture Style
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Use fake values only.
+- Prefer `.invalid` domains and obvious placeholders.
+- Do not include real prompts, completions, tool arguments, bearer tokens, API
+  keys, private URLs, or customer identifiers.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- Seed files are added without an ADR introducing persistence.
+- Seed or fixture data looks like copied production content.
+- Test data teaches consumers to store raw GenAI content.

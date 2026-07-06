@@ -1,19 +1,24 @@
 # Release
 
-Status: Draft
+Status: Active
 
 ## Operational Contract
 
-Cover release types, versioning, pre-release checklist, deployment flow, post-deploy verification, stop conditions, and owner handoff.
+Releases ship a package. They do not deploy a service. Versioning and migration
+rules follow docs/library/semver.md and docs/library/migration-guide.md.
 
-## Owners
+## Pre-Release Checklist
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- test, docs, and check validations pass or skipped risk is explicit.
+- Public API and SDK docs match package behavior.
+- Detector default changes have fixtures and migration notes.
+- Examples use synthetic values only.
+- `capture_content: false` remains the default.
+- No release artifact includes raw GenAI content or live-looking secrets.
 
-## Validation
+## Stop Conditions
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Unsafe content export by default.
+- Redaction failure exports content.
+- Detector default changes lack evidence.
+- Package surface changes lack semver or migration notes.

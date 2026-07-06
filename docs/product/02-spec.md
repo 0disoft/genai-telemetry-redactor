@@ -1,28 +1,56 @@
 # Product Specification
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Product-shaping
+Owner: repository owner
 
 ## Purpose
 
-This document captures the durable design contract for Product Specification.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+GenAI Telemetry Redactor provides a TypeScript-oriented library/SDK contract for
+redacting LLM telemetry content before export.
+
+The first product slice targets OpenAI-compatible request/response shapes, completion
+text, prompt messages, nested tool-call arguments, redaction summary output, and
+OpenTelemetry GenAI metadata mapping. Streaming content redaction remains a safety
+area that must default to metadata-only export until chunk handling is proven.
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Product decision: content capture is off by default; opt-in content export must pass
+  through redaction first.
+- Technical owner: repository owner
+- Related ADR: docs/adr/0001-initial-architecture-boundaries.md
 
 ## Required Decisions
 
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
+- Boundary: library functions and SDK middleware for redaction, detector policy,
+  replacement tokens, redaction reports, and telemetry metadata mapping.
+- Data ownership: raw GenAI payloads stay with the caller; the library must not persist
+  raw payloads.
+- Failure and recovery behavior: unknown or failed redaction paths must suppress content
+  export and preserve metadata-only telemetry where safe.
 - Validation needed before merge: VALIDATION.md
+
+## MVP Requirements
+
+- Redact prompt messages, completion text, and tool arguments.
+- Detect common email addresses, bearer tokens, API-key-like strings, and internal or
+  absolute URLs.
+- Allow custom detector hooks with reason codes.
+- Emit replacement tokens that preserve detector category without preserving value.
+- Produce redaction counts and reason summaries.
+- Map safe GenAI metadata to OpenTelemetry span/event helpers.
+- Keep `capture_content` false by default.
+
+## Explicit Non-Goals
+
+- Complete DLP or PII coverage.
+- Telemetry backend, prompt storage, model gateway, or provider account management.
+- Legal compliance certification.
+- All LLM providers in the first release.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- Raw content capture becomes default behavior.
+- Redaction failure lets raw prompt, completion, or tool arguments pass through.
+- Telemetry examples include real secrets, tokens, customer data, or private URLs.
+- Compatibility or safety claims lack detector fixtures and failure-path evidence.

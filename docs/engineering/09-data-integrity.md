@@ -1,20 +1,31 @@
 # Data Integrity
 
-Status: Draft
+Status: Active
 
 ## Contract
 
-Operability standard connects code changes to logs, metrics, traces, rollback, runbooks, health checks, incident response, and failure evidence.
+Data integrity means redacted output, summaries, and metadata must faithfully
+represent what happened without preserving raw sensitive content.
 
-## Required Evidence
+## Integrity Rules
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+- Replacement tokens must not encode the original secret.
+- Redaction counts must match detector matches after policy decisions.
+- Reason labels must be stable enough for tests and telemetry dashboards.
+- Tool argument redaction must preserve object shape when possible while
+  replacing sensitive leaf values.
+- Safe metadata must stay separate from content-bearing fields.
+- Redaction failure must not produce partial content export.
+
+## Non-Goals
+
+- The package does not guarantee complete PII discovery.
+- The package does not store prompts, completions, or tool arguments.
+- The package does not own a database, migration stream, or telemetry backend.
 
 ## Review Blockers
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+- Summaries include original values or reversible encodings.
+- Counts can drift from actual replacement behavior.
+- Nested tool arguments are flattened in a way that hides where redaction
+  happened without a documented reason.

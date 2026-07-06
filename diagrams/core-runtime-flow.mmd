@@ -1,5 +1,8 @@
 flowchart TD
-  A["core_runtime_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Input["Prompt / completion / tool arguments"] --> Capture{"capture_content?"}
+  Capture -- "false" --> MetadataOnly["Emit metadata only"]
+  Capture -- "true" --> Detect["Run detectors"]
+  Detect --> Replace["Replace sensitive values"]
+  Replace --> Summary["Count reasons"]
+  Summary --> Export["Emit safe OTel GenAI telemetry"]
+  Detect -- "redaction failure" --> FailClosed["Omit content and emit safe failure metadata"]

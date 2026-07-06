@@ -1,19 +1,24 @@
 # Service Levels
 
-Status: Draft
+Status: Active
 
-## Operational Contract
+## Boundary
 
-Define severity, roles, first 10 minutes, communication, timeline, postmortem, follow-up policy, and evidence preservation.
+No hosted service level is promised by this repository. Consumers own runtime
+availability, telemetry exporter uptime, storage retention, and incident
+response.
 
-## Owners
+## Package Quality Levels
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- Safe default: content capture off.
+- Safe failure: content export fails closed on redaction failure.
+- Useful telemetry: redaction summaries and safe GenAI metadata remain available.
+- Explicit compatibility: supported provider shapes and OTel mappings are named.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: test, docs, check.
+- Release blocker status: unsafe defaults or untested detector changes block
+  release.
+- Remaining operational risk: no detector corpus can prove complete sensitive
+  data coverage.

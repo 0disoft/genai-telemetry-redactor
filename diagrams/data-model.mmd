@@ -1,5 +1,31 @@
-flowchart TD
-  A["data_model: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+erDiagram
+  GENAI_OPERATION ||--o{ CONTENT_FIELD : contains
+  CONTENT_FIELD ||--o{ DETECTION : inspected_by
+  DETECTION ||--|| REPLACEMENT_TOKEN : produces
+  GENAI_OPERATION ||--|| REDACTION_SUMMARY : reports
+  GENAI_OPERATION ||--|| OTEL_GENAI_METADATA : maps_to
+
+  GENAI_OPERATION {
+    string provider_shape
+    string operation_name
+  }
+  CONTENT_FIELD {
+    string field_kind
+    string capture_policy
+  }
+  DETECTION {
+    string reason
+    int count
+  }
+  REPLACEMENT_TOKEN {
+    string token_kind
+  }
+  REDACTION_SUMMARY {
+    int total_redactions
+    string reason_summary
+  }
+  OTEL_GENAI_METADATA {
+    string model
+    string token_counts
+    string latency
+  }

@@ -1,17 +1,37 @@
 # System Boundary
 
-Status: Draft
+Status: Active
 
 ## Boundary
 
-Define what this repository owns, what it consumes, and which contracts cannot drift.
+This repository owns a GenAI telemetry redaction library and SDK middleware
+contract. It consumes caller-provided LLM request/response shapes and emits
+redacted content, redaction summaries, and safe OpenTelemetry GenAI metadata.
 
-## Runtime Flow
+## Owned Components
 
-UNDECIDED. Add the minimal sequence needed to explain request, state, failure, and recovery behavior.
+- Redaction policy and detector contracts.
+- Replacement token formatting.
+- Redaction result and summary metadata.
+- OpenTelemetry GenAI mapping helpers.
+- SDK wrapper and middleware integration guidance.
+
+## External Components
+
+- LLM providers and provider SDKs.
+- OpenTelemetry SDKs, collectors, and telemetry backends.
+- Application logging, tracing, and sampling configuration.
+- Caller-owned auth, tenant, storage, and deployment systems.
+
+## Non-Product Surfaces
+
+The placeholder OpenAPI and DB files are repository scaffolding only. They do
+not describe an active service, persistence model, or migration stream.
 
 ## Quality Attributes
 
-- Maintainability: changes must preserve source-of-truth documents.
-- Security: authentication, authorization, tenant boundaries, and secrets need explicit owners.
-- Operability: logs, metrics, rollback, and incident response must be considered before release.
+- Security: raw GenAI content must not be exported unless the caller explicitly
+  enables content capture and redaction succeeds.
+- Maintainability: detector and SDK changes must preserve source-of-truth docs.
+- Compatibility: provider-shape and OTel convention drift must be explicit.
+- Operability: failures must prefer safe metadata over raw-content leakage.

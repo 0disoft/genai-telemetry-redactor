@@ -1,6 +1,6 @@
 # Package Surface
 
-Status: Draft
+Status: Product-shaping
 Repository Type: library
 
 ## Repository Type Contract
@@ -9,20 +9,26 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
+- Product decision: publish a small embeddable redaction package.
+- Technical owner: repository owner
+- Related ADR: docs/adr/0001-initial-architecture-boundaries.md
 
 ## Required Decisions
 
-- Public API ownership: UNDECIDED
-- Semantic versioning policy: UNDECIDED
-- Runtime and platform compatibility: UNDECIDED
-- Package artifact and export surface: UNDECIDED
-- Deprecation and migration policy: UNDECIDED
+- Public API ownership: documented exports only; internal detector utilities should
+  remain private unless there is a consumer use case.
+- Semantic versioning policy: public export changes and result-shape changes are
+  semver-significant.
+- Runtime and platform compatibility: exact Node/Bun/browser support is UNDECIDED.
+- Package artifact and export surface: no CLI, server, DB migration, or hosted worker
+  is part of the initial package surface.
+- Deprecation and migration policy: old redaction result shapes should receive a
+  migration guide before removal.
 
 ## Review Blockers
 
 - Public exports change without semver and migration notes.
 - Compatibility claims lack runtime or consumer evidence.
 - Package artifacts drift from documented public API.
+- Package files include fixtures with real-looking secrets that could be mistaken for
+  live credentials.

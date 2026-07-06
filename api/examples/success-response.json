@@ -1,6 +1,11 @@
 {
   "data": {
-    "id": "resource_UNDECIDED",
-    "type": "Resource"
+    "redacted": true,
+    "sanitizedText": "Contact [REDACTED:email] with token [REDACTED:api_key].",
+    "counts": {
+      "email": 1,
+      "api_key": 1
+    },
+    "warnings": []
   }
 }

@@ -1,23 +1,25 @@
 # Error Response
 
-Status: Draft
+Status: Active
 
-## Backend Contract
+## Boundary
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+This repository does not currently own a hosted API error-response contract.
+Error handling belongs to the library and SDK surfaces: detector failures,
+mapping failures, unsupported provider shapes, and unsafe content-export states.
 
-## Required Decisions
+## Error Policy
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- Errors must not echo raw prompt, completion, tool argument, bearer token, API
+  key, private URL, or customer identifier values.
+- Redaction failures must fail closed for content export.
+- Unsupported provider shapes should return or throw structured safe errors that
+  identify the unsupported shape category, not the raw payload.
+- SDK wrappers should let callers handle provider errors without adding raw
+  content to telemetry.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- Error messages include unredacted content.
+- Failure paths export partial content after redaction fails.
+- Placeholder OpenAPI error examples are treated as an implemented API server.

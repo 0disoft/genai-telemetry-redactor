@@ -2,16 +2,20 @@
 
 ## Repository Scope
 
-Scope: backend
+Scope: backend library
 
-This repository owns API server behavior, server-side domain rules, authentication,
-authorization, persistence, migrations, observability, and backend security.
+This repository owns a GenAI telemetry redaction library and SDK surface. Its job is
+to redact LLM prompt, completion, and tool-call content before telemetry export, then
+emit safe metadata, redaction summaries, and OpenTelemetry GenAI-compatible mapping
+helpers.
 
-This repository does not own frontend routing, visual design, component hierarchy,
+This repository does not own a hosted API server, database schema, telemetry backend,
+model gateway, DLP platform, frontend routing, visual design, component hierarchy,
 design tokens, or browser interaction policy.
 
-Frontend-facing behavior is contracted through `api/openapi.yaml`, `api/examples/*.json`,
-`docs/backend/04-http-api-policy.md`, and `docs/backend/05-error-response.md`.
+Consumer-facing behavior is contracted through `docs/product/02-spec.md`,
+`docs/library/public-api.md`, `docs/sdk/public-api.md`, `docs/backend/06-logging-and-observability.md`,
+and `docs/engineering/04-security-baseline.md`.
 
 ## Repository Shape
 
@@ -25,6 +29,10 @@ Addons: sdk
 ## Source of Truth
 
 - Product scope: docs/product/02-spec.md
+- Redaction and telemetry boundary: docs/backend/06-logging-and-observability.md
+- Public library API: docs/library/public-api.md
+- SDK integration contract: docs/sdk/public-api.md
+- Security baseline: docs/engineering/04-security-baseline.md
 - Architecture decisions: docs/adr/*.md
 - Validation: VALIDATION.md
 - Agent routing: .agents/context-map.md
@@ -36,6 +44,10 @@ Addons: sdk
 - Do not invent technology choices. Use UNDECIDED when a decision is not known.
 - Do not create fake credentials, tokens, secrets, or private values.
 - Do not rely on generated, cache, or build output as source truth.
+- Do not promise complete PII or DLP coverage. The project can reduce telemetry leakage
+  risk, but cannot guarantee perfect detection.
+- Do not store raw prompts, completions, tool arguments, API keys, bearer tokens, or
+  customer identifiers as examples, fixtures, logs, or documentation samples.
 
 ## Repository Hygiene
 
@@ -56,6 +68,8 @@ Addons: sdk
 - Application source scaffolding.
 - Runtime infrastructure such as Docker, Kubernetes, Terraform, or framework apps.
 - Project-specific credentials or deployment secrets.
+- Hosted telemetry collection, prompt storage, model routing, legal compliance
+  certification, or provider account configuration.
 
 ## Final Response Requirements
 

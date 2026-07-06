@@ -1,10 +1,11 @@
 # Validation
 
-Status: Draft
+Status: Active
 
 ## Validation Source of Truth
 
-This document owns stable validation names for this scaffold.
+This document owns stable validation names for the GenAI telemetry redaction
+library and SDK scaffold.
 
 ## Standard Validation Names
 
@@ -40,4 +41,3 @@ backend validation routes must stay stack-neutral unless a runner file explicitl
 ## Repository Shape
 
 library, sdk validation must stay repository-shape focused and must not imply generated application source code.
-

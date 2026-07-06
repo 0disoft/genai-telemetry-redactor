@@ -1,19 +1,26 @@
 # Backup and Restore
 
-Status: Draft
+Status: Active
 
-## Operational Contract
+## Boundary
 
-Focus on restore, including restore owner, schedule, test cadence, RTO, RPO, integrity checks, and partial restore behavior.
+The current product has no repository-owned runtime data store. Backup and
+restore for prompts, completions, tool arguments, traces, logs, and telemetry
+backends is consumer-owned.
 
-## Owners
+## Package Recovery
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+Recovery means reverting or replacing a package version that changes redaction
+behavior unsafely.
+
+- Keep migration notes for public API and detector default changes.
+- Preserve test fixtures that expose detector behavior.
+- Prefer forward fixes for false negatives when possible.
+- Tell consumers when a release may have exported content unexpectedly.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: test, docs, check.
+- Release blocker status: no release should require restoring raw prompt data.
+- Remaining operational risk: consumers own any telemetry backend cleanup after
+  accidental export.

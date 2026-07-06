@@ -1,20 +1,35 @@
 # Testing Standard
 
-Status: Draft
+Status: Active
 
 ## Contract
 
-Testing standard defines merge-blocking expectations for unit, integration, contract, migration, smoke, docs, and regression evidence.
+Testing must prove that the package removes sensitive content before telemetry
+export while preserving safe GenAI metadata and useful redaction summaries.
 
 ## Required Evidence
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+- Source of truth: docs/product/02-spec.md, docs/library/public-api.md, and
+  docs/sdk/public-api.md.
+- Merge-blocking validation names: test, docs, check.
+- Related checklists: .agents/checklists/library-package.md and
+  .agents/checklists/sdk.md.
+
+## Required Test Areas
+
+- Detector corpus for email, bearer token, API-key-like string, URL, and custom
+  detector hooks.
+- Replacement token policy and redaction reason counts.
+- `capture_content: false` default behavior.
+- Fail-closed behavior when redaction or mapping fails.
+- Tool argument redaction for nested objects.
+- OpenAI-compatible request and response shape handling.
+- OpenTelemetry GenAI metadata mapping.
+- Streaming content policy, especially chunk-boundary false negatives.
 
 ## Review Blockers
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+- Tests or examples use live-looking secrets, private URLs, or customer content.
+- Detector default changes lack fixture evidence and migration notes.
+- Content export behavior changes without explicit `capture_content` coverage.
+- A skipped test, docs, or check validation lacks a reason and remaining risk.

@@ -1,20 +1,28 @@
 # Code Review Checklist
 
-Status: Draft
+Status: Active
 
 ## Contract
 
-Code review blockers include ownership drift, hidden auth or tenant rules, untested failure paths, contract drift, fake validation success, and generated-output dependency.
+Code review should block redaction drift, unsafe examples, untested provider
+shape support, hidden content export, and package API changes without migration
+notes.
 
-## Required Evidence
+## Checklist
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+- Source-of-truth docs are updated when public behavior changes.
+- `capture_content: false` remains the default.
+- Redaction runs before telemetry export.
+- Failure paths do not include raw content in logs, errors, spans, events, or
+  summaries.
+- Detector behavior has fixture evidence.
+- Provider-shape support is named and tested.
+- SDK examples use documented exports and fake values only.
+- Semver and migration docs are updated for public API or default changes.
 
 ## Review Blockers
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+- Raw sensitive content appears anywhere in the diff.
+- Validation is skipped without a reason and remaining risk.
+- Generated output is treated as source truth.
+- Placeholder API, DB, or ops docs become active contracts accidentally.

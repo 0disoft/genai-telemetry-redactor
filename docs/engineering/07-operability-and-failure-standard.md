@@ -1,20 +1,30 @@
 # Operability and Failure Standard
 
-Status: Draft
+Status: Active
 
 ## Contract
 
-Operability standard connects code changes to logs, metrics, traces, rollback, runbooks, health checks, incident response, and failure evidence.
+The package is not an operated service, but consumers will rely on its failure
+behavior inside production telemetry paths.
 
-## Required Evidence
+## Failure Requirements
 
-- Source of truth: UNDECIDED
-- Owner: UNASSIGNED
-- Merge-blocking validation: VALIDATION.md
-- Related checklist: CHECKLIST.md
+- Redaction failure must fail closed for content export.
+- Safe metadata may report that redaction failed.
+- Errors must identify failure class without echoing raw content.
+- Unsupported provider shapes should be explicit and testable.
+- Streaming content must not be exported until streaming redaction behavior is
+  proven.
+
+## Release Evidence
+
+- test, docs, and check validations or explicit skipped reasons.
+- Fixture evidence for detector and mapping changes.
+- Migration notes for public API or default behavior changes.
+- Clear remaining risk for false negatives and provider shape drift.
 
 ## Review Blockers
 
-- A change bypasses the source of truth.
-- A change weakens validation or hides skipped checks.
-- A change lacks failure, recovery, security, performance, or test evidence where relevant.
+- Failure paths leak content.
+- A change relies on consumers noticing unsafe defaults.
+- Incident guidance tells users to inspect raw telemetry content.

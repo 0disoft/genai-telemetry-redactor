@@ -1,7 +1,10 @@
 {
-  "data": [],
-  "page": {
-    "limit": 25,
-    "nextCursor": null
-  }
+  "data": [
+    {
+      "redacted": true,
+      "category": "url",
+      "count": 1
+    }
+  ],
+  "note": "Example only. This repository does not currently expose a hosted HTTP list endpoint."
 }

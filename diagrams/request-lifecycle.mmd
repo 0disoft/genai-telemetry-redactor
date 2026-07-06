@@ -1,5 +1,12 @@
-flowchart TD
-  A["request_lifecycle: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+sequenceDiagram
+  participant App as Caller app
+  participant Redactor as Redactor SDK
+  participant Provider as LLM provider
+  participant Telemetry as Telemetry exporter
+
+  App->>Redactor: wrap request metadata and optional content
+  Redactor->>Provider: call provider through caller-owned client
+  Provider-->>Redactor: response or stream event
+  Redactor->>Redactor: redact content before telemetry export
+  Redactor-->>Telemetry: safe GenAI metadata and redaction summary
+  Redactor-->>App: provider response

@@ -1,23 +1,25 @@
 # HTTP API Policy
 
-Status: Draft
+Status: Active
 
-## Backend Contract
+## Boundary
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+This repository does not currently publish an HTTP API. The OpenAPI file is a
+placeholder that documents this non-service boundary.
 
-## Required Decisions
+## Library Equivalent
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+The active public contract is the package API:
+
+- redaction policy configuration;
+- detector registration;
+- redaction result shape;
+- OpenTelemetry GenAI mapping helpers;
+- SDK wrapper and middleware entry points.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- A change documents routes, handlers, auth, or persistence as implemented
+  without a new product decision.
+- OpenAPI examples become the source of truth for package behavior.
+- HTTP-style examples contain raw GenAI content or realistic secrets.

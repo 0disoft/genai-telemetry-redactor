@@ -1,7 +1,7 @@
 {
   "error": {
-    "code": "UNDECIDED_ERROR",
-    "message": "A safe public error message.",
-    "requestId": "req_UNDECIDED"
+    "code": "REDACTION_FAILED_CLOSED",
+    "message": "Content export was suppressed because redaction could not safely complete.",
+    "requestId": "req_example"
   }
 }

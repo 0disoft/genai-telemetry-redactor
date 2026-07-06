@@ -1,23 +1,24 @@
 # Backend Security
 
-Status: Draft
+Status: Product-shaping
 
 ## Backend Contract
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+Backend security for this repository is redaction-library security: untrusted text and
+tool arguments enter the library, and only sanitized outputs may leave for telemetry.
 
 ## Required Decisions
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- API owner: not applicable for the current library.
+- Auth model: caller-owned.
+- Authorization checks: caller-owned.
+- Persistence model: raw content persistence is out of scope.
+- Error response policy: errors and warnings must use categories and paths, not raw
+  matched values.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- Detector failures pass raw content into telemetry.
+- Custom detectors can throw and bypass fail-closed behavior.
+- Logs, spans, errors, fixtures, or examples include live-looking secrets.
+- The library claims compliance or complete PII detection.

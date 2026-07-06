@@ -1,5 +1,7 @@
 flowchart TD
-  A["rollback_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Incident["Unsafe redaction behavior found"] --> Triage["Reproduce with synthetic data"]
+  Triage --> Pin["Tell consumers to pin or downgrade if needed"]
+  Triage --> Fix["Patch detector / policy / SDK behavior"]
+  Fix --> Regression["Add regression fixture"]
+  Regression --> Release["Publish safe version"]
+  Release --> Note["Document risk without raw sensitive content"]

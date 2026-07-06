@@ -1,23 +1,25 @@
 # Authentication
 
-Status: Draft
+Status: Active
 
-## Backend Contract
+## Boundary
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+This repository does not own user authentication, provider authentication, API
+keys, OAuth flows, sessions, or tenant identity. Consumers authenticate with LLM
+providers and telemetry systems in their own applications.
 
-## Required Decisions
+## Library Requirements
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- Do not require credentials for local docs, examples, or fixture tests.
+- Treat bearer tokens and API-key-like strings as redaction targets.
+- Do not echo provider credentials in errors, telemetry summaries, logs, or
+  examples.
+- SDK wrappers must pass through caller-owned provider configuration without
+  storing or documenting real values.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- A sample contains a live-looking API key, bearer token, or provider credential.
+- The package stores credentials or asks contributors to commit them.
+- Error handling reveals an authentication secret while reporting provider
+  failures.

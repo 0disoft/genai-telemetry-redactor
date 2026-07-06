@@ -1,5 +1,6 @@
 flowchart TD
-  A["authorization_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  App["Caller app owns tenant and role policy"] --> Redactor["Redactor SDK"]
+  Redactor --> Policy["Content redaction policy"]
+  Policy --> Summary["Safe redaction summary"]
+  Summary --> Telemetry["Telemetry exporter"]
+  Redactor -. "does not decide" .-> Authz["User permissions or tenant access"]

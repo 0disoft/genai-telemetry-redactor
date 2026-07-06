@@ -1,28 +1,33 @@
 # Architecture Decisions
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Active
 
 ## Purpose
 
-This document captures the durable design contract for Architecture Decisions.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Architecture decisions define the durable boundaries for the GenAI telemetry
+redaction library and SDK. They should keep the project focused on redacting
+LLM prompt, completion, and tool argument content before telemetry export.
+
+## Decision Index
+
+- 0001: Initial architecture boundaries.
+- 0002: Contract source of truth.
+- 0000: Template for future decisions.
 
 ## Source of Truth
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Product scope: ../product/02-spec.md
+- Public library API: ../library/public-api.md
+- SDK integration contract: ../sdk/public-api.md
+- Redaction and telemetry boundary: ../backend/06-logging-and-observability.md
+- Security baseline: ../engineering/04-security-baseline.md
+- Validation names: ../../VALIDATION.md
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A decision expands the project into a telemetry backend, model gateway,
+  hosted API server, prompt store, or complete DLP platform.
+- A decision allows raw prompts, completions, tool arguments, bearer tokens, API
+  keys, or customer identifiers to be logged, stored, or used as examples.
+- A decision claims complete PII, DLP, or compliance coverage.
+- A decision weakens `capture_content: false` as the default safety posture.

@@ -1,5 +1,7 @@
 flowchart TD
-  A["release_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Change["Library or SDK change"] --> Docs["Update source-of-truth docs"]
+  Docs --> Tests["Run detector / SDK / docs checks"]
+  Tests --> Safety{"Safe defaults preserved?"}
+  Safety -- "yes" --> Version["Apply semver and migration notes"]
+  Version --> Release["Package release"]
+  Safety -- "no" --> Stop["Stop release"]

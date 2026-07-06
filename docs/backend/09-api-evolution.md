@@ -1,23 +1,25 @@
 # API Evolution
 
-Status: Draft
+Status: Active
 
-## Backend Contract
+## Boundary
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+API evolution refers to library and SDK public APIs, not HTTP routes. Package
+exports, option names, detector hooks, result shapes, and telemetry mapping
+helpers are the active API surface.
 
-## Required Decisions
+## Evolution Rules
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- Preserve `capture_content: false` as the default.
+- Keep detector output and redaction summaries stable unless semver and
+  migration notes say otherwise.
+- Add provider-shape support explicitly; do not silently treat all providers as
+  OpenAI-compatible.
+- Keep examples aligned with docs/sdk/public-api.md and
+  docs/library/public-api.md.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- Public behavior changes without semver guidance.
+- SDK examples call undocumented exports.
+- API evolution claims complete DLP, PII, or compliance coverage.

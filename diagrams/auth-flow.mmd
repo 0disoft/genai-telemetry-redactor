@@ -1,5 +1,6 @@
 flowchart TD
-  A["auth_flow: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  App["Caller app owns provider credentials"] --> Provider["LLM provider"]
+  App --> Redactor["Redactor SDK"]
+  Redactor --> Detector["Token and API-key detectors"]
+  Detector --> SafeError["Safe errors and summaries"]
+  Redactor -. "must not store" .-> SecretStore["Credentials or secret store"]

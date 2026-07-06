@@ -1,19 +1,26 @@
 # CI
 
-Status: Draft
+Status: Active
 
 ## Operational Contract
 
-Cover required checks, branch protection, pipeline stages, artifacts, failure policy, local parity, and stop conditions.
+CI should prove package safety before release. Exact runner implementation is
+not selected yet, but stable validation names are defined in VALIDATION.md.
 
-## Owners
+## Required Gates
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+- test: detector, policy, mapping, failure, and SDK behavior.
+- docs: source-of-truth docs and examples remain aligned.
+- check: repository-level safety and hygiene checks.
+
+## Artifact Policy
+
+CI artifacts must not include raw prompts, completions, tool arguments, bearer
+tokens, API keys, private URLs, or customer identifiers.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Release blocker status: failing tests, unsafe examples, or unreviewed detector
+  default changes block release.
+- Remaining operational risk: until CI is configured, skipped validation must be
+  reported with explicit risk.

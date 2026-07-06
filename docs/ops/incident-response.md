@@ -1,19 +1,26 @@
 # Incident Response
 
-Status: Draft
+Status: Active
 
-## Operational Contract
+## Package Incidents
 
-Define severity, roles, first 10 minutes, communication, timeline, postmortem, follow-up policy, and evidence preservation.
+Treat these as package incidents:
 
-## Owners
+- Raw content is emitted by default.
+- Redaction failure does not fail closed.
+- A detector false negative affects a documented supported pattern.
+- A fixture, example, or release artifact includes live-looking sensitive data.
 
-- Primary owner: UNASSIGNED
-- Backup owner: UNASSIGNED
-- Escalation path: UNDECIDED
+## First Response
+
+- Do not copy raw sensitive content into issues, logs, or postmortems.
+- Reproduce with synthetic equivalent data.
+- Identify affected package versions and documented provider shapes.
+- Add a regression fixture before or with the fix.
 
 ## Validation
 
-- Required validation names: VALIDATION.md
-- Release blocker status: UNDECIDED
-- Remaining operational risk: UNDECIDED
+- Required validation names: test, docs, check.
+- Release blocker status: unresolved raw-content export defects block release.
+- Remaining operational risk: consumers own provider, telemetry backend, and
+  retention incident handling.

@@ -1,28 +1,26 @@
 # Diagrams
 
-Status: Draft
-Owner: UNASSIGNED
+Status: Active
 
 ## Purpose
 
-This document captures the durable design contract for Diagrams.
-It is intentionally a scaffold and should be filled with project-specific decisions as they become known.
+Diagrams should explain redaction and telemetry boundaries, not invent runtime
+infrastructure. Prefer simple flows that show caller code, redaction policy,
+detectors, safe metadata mapping, and the external telemetry exporter.
 
-## Source of Truth
+## Diagram Topics
 
-- Product decision: UNDECIDED
-- Technical owner: UNASSIGNED
-- Related ADR: UNDECIDED
-
-## Required Decisions
-
-- Boundary: UNDECIDED
-- Data ownership: UNDECIDED
-- Failure and recovery behavior: UNDECIDED
-- Validation needed before merge: VALIDATION.md
+- Non-streaming redaction before telemetry export.
+- `capture_content: false` default path.
+- Opt-in content capture with detector and replacement policy.
+- Tool argument redaction for nested objects.
+- Streaming content risk and safe metadata-only fallback.
+- OpenTelemetry GenAI metadata mapping.
 
 ## Review Blockers
 
-- The change invents a product domain without a source.
-- The change weakens validation or skips required evidence.
-- The change relies on generated, cache, or build output as source truth.
+- A diagram shows this repository as owning a telemetry backend, database,
+  hosted API server, prompt store, or model gateway.
+- A diagram includes realistic secrets, private URLs, prompts, completions, or
+  customer identifiers.
+- A diagram implies complete DLP or compliance guarantees.

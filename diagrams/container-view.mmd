@@ -1,5 +1,7 @@
 flowchart TD
-  A["container_view: input"] --> B["Review source of truth"]
-  B --> C["Change plan"]
-  C --> D["Validation"]
-  D --> E["Release or rollback decision"]
+  Wrapper["SDK wrapper or middleware"] --> Policy["Redaction policy"]
+  Policy --> Detectors["Built-in and custom detectors"]
+  Detectors --> Replace["Replacement token policy"]
+  Replace --> Summary["Redaction summary"]
+  Summary --> Mapper["OTel GenAI mapper"]
+  Mapper --> SafeTelemetry["Safe metadata and optional redacted content"]

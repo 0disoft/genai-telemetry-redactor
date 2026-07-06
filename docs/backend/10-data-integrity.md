@@ -1,23 +1,24 @@
 # Backend Data Integrity
 
-Status: Draft
+Status: Product-shaping
 
 ## Backend Contract
 
-This backend document covers API server boundary, authentication, authorization, persistence model,
-HTTP API policy, error response, logging and observability, migration strategy,
-and backend security as applicable.
+Data integrity for this repository means preserving the relationship between input
+content, sanitized output, redaction counts, detector reason codes, warnings, and safe
+telemetry metadata without storing raw content.
 
 ## Required Decisions
 
-- API owner: UNASSIGNED
-- Auth model: UNDECIDED
-- Authorization checks: UNDECIDED
-- Persistence model: UNDECIDED
-- Error response policy: docs/backend/05-error-response.md
+- API owner: not applicable.
+- Auth model: caller-owned.
+- Authorization checks: caller-owned.
+- Persistence model: none for raw content; fixture data must be fake.
+- Error response policy: warnings must identify category/path without exposing value.
 
 ## Merge Blockers
 
-- OpenAPI drift from api/openapi.yaml.
-- Authorization behavior hidden in one handler or UI.
-- Migration plan missing rollback or forward-fix path.
+- Redaction reports cannot be reconciled with sanitized output.
+- Streaming chunk handling drops warning state or double-counts redactions without
+  documentation.
+- Detector reason codes change without fixture updates.
