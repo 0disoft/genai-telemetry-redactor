@@ -63,8 +63,9 @@ redacted as text with a warning, and streaming events return metadata-only
 `packages/otel` starts the OpenTelemetry boundary with
 `mapRedactionReportToGenAIMetadata`: a pure metadata mapper that accepts redaction
 reports and safe GenAI metadata candidates, keeps content capture disabled, and
-exports redaction status, counts, warning codes, token usage, model labels, and
-latency without accepting raw provider payloads or span writer objects.
+exports official GenAI operation/provider/model/token attributes plus
+library-specific `genai_redactor.*` redaction metadata without accepting raw
+provider payloads or span writer objects.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.
@@ -82,7 +83,8 @@ binary diffs, local files, build outputs, caches, and secret files under control
 
 Runtime packaging is decided as Node.js `>=22.14.0`, ESM-only TypeScript, and a
 pnpm workspace with one initial npm package named `genai-telemetry-redactor`.
-The exact OpenTelemetry semantic-convention version remains UNDECIDED until
-implementation verifies the current upstream convention state. The product
-boundary is already decided: redact before export, capture content only by
-explicit opt-in, and never treat redaction as perfect sensitive-data discovery.
+The OpenTelemetry GenAI semantic-convention source is tracked as the upstream
+Development GenAI convention, so custom redaction metadata stays under the
+`genai_redactor.*` namespace. The product boundary is already decided: redact
+before export, capture content only by explicit opt-in, and never treat redaction
+as perfect sensitive-data discovery.

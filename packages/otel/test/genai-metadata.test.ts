@@ -29,23 +29,42 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     );
 
     expect(result.attributes).toMatchObject({
-      "gen_ai.telemetry.redaction.convention": "UNDECIDED",
-      "gen_ai.telemetry.content_capture_enabled": false,
-      "gen_ai.telemetry.redaction.status": "redacted",
-      "gen_ai.telemetry.redaction.total_count": 3,
-      "gen_ai.telemetry.redaction.reason_count.email": 1,
-      "gen_ai.telemetry.redaction.reason_count.api_key": 2,
-      "gen_ai.telemetry.redaction.warning_codes": ["malformed_tool_arguments"],
+      "genai_redactor.otel.genai.semconv.label":
+        "opentelemetry-semconv-genai-main",
+      "genai_redactor.otel.genai.semconv.status": "development",
+      "genai_redactor.content_capture.enabled": false,
+      "genai_redactor.redaction.status": "redacted",
+      "genai_redactor.redaction.total_count": 3,
+      "genai_redactor.redaction.reason_count.email": 1,
+      "genai_redactor.redaction.reason_count.api_key": 2,
+      "genai_redactor.redaction.warning_codes": ["malformed_tool_arguments"],
       "gen_ai.operation.name": "chat",
-      "gen_ai.system": "openai-compatible",
+      "gen_ai.provider.name": "openai-compatible",
       "gen_ai.request.model": "model_example",
       "gen_ai.response.model": "model_example",
       "gen_ai.usage.input_tokens": 12,
       "gen_ai.usage.output_tokens": 34,
       "gen_ai.usage.total_tokens": 46,
-      "gen_ai.operation.duration_ms": 25.5,
+      "genai_redactor.operation.duration_ms": 25.5,
     });
     expect(result.droppedMetadataKeys).toEqual([]);
+  });
+
+  it("does not put redactor-owned attributes under the official gen_ai namespace", () => {
+    const result = mapRedactionReportToGenAIMetadata({
+      status: "redacted",
+      totalRedactions: 1,
+      countsByReason: {
+        email: 1,
+      },
+      warnings: [{ code: "streaming_content_omitted" }],
+    });
+
+    expect(
+      Object.keys(result.attributes).filter((name) =>
+        name.startsWith("gen_ai.telemetry."),
+      ),
+    ).toEqual([]);
   });
 
   it("aggregates custom reason identifiers without exporting custom labels", () => {
@@ -60,7 +79,7 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     });
 
     expect(result.attributes).toMatchObject({
-      "gen_ai.telemetry.redaction.reason_count.custom": 3,
+      "genai_redactor.redaction.reason_count.custom": 3,
     });
     expect(JSON.stringify(result.attributes)).not.toContain(
       "user@example.invalid",
@@ -93,7 +112,7 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     expect(output).not.toContain("model/example");
     expect(result.attributes["error.type"]).toBe("TimeoutError");
     expect(result.attributes).toMatchObject({
-      "gen_ai.telemetry.redaction.metadata_dropped_count": 5,
+      "genai_redactor.redaction.metadata_dropped_count": 5,
     });
     expect(result.droppedMetadataKeys).toEqual([
       "operationName",
@@ -120,8 +139,8 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     );
 
     expect(result.attributes).toMatchObject({
-      "gen_ai.telemetry.content_capture_enabled": false,
-      "gen_ai.telemetry.redaction.metadata_dropped_count": 1,
+      "genai_redactor.content_capture.enabled": false,
+      "genai_redactor.redaction.metadata_dropped_count": 1,
     });
     expect(result.droppedMetadataKeys).toEqual(["captureContent"]);
   });
@@ -148,8 +167,8 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     const output = JSON.stringify(result.attributes);
 
     expect(result.attributes).toMatchObject({
-      "gen_ai.telemetry.redaction.status": "failed",
-      "gen_ai.telemetry.redaction.warning_codes": [
+      "genai_redactor.redaction.status": "failed",
+      "genai_redactor.redaction.warning_codes": [
         "detector_failed",
         "unsupported_provider_shape",
       ],

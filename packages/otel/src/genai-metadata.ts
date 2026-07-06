@@ -5,7 +5,10 @@ import type {
   OtelGenAIMetadataOptions,
 } from "./types.js";
 
-const DEFAULT_CONVENTION_LABEL = "UNDECIDED";
+const DEFAULT_CONVENTION_LABEL = "opentelemetry-semconv-genai-main";
+const GENAI_SEMCONV_STATUS = "development";
+const GENAI_SEMCONV_SOURCE =
+  "https://github.com/open-telemetry/semantic-conventions-genai";
 const SAFE_LABEL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const BUILT_IN_REASON_KEYS = new Set([
   "email",
@@ -19,13 +22,15 @@ export function mapRedactionReportToGenAIMetadata(
   options: OtelGenAIMetadataOptions = {},
 ): OtelGenAIMetadata {
   const attributes: OtelGenAIAttributeMap = {
-    "gen_ai.telemetry.redaction.convention": safeLabelOrDefault(
+    "genai_redactor.otel.genai.semconv.label": safeLabelOrDefault(
       options.conventionLabel,
       DEFAULT_CONVENTION_LABEL,
     ),
-    "gen_ai.telemetry.content_capture_enabled": false,
-    "gen_ai.telemetry.redaction.status": report.status,
-    "gen_ai.telemetry.redaction.total_count": nonNegativeInteger(
+    "genai_redactor.otel.genai.semconv.status": GENAI_SEMCONV_STATUS,
+    "genai_redactor.otel.genai.semconv.source": GENAI_SEMCONV_SOURCE,
+    "genai_redactor.content_capture.enabled": false,
+    "genai_redactor.redaction.status": report.status,
+    "genai_redactor.redaction.total_count": nonNegativeInteger(
       report.totalRedactions,
     ),
   };
@@ -41,7 +46,7 @@ export function mapRedactionReportToGenAIMetadata(
   assignSafeLabel(
     attributes,
     droppedMetadataKeys,
-    "gen_ai.system",
+    "gen_ai.provider.name",
     "providerName",
     options.providerName,
   );
@@ -70,7 +75,7 @@ export function mapRedactionReportToGenAIMetadata(
   assignSafeNumber(
     attributes,
     droppedMetadataKeys,
-    "gen_ai.operation.duration_ms",
+    "genai_redactor.operation.duration_ms",
     "latencyMs",
     options.latencyMs,
   );
@@ -102,16 +107,16 @@ export function mapRedactionReportToGenAIMetadata(
 
   const reasonCounts = safeReasonCounts(report.countsByReason);
   for (const [reason, count] of Object.entries(reasonCounts)) {
-    attributes[`gen_ai.telemetry.redaction.reason_count.${reason}`] = count;
+    attributes[`genai_redactor.redaction.reason_count.${reason}`] = count;
   }
 
   const warningCodes = uniqueSortedWarningCodes(report);
   if (warningCodes.length > 0) {
-    attributes["gen_ai.telemetry.redaction.warning_codes"] = warningCodes;
+    attributes["genai_redactor.redaction.warning_codes"] = warningCodes;
   }
 
   if (droppedMetadataKeys.length > 0) {
-    attributes["gen_ai.telemetry.redaction.metadata_dropped_count"] =
+    attributes["genai_redactor.redaction.metadata_dropped_count"] =
       droppedMetadataKeys.length;
   }
 

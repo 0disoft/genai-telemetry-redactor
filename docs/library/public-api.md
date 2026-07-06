@@ -67,10 +67,10 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `mapRedactionReportToGenAIMetadata(report, options)`: metadata-only mapper from
   redaction reports and safe GenAI metadata candidates to an attribute object.
-- The mapper always emits `gen_ai.telemetry.content_capture_enabled: false`.
-- The mapper emits redaction status, total count, built-in reason counts, aggregated
-  custom reason counts, warning codes, safe model/provider/operation/error labels,
-  token usage, and latency.
+- The mapper emits official OpenTelemetry GenAI attributes for operation,
+  provider, request model, response model, and token usage.
+- The mapper emits library-specific redaction, content-capture, semconv-source, and
+  latency attributes under `genai_redactor.*`.
 - Unsafe label-like metadata values are dropped and counted instead of exported.
 - Warning paths, detector IDs, raw provider payloads, prompt text, completion text,
   tool arguments, credentials, and span writer objects are outside the mapper API.

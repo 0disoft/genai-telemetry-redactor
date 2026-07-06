@@ -10,9 +10,13 @@ customer identifiers.
 
 ## Mapping Rules
 
-- Keep the exact GenAI semantic-convention version UNDECIDED until implementation
-  verifies the current upstream convention state.
-- Include a mapper version label or convention label once chosen.
+- Treat the upstream OpenTelemetry GenAI semantic conventions as Development until
+  the upstream project marks them stable.
+- Use official `gen_ai.*` attributes only for fields present in the upstream GenAI
+  semantic conventions.
+- Put library-specific redaction and content-capture fields under
+  `genai_redactor.*` so custom fields do not look like standard OpenTelemetry
+  attributes.
 - Separate pure metadata-object mapping from optional span-writer helpers.
 - Treat token usage, model, operation, latency, error class, redaction status,
   and counts-by-reason as safe candidate fields.
@@ -26,13 +30,16 @@ customer identifiers.
   not accept provider requests, provider responses, prompts, completions, tool
   arguments, credentials, private URLs, customer identifiers, span objects, or
   exporter objects.
-- The mapper always emits `gen_ai.telemetry.content_capture_enabled: false`.
-- The mapper emits redaction status, total count, built-in reason counts,
-  aggregated custom reason counts, warning codes, safe model/provider/operation
-  labels, token usage, latency, and error class.
+- The mapper uses official GenAI attributes for `gen_ai.operation.name`,
+  `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.response.model`,
+  `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, and
+  `gen_ai.usage.total_tokens`.
+- The mapper uses `genai_redactor.*` attributes for redaction status, redaction
+  counts, warning codes, content-capture disabled state, mapper semconv source,
+  mapper semconv status, and latency.
 - Warning `path` and `detectorId` fields are not exported by default.
-- Exact upstream GenAI semantic-convention version remains `UNDECIDED`; this mapper
-  exposes a convention label field without claiming a verified upstream version.
+- The mapper records `opentelemetry-semconv-genai-main` and `development` as
+  semconv metadata. This is not a stability claim.
 
 ## Review Blockers
 
