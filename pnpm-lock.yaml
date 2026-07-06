@@ -28,6 +28,8 @@ importers:
 
   packages/openai-compatible: {}
 
+  packages/otel: {}
+
 packages:
 
   '@emnapi/core@1.11.1':

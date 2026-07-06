@@ -63,6 +63,18 @@ This repository type owns public API surface, package compatibility, semantic ve
   `redactToolNames` opt-in for tool names when caller policy treats names as
   content-bearing.
 
+## Implemented OpenTelemetry Metadata Surface
+
+- `mapRedactionReportToGenAIMetadata(report, options)`: metadata-only mapper from
+  redaction reports and safe GenAI metadata candidates to an attribute object.
+- The mapper always emits `gen_ai.telemetry.content_capture_enabled: false`.
+- The mapper emits redaction status, total count, built-in reason counts, aggregated
+  custom reason counts, warning codes, safe model/provider/operation/error labels,
+  token usage, and latency.
+- Unsafe label-like metadata values are dropped and counted instead of exported.
+- Warning paths, detector IDs, raw provider payloads, prompt text, completion text,
+  tool arguments, credentials, and span writer objects are outside the mapper API.
+
 ## Review Blockers
 
 - Public exports change without semver and migration notes.

@@ -33,6 +33,7 @@ and reports redaction counts and reasons without preserving raw user content.
 - packages/core/: initial provider-agnostic redaction core
 - packages/openai-compatible/: structural OpenAI-compatible request, response, and
   streaming metadata adapter
+- packages/otel/: metadata-only OpenTelemetry GenAI mapping helpers
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 
 ## Repository Shape Notes
@@ -58,6 +59,12 @@ text, message content, and tool-call function arguments. Unsupported shapes fail
 closed with `unsupported_provider_shape`, malformed JSON tool arguments are
 redacted as text with a warning, and streaming events return metadata-only
 `streaming_content_omitted` results instead of exporting chunk content.
+
+`packages/otel` starts the OpenTelemetry boundary with
+`mapRedactionReportToGenAIMetadata`: a pure metadata mapper that accepts redaction
+reports and safe GenAI metadata candidates, keeps content capture disabled, and
+exports redaction status, counts, warning codes, token usage, model labels, and
+latency without accepting raw provider payloads or span writer objects.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.
