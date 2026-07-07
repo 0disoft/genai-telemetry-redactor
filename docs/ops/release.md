@@ -19,6 +19,7 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - No release artifact includes raw GenAI content or live-looking secrets.
 - Runtime, license, package name, and publishing requirements are reflected in
   ADRs before release workflow files are added.
+- `pnpm run release-readiness` passes before any npm publish attempt.
 
 ## Stop Conditions
 
@@ -27,3 +28,4 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - Detector default changes lack evidence.
 - Package surface changes lack semver or migration notes.
 - Publishing relies on long-lived credentials without an ADR-backed reason.
+- `pnpm run release-readiness` reports unresolved blockers.

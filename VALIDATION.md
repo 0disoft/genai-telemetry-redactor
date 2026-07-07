@@ -15,6 +15,7 @@ library and SDK scaffold.
 - build
 - test
 - contract
+- release-readiness
 - migration-check
 - smoke
 - docs
@@ -40,6 +41,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - contract: live-looking secret guard across docs, packages, and scripts plus
   package export-surface, public API documentation, dry-run artifact, and packed
   consumer import guards.
+- release-readiness: npm publish blocker check for package metadata, required
+  release files, publishing policy, and trusted publishing workflow readiness.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, OpenAI-compatible adapter, OTel
   metadata mapper, and SDK wrapper smoke tests.

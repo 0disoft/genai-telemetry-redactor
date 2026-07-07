@@ -16,6 +16,9 @@ package name is `genai-telemetry-redactor`.
 - Prefer npm trusted publishing with provenance from CI.
 - Verify current npm trusted publishing requirements before writing workflow
   files because npm and CI requirements can change.
+- Keep `pnpm run release-readiness` outside the normal `check` runner while the
+  package is intentionally unpublished. It must fail with explicit blockers until
+  package metadata and trusted publishing workflow requirements are satisfied.
 
 ## Release Blockers
 
