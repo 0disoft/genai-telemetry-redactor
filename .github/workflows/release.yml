@@ -51,5 +51,16 @@ jobs:
       - name: Run release readiness
         run: pnpm run release-readiness
 
+      - name: Check published version
+        id: published
+        run: |
+          version="$(node --print "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          if npm view "genai-telemetry-redactor@${version}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish package
+        if: steps.published.outputs.exists != 'true'
         run: npm publish --provenance --access public
