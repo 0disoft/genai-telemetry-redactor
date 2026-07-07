@@ -37,6 +37,11 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.7.0 --activate
 
+      - name: Use current npm CLI
+        run: |
+          npm install --global npm@latest
+          npm --version
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
