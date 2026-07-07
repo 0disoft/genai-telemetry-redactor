@@ -1,7 +1,7 @@
 {
   "tool": "ssealed",
   "version": "0.5.0",
-  "generatedAt": "2026-07-07T02:46:00.000Z",
+  "generatedAt": "2026-07-07T03:29:00.000Z",
   "scope": "backend",
   "profile": "library",
   "addons": [
@@ -557,7 +557,7 @@
     },
     {
       "path": "README.md",
-      "checksum": "sha256:a4c332bf47edf39738e451e8411ba87b6d3c4559ce762fb3b8f8affa20d3231c",
+      "checksum": "sha256:f75bbd525bdce4a687f18f060c2e0e1044bf1572bba14c342b50e01684dd7322",
       "kind": "document"
     },
     {

@@ -12,6 +12,47 @@ The project focuses on prompt, completion, and tool-argument boundaries. It keep
 content capture off by default, maps safe metadata to OpenTelemetry GenAI conventions,
 and reports redaction counts and reasons without preserving raw user content.
 
+## Install
+
+```sh
+npm install genai-telemetry-redactor
+```
+
+## Quick Start
+
+```ts
+import { withRedactedTelemetry } from "genai-telemetry-redactor";
+
+const result = await withRedactedTelemetry({
+  adapter: "openai-compatible",
+  request: {
+    model: "model_example",
+    messages: [
+      {
+        role: "user",
+        content: "Contact user@example.invalid with token_example_value",
+      },
+    ],
+  },
+  telemetry: {
+    operationName: "chat",
+    providerName: "openai-compatible",
+    requestModel: "model_example",
+  },
+});
+
+if (!result.ok) {
+  throw new Error(result.error.code);
+}
+
+console.log(result.value.redactedRequest);
+console.log(result.value.telemetry.attributes);
+```
+
+The helper returns redacted request and response payloads plus metadata-only
+telemetry attributes. It does not call a model provider, own credentials, export
+spans, store prompts, or guarantee perfect sensitive-data detection.
+
 ## Source Files
 
 - AGENTS.md: agent working rules
