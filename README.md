@@ -1,6 +1,6 @@
 # GenAI Telemetry Redactor
 
-Status: Implementation-started
+Status: Active
 Scope: backend
 Repository Type: library
 Addons: sdk

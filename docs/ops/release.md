@@ -21,6 +21,14 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
   ADRs before release workflow files are added.
 - `pnpm run release-readiness` passes before any npm publish attempt.
 
+## Published Release Evidence
+
+- `v0.1.3` was published on 2026-07-07.
+- npm package version: `genai-telemetry-redactor@0.1.3`.
+- GitHub release: https://github.com/0disoft/genai-telemetry-redactor/releases/tag/v0.1.3.
+- Release workflow: GitHub Actions `Release` run `28840691932` completed successfully for tag
+  `v0.1.3`.
+
 ## Stop Conditions
 
 - Unsafe content export by default.

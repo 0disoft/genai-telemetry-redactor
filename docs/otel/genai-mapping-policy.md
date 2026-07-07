@@ -1,6 +1,6 @@
 # OpenTelemetry GenAI Mapping Policy
 
-Status: Implementation-started
+Status: Active
 
 ## Contract
 

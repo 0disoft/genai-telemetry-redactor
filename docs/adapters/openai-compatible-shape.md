@@ -1,6 +1,6 @@
 # OpenAI-Compatible Shape
 
-Status: Implementation-started
+Status: Active
 
 ## Contract
 
