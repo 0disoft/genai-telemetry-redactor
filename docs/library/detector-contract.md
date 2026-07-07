@@ -21,6 +21,10 @@ not proof of complete PII or DLP coverage.
 - Custom detectors must be isolated so thrown errors cannot leak raw input.
 - Detector failures must block content export rather than letting partially
   redacted content pass.
+- `createRegexDetector(options)` is the preferred helper for regex-backed custom
+  detectors. It clones caller regexes into global, non-sticky scanners, uses
+  whole-match UTF-16 ranges by default, supports explicit submatch range mapping,
+  and ignores zero-length matches to avoid scanner loops.
 
 ## Safety Requirements
 

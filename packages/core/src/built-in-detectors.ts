@@ -3,9 +3,8 @@ import type {
   Detection,
   Detector,
   RedactionReason,
+  RegexDetectorOptions,
 } from "./types.js";
-
-type MatchFactory = (match: RegExpExecArray) => Detection | undefined;
 
 const EMAIL_PATTERN =
   /\b[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b/g;
@@ -27,13 +26,17 @@ export function createBuiltInDetectors(
   return names.map((name) => {
     switch (name) {
       case "email":
-        return createRegexDetector("builtin:email", "email", EMAIL_PATTERN);
+        return createRegexDetector({
+          id: "builtin:email",
+          reason: "email",
+          pattern: EMAIL_PATTERN,
+        });
       case "bearer_token":
-        return createRegexDetector(
-          "builtin:bearer_token",
-          "bearer_token",
-          BEARER_PATTERN,
-          (match) => {
+        return createRegexDetector({
+          id: "builtin:bearer_token",
+          reason: "bearer_token",
+          pattern: BEARER_PATTERN,
+          toDetection(match) {
             const token = match[1];
             if (!token) {
               return undefined;
@@ -46,32 +49,29 @@ export function createBuiltInDetectors(
               end: tokenStart + token.length,
             };
           },
-        );
+        });
       case "api_key":
-        return createRegexDetector(
-          "builtin:api_key",
-          "api_key",
-          API_KEY_PATTERN,
-        );
+        return createRegexDetector({
+          id: "builtin:api_key",
+          reason: "api_key",
+          pattern: API_KEY_PATTERN,
+        });
       case "url":
-        return createRegexDetector("builtin:url", "url", URL_PATTERN);
+        return createRegexDetector({
+          id: "builtin:url",
+          reason: "url",
+          pattern: URL_PATTERN,
+        });
     }
   });
 }
 
-function createRegexDetector(
-  id: string,
-  reason: RedactionReason,
-  pattern: RegExp,
-  toDetection: MatchFactory = (match) => ({
-    reason,
-    start: match.index,
-    end: match.index + match[0].length,
-  }),
-): Detector {
+export function createRegexDetector(options: RegexDetectorOptions): Detector {
+  const pattern = toGlobalPattern(options.pattern);
+
   return {
-    id,
-    reasons: [reason],
+    id: options.id,
+    reasons: [options.reason],
     detect(input) {
       const matches: Detection[] = [];
       pattern.lastIndex = 0;
@@ -81,7 +81,19 @@ function createRegexDetector(
         match;
         match = pattern.exec(input)
       ) {
-        const detection = toDetection(match);
+        if (match[0].length === 0) {
+          pattern.lastIndex += 1;
+          continue;
+        }
+
+        const detection = options.toDetection
+          ? options.toDetection(match)
+          : {
+              reason: options.reason,
+              start: match.index,
+              end: match.index + match[0].length,
+            };
+
         if (detection) {
           matches.push(detection);
         }
@@ -90,4 +102,11 @@ function createRegexDetector(
       return matches;
     },
   };
+}
+
+function toGlobalPattern(pattern: RegExp): RegExp {
+  const flags = new Set(pattern.flags);
+  flags.delete("y");
+  flags.add("g");
+  return new RegExp(pattern.source, [...flags].join(""));
 }

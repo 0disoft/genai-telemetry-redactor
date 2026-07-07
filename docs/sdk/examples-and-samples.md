@@ -36,8 +36,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `examples/openai-compatible-basic.ts`: wraps an OpenAI-compatible request and
   response with `withRedactedTelemetry`, verifies fake email, URL, and API-key-like
   content are removed, and checks content capture stays disabled.
-- `examples/custom-detector.ts`: registers a caller-owned customer-id detector while
-  keeping built-in detectors active, then verifies custom and built-in reason counts.
+- `examples/custom-detector.ts`: registers a caller-owned customer-id detector with
+  `createRegexDetector` while keeping built-in detectors active, then verifies custom
+  and built-in reason counts.
 - `examples/streaming-metadata-only.ts`: passes a fake streaming chunk to the
   OpenAI-compatible streaming helper and verifies only metadata plus
   `streaming_content_omitted` are returned.

@@ -22,6 +22,13 @@ export type Detector = {
   ): Detection[] | Promise<Detection[]>;
 };
 
+export type RegexDetectorOptions = {
+  id: string;
+  reason: RedactionReason;
+  pattern: RegExp;
+  toDetection?: (match: RegExpExecArray) => Detection | undefined;
+};
+
 export type ReplacementTokenPolicy = (reason: RedactionReason) => string;
 
 export type RedactionLimits = {

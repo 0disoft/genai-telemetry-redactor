@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Detector } from "../src/index.js";
-import { redactText } from "../src/index.js";
+import { createRegexDetector, redactText } from "../src/index.js";
 
 describe("redactText", () => {
   it("redacts email, api-key-like, bearer token, and URL values", async () => {
@@ -67,6 +67,90 @@ describe("redactText", () => {
 
     expect(result.value).toBe("Account [REDACTED:custom:account_id] created.");
     expect(result.value).not.toContain("acct_example_value");
+  });
+
+  it("creates custom regex detectors without requiring callers to calculate ranges", async () => {
+    const detector = createRegexDetector({
+      id: "custom:work-order",
+      reason: "custom:work_order",
+      pattern: /\bwo_[a-z0-9]{6}\b/i,
+    });
+
+    const result = await redactText("Review work order wo_ab12cd now.", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe(
+      "Review work order [REDACTED:custom:work_order] now.",
+    );
+    expect(result.report.countsByReason["custom:work_order"]).toBe(1);
+  });
+
+  it("supports custom regex detector submatch ranges", async () => {
+    const detector = createRegexDetector({
+      id: "custom:header-token",
+      reason: "custom:header_token",
+      pattern: /\bToken\s+([A-Za-z0-9_]{8,})\b/,
+      toDetection(match) {
+        const token = match[1];
+        if (!token) {
+          return undefined;
+        }
+
+        const start = match.index + match[0].lastIndexOf(token);
+        return {
+          reason: "custom:header_token",
+          start,
+          end: start + token.length,
+        };
+      },
+    });
+
+    const result = await redactText(
+      "Auth Token token_example_value accepted.",
+      {
+        builtInDetectors: false,
+        detectors: [detector],
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe(
+      "Auth Token [REDACTED:custom:header_token] accepted.",
+    );
+    expect(result.value).toContain("Token ");
+    expect(result.value).not.toContain("token_example_value");
+  });
+
+  it("does not loop forever on zero-length custom regex matches", async () => {
+    const detector = createRegexDetector({
+      id: "custom:empty",
+      reason: "custom:empty",
+      pattern: /(?=.)/,
+    });
+
+    const result = await redactText("abc", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe("abc");
+    expect(result.report.totalRedactions).toBe(0);
   });
 
   it("uses UTF-16 code unit ranges without splitting surrogate pairs", async () => {

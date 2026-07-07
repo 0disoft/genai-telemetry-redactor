@@ -45,6 +45,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `BuiltInDetectorName`
 - `createBuiltInDetectors`
+- `createRegexDetector`
 - `defaultReplacementToken`
 - `Detection`
 - `DetectionContext`
@@ -67,6 +68,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionResult`
 - `RedactionWarning`
 - `RedactionWarningCode`
+- `RegexDetectorOptions`
 - `redactJsonLike`
 - `redactOpenAICompatibleRequest`
 - `redactOpenAICompatibleResponse`
@@ -87,6 +89,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `BuiltInDetectorName`
 - `createBuiltInDetectors`
+- `createRegexDetector`
 - `defaultReplacementToken`
 - `Detection`
 - `DetectionContext`
@@ -98,6 +101,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionResult`
 - `RedactionWarning`
 - `RedactionWarningCode`
+- `RegexDetectorOptions`
 - `redactJsonLike`
 - `redactText`
 - `redactToolArguments`
@@ -143,6 +147,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.
+- `createRegexDetector(options)`: helper for caller-owned regex detectors that
+  defaults detections to whole-match UTF-16 ranges and allows explicit submatch
+  range mapping.
 - `defaultReplacementToken(reason)`: category-only replacement token policy.
 - Public types for detectors, detections, warnings, reports, safe errors, and
   redaction results.

@@ -1,28 +1,14 @@
 import {
+  createRegexDetector,
   defaultReplacementToken,
   redactText,
-  type Detection,
-  type Detector,
 } from "genai-telemetry-redactor";
 
-const customerIdDetector: Detector = {
+const customerIdDetector = createRegexDetector({
   id: "example:customer-id",
-  reasons: ["custom:customer_id"],
-  detect(input): Detection[] {
-    const detections: Detection[] = [];
-    const pattern = /\bcust_[0-9]{4}\b/g;
-
-    for (let match = pattern.exec(input); match; match = pattern.exec(input)) {
-      detections.push({
-        reason: "custom:customer_id",
-        start: match.index,
-        end: match.index + match[0].length,
-      });
-    }
-
-    return detections;
-  },
-};
+  reason: "custom:customer_id",
+  pattern: /\bcust_[0-9]{4}\b/,
+});
 
 const result = await redactText(
   "Customer cust_1234 can be reached at user@example.invalid.",

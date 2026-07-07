@@ -31,6 +31,18 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.1.4
+
+`createRegexDetector(options)` is now a public helper for regex-backed custom
+detectors. Callers can provide an `id`, custom `reason`, and `pattern` without
+manually calculating whole-match ranges. Callers that need to redact only a
+capturing group can pass `toDetection(match)` and return explicit UTF-16 code
+unit ranges.
+
+Regex-backed detectors should still use synthetic fixtures and avoid patterns
+with catastrophic backtracking on untrusted prompt, completion, or tool-argument
+text.
+
 ## 0.1.3
 
 Custom detector ranges are now explicitly validated as JavaScript UTF-16 code
