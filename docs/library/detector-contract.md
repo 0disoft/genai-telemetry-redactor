@@ -10,7 +10,13 @@ not proof of complete PII or DLP coverage.
 ## Required Properties
 
 - Detector IDs and reason codes must be stable once released.
-- Detection ranges must use a documented index semantic before implementation.
+- Detection ranges use JavaScript UTF-16 code unit offsets, matching
+  `String.length`, `RegExpExecArray.index`, and `String.prototype.slice`.
+- Detection ranges are half-open `[start, end)` ranges. Both boundaries must be
+  integer UTF-16 boundaries and must not split a surrogate pair.
+- Overlapping detections are resolved deterministically: lower `start` wins, and
+  the longest detection wins when multiple detections share the same `start`.
+  Omitted overlaps are reported with `overlapping_detection`.
 - Built-in MVP categories are email, bearer token, API-key-like string, and URL.
 - Custom detectors must be isolated so thrown errors cannot leak raw input.
 - Detector failures must block content export rather than letting partially

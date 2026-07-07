@@ -1,20 +1,36 @@
 # Detector Contract and Index Semantics
 
-Status: Proposed
+Status: Accepted
 
 ## Context
 
 Detectors need stable range semantics so replacement can be deterministic across
 Unicode text, overlapping matches, and custom detector hooks.
 
-## Proposed Direction
+## Decision
 
-Define a detector contract before implementation. The contract must specify
-range indexing, overlap resolution, reason-code stability, custom detector
-failure handling, and fixture requirements.
+Detector ranges use JavaScript UTF-16 code unit offsets, matching `String.length`,
+`RegExpExecArray.index`, and `String.prototype.slice`.
 
-The exact index semantic remains UNDECIDED until implementation chooses the
-runtime string model and test corpus.
+Valid ranges are half-open `[start, end)` ranges where `start` and `end` are
+integer UTF-16 boundaries. A range must not split a surrogate pair. Invalid
+ranges fail closed with `invalid_detection_range`.
+
+When detections overlap, the redactor sorts by ascending `start`; detections
+with the same `start` prefer the longest `end`. Later detections that overlap a
+selected range are omitted and reported with `overlapping_detection`.
+
+Detector IDs and reason codes are public compatibility surface. Custom detector
+failures fail closed and must not leak raw input through errors, warnings, or
+reports.
+
+## Consequences
+
+- Built-in regex detectors can use native match indices directly.
+- Custom detectors that operate on Unicode code points or grapheme clusters must
+  convert their ranges to UTF-16 code unit offsets before returning detections.
+- Tests must cover repeated matches, overlaps, Unicode ranges, invalid ranges,
+  and detector failure behavior.
 
 ## Review Blockers
 

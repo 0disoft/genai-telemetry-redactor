@@ -121,8 +121,28 @@ function isValidDetection(input: string, detection: Detection): boolean {
     Number.isInteger(detection.end) &&
     detection.start >= 0 &&
     detection.end <= input.length &&
-    detection.start < detection.end
+    detection.start < detection.end &&
+    isUtf16Boundary(input, detection.start) &&
+    isUtf16Boundary(input, detection.end)
   );
+}
+
+function isUtf16Boundary(input: string, index: number): boolean {
+  if (index === 0 || index === input.length) {
+    return true;
+  }
+
+  const previous = input.charCodeAt(index - 1);
+  const current = input.charCodeAt(index);
+  return !(isHighSurrogate(previous) && isLowSurrogate(current));
+}
+
+function isHighSurrogate(codeUnit: number): boolean {
+  return codeUnit >= 0xd800 && codeUnit <= 0xdbff;
+}
+
+function isLowSurrogate(codeUnit: number): boolean {
+  return codeUnit >= 0xdc00 && codeUnit <= 0xdfff;
 }
 
 function selectNonOverlappingDetections(

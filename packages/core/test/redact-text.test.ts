@@ -69,6 +69,134 @@ describe("redactText", () => {
     expect(result.value).not.toContain("acct_example_value");
   });
 
+  it("uses UTF-16 code unit ranges without splitting surrogate pairs", async () => {
+    const input = "Prefix 😀 suffix";
+    const detector: Detector = {
+      id: "custom:emoji",
+      reasons: ["custom:emoji"],
+      detect() {
+        return [
+          {
+            reason: "custom:emoji",
+            start: 7,
+            end: 9,
+          },
+        ];
+      },
+    };
+
+    const result = await redactText(input, {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe("Prefix [REDACTED:custom:emoji] suffix");
+    expect(result.value).not.toContain("😀");
+  });
+
+  it("fails closed when a detector range splits a surrogate pair", async () => {
+    const detector: Detector = {
+      id: "custom:split-surrogate",
+      reasons: ["custom:split_surrogate"],
+      detect() {
+        return [
+          {
+            reason: "custom:split_surrogate",
+            start: 7,
+            end: 8,
+          },
+        ];
+      },
+    };
+
+    const result = await redactText("Prefix 😀 suffix", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_detection_range");
+    expect(result.report.status).toBe("failed");
+    expect(result.report.totalRedactions).toBe(0);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "invalid_detection_range",
+        detectorId: "custom:split-surrogate",
+        reason: "custom:split_surrogate",
+      }),
+    );
+  });
+
+  it("redacts repeated detections and reports counts by reason", async () => {
+    const result = await redactText(
+      "First user@example.invalid and second user@example.invalid",
+      {
+        builtInDetectors: ["email"],
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe(
+      "First [REDACTED:email] and second [REDACTED:email]",
+    );
+    expect(result.report.totalRedactions).toBe(2);
+    expect(result.report.countsByReason.email).toBe(2);
+  });
+
+  it("keeps the longest detection for the same start and warns on overlap", async () => {
+    const detector: Detector = {
+      id: "custom:overlap",
+      reasons: ["custom:short", "custom:long"],
+      detect() {
+        return [
+          {
+            reason: "custom:short",
+            start: 6,
+            end: 12,
+          },
+          {
+            reason: "custom:long",
+            start: 6,
+            end: 24,
+          },
+        ];
+      },
+    };
+
+    const result = await redactText("Value acct_example_value done", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe("Value [REDACTED:custom:long] done");
+    expect(result.report.totalRedactions).toBe(1);
+    expect(result.report.countsByReason["custom:long"]).toBe(1);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "overlapping_detection",
+        reason: "custom:short",
+      }),
+    );
+  });
+
   it("fails closed when a detector throws", async () => {
     const detector: Detector = {
       id: "custom:throwing",

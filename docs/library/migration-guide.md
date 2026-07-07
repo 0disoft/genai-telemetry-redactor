@@ -30,3 +30,15 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Compatibility claims lack runtime or consumer evidence.
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
+
+## 0.1.3
+
+Custom detector ranges are now explicitly validated as JavaScript UTF-16 code
+unit ranges. Valid ranges are half-open `[start, end)` offsets and must not
+split a surrogate pair. A detector that returns a range inside a surrogate pair
+now fails closed with `invalid_detection_range` instead of producing a malformed
+redacted string.
+
+Custom detectors that calculate offsets by Unicode code point, grapheme cluster,
+or byte position should convert those offsets to UTF-16 code unit indices before
+returning detections.
