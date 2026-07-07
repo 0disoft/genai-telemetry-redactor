@@ -31,6 +31,20 @@ This repository type owns public API, compatibility, examples, versioning, and c
   model-provider responses.
 - Include expected redaction categories and counts when showing output.
 
+## Executable Examples
+
+- `examples/openai-compatible-basic.ts`: wraps an OpenAI-compatible request and
+  response with `withRedactedTelemetry`, verifies fake email, URL, and API-key-like
+  content are removed, and checks content capture stays disabled.
+- `examples/custom-detector.ts`: registers a caller-owned customer-id detector while
+  keeping built-in detectors active, then verifies custom and built-in reason counts.
+- `examples/streaming-metadata-only.ts`: passes a fake streaming chunk to the
+  OpenAI-compatible streaming helper and verifies only metadata plus
+  `streaming_content_omitted` are returned.
+
+These examples are imported by `scripts/check-examples.ts` after `pnpm run build`.
+The `contract` runner executes that check so sample drift fails before publishing.
+
 ## Review Blockers
 
 - SDK examples drift from public API.

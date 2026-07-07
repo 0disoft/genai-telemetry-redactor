@@ -31,6 +31,9 @@ const REQUIRED_FILES = [
   "README.md",
   "LICENSE",
   "SECURITY.md",
+  "examples/custom-detector.ts",
+  "examples/openai-compatible-basic.ts",
+  "examples/streaming-metadata-only.ts",
   "dist/src/index.js",
   "dist/src/index.d.ts",
   "packages/core/package.json",
@@ -48,6 +51,7 @@ const REQUIRED_FILES = [
 ];
 const REQUIRED_FILE_PATTERNS = [
   "dist/",
+  "examples/",
   "packages/*/package.json",
   "README.md",
   "LICENSE",

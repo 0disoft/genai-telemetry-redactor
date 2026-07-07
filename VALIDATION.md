@@ -40,7 +40,7 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - test: Vitest test suite.
 - contract: live-looking secret guard across docs, packages, and scripts plus
   package export-surface, public API documentation, dry-run artifact, and packed
-  consumer import guards.
+  consumer import and executable example guards.
 - release-readiness: npm publish blocker check for package metadata, required
   release files, publishing policy, and trusted publishing workflow readiness.
 - docs: live-looking secret guard for documentation surfaces.

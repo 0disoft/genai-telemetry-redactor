@@ -28,6 +28,8 @@ and reports redaction counts and reasons without preserving raw user content.
 - docs/engineering/04-security-baseline.md: security and redaction safety baseline
 - docs/non-goals/backend-placeholders/: parked API and DB placeholders that are not
   active product contracts
+- examples/: executable, fake-data-only SDK and adapter examples checked by the
+  contract runner
 - package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package,
   build, and validation runner setup
 - packages/core/: initial provider-agnostic redaction core
@@ -76,6 +78,12 @@ an explicit-adapter helper that redacts OpenAI-compatible request and response
 payloads, returns safe telemetry metadata, and invokes optional report callbacks
 without owning provider credentials, retries, routing, transport, telemetry
 exporters, or prompt storage.
+
+`examples` contains executable TypeScript samples for the first safe integration
+paths: OpenAI-compatible request/response wrapping, custom detector registration,
+and streaming metadata-only handling. The contract runner imports these samples
+against built package exports so example drift is treated as a package contract
+failure.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

@@ -1,7 +1,7 @@
 {
   "tool": "ssealed",
   "version": "0.5.0",
-  "generatedAt": "2026-07-07T02:16:24.818Z",
+  "generatedAt": "2026-07-07T02:46:00.000Z",
   "scope": "backend",
   "profile": "library",
   "addons": [
@@ -542,7 +542,7 @@
     },
     {
       "path": "docs/sdk/examples-and-samples.md",
-      "checksum": "sha256:141edd7476324a89ece28f503c1e5475d1521a51e2aa5e6a09f325ac2cb9368c",
+      "checksum": "sha256:c9f85a1bdafbef84b8ffc0f6a89c30e209c1c49eaccc7cbf8b72d414edfd5490",
       "kind": "document"
     },
     {
@@ -557,12 +557,12 @@
     },
     {
       "path": "README.md",
-      "checksum": "sha256:f258f5ab4dd8570a3d9cd27e1c1d07c296a87728120b5652d44f26a914a4bfee",
+      "checksum": "sha256:a4c332bf47edf39738e451e8411ba87b6d3c4559ce762fb3b8f8affa20d3231c",
       "kind": "document"
     },
     {
       "path": "VALIDATION.md",
-      "checksum": "sha256:d1cb4f0f09145078dad8da9226a9d2b1ede20bdc730df624006cff38b19e53dd",
+      "checksum": "sha256:2bae66f3a16406c26b4bedbd49e8fe0079a9a556ec03da6f6f6393c2eff90f46",
       "kind": "validation"
     }
   ]

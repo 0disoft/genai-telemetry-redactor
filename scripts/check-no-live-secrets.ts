@@ -55,6 +55,7 @@ const roots = DOCS_ONLY
       "DEVELOPMENT.md",
       "SECURITY.md",
       "docs",
+      "examples",
       "packages",
       "scripts",
     ];
