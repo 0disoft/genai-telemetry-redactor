@@ -13,12 +13,24 @@ package name is `genai-telemetry-redactor`.
 - Keep internal package boundaries private until independent publishing is
   justified.
 - Use pnpm workspace layout for implementation.
-- Prefer npm trusted publishing with provenance from CI.
+- Use npm trusted publishing with provenance from CI for normal releases.
+- Configure the npm trusted publisher to match the GitHub owner, repository,
+  and workflow filename that owns release publishing.
+- Treat long-lived npm tokens as bootstrap or emergency recovery tools only;
+  they must not be required by the release workflow or committed to repository
+  files.
 - Verify current npm trusted publishing requirements before writing workflow
   files because npm and CI requirements can change.
 - Keep `pnpm run release-readiness` outside the normal `check` runner while the
   package is intentionally unpublished. It must fail with explicit blockers until
   package metadata and trusted publishing workflow requirements are satisfied.
+
+## Verification Evidence
+
+A trusted-publishing setup is proven only by publishing a previously unpublished
+package version from the release workflow without npm token configuration in the
+workflow file. A rerun that skips publishing because the version already exists
+is useful health evidence, but it does not prove tokenless publishing.
 
 ## Release Blockers
 
