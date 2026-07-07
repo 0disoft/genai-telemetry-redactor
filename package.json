@@ -46,7 +46,7 @@
   },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
-    "format": "prettier --check package.json pnpm-workspace.yaml tsconfig.base.json tsconfig.json tsconfig.build.json vitest.config.ts \"src/**/*.ts\" \"packages/**/*.ts\" \"scripts/**/*.ts\"",
+    "format": "prettier --check package.json pnpm-workspace.yaml tsconfig.base.json tsconfig.json tsconfig.build.json vitest.config.ts \".github/workflows/*.yml\" \"src/**/*.ts\" \"packages/**/*.ts\" \"scripts/**/*.ts\"",
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",

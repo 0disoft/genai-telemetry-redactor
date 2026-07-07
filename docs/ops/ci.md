@@ -4,14 +4,18 @@ Status: Active
 
 ## Operational Contract
 
-CI should prove package safety before release. Exact runner implementation is
-not selected yet, but stable validation names are defined in VALIDATION.md.
+CI proves package safety before release with GitHub Actions. The workflow is
+`.github/workflows/ci.yml` and it runs on pull requests and pushes to `main`.
+The workflow uses Node.js `22.14.0`, pnpm `11.7.0`, and read-only repository
+permissions.
 
 ## Required Gates
 
 - test: detector, policy, mapping, failure, and SDK behavior.
 - docs: source-of-truth docs and examples remain aligned.
 - check: repository-level safety and hygiene checks.
+- smoke: focused package behavior checks for core redaction, adapters, OTel
+  mapping, and SDK wrapper behavior.
 
 ## Artifact Policy
 
@@ -22,5 +26,5 @@ tokens, API keys, private URLs, or customer identifiers.
 
 - Release blocker status: failing tests, unsafe examples, or unreviewed detector
   default changes block release.
-- Remaining operational risk: until CI is configured, skipped validation must be
-  reported with explicit risk.
+- Remaining operational risk: CI validates the package and docs, but does not
+  publish npm artifacts or deploy services.
