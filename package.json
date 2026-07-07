@@ -1,10 +1,30 @@
 {
   "name": "genai-telemetry-redactor",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
+  "description": "Redact sensitive GenAI telemetry before logs, spans, events, and observability export.",
   "type": "module",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0disoft/genai-telemetry-redactor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0disoft/genai-telemetry-redactor/issues"
+  },
+  "homepage": "https://github.com/0disoft/genai-telemetry-redactor#readme",
+  "keywords": [
+    "genai",
+    "telemetry",
+    "redaction",
+    "opentelemetry",
+    "privacy"
+  ],
   "packageManager": "pnpm@11.7.0",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "files": [
     "dist/",
     "examples/",
