@@ -1,7 +1,7 @@
 {
   "tool": "ssealed",
   "version": "0.5.0",
-  "generatedAt": "2026-07-06T10:25:02.492Z",
+  "generatedAt": "2026-07-07T02:16:24.818Z",
   "scope": "backend",
   "profile": "library",
   "addons": [
@@ -202,402 +202,367 @@
     },
     {
       "path": "AGENTS.md",
-      "checksum": "sha256:41a60e2d664a79b0be7b4d2e39248097256436fd2e8996b162e546429facdc9e",
+      "checksum": "sha256:0c9e9e8c8ae9f3b60ce8cf24af79691487bf06fd94f800de4ad947bf54e6e435",
       "kind": "agent"
     },
     {
-      "path": "api/examples/error-response.json",
-      "checksum": "sha256:cd4d026e889238c9ebd2264bb367b7df6e0ad399bc715b164338f6802dc26064",
-      "kind": "contract"
-    },
-    {
-      "path": "api/examples/paginated-response.json",
-      "checksum": "sha256:50b8481c2348567f3ae7170eb4511d2943efcb944316a57e73fef674a6b29c52",
-      "kind": "contract"
-    },
-    {
-      "path": "api/examples/success-response.json",
-      "checksum": "sha256:6cffe23c36fb2e57da24f246d13fc42af3063a954c456af8000850f6c191db24",
-      "kind": "contract"
-    },
-    {
-      "path": "api/openapi.yaml",
-      "checksum": "sha256:8659aa506c077d2809bd5336483cfa06021d4f1c3f9f558ffafadce8fedaebdb",
-      "kind": "contract"
-    },
-    {
       "path": "ARCHITECTURE.md",
-      "checksum": "sha256:7bb8e8712a7ee4b26282c0245e83ca20ccaa5c1af6e56c675eb21acd753f6a08",
+      "checksum": "sha256:c580c9f5c8a21a5a82f69c0841ca8d32adfc6ebe1f487b3e28f0e8bafb750deb",
       "kind": "document"
     },
     {
       "path": "CHECKLIST.md",
-      "checksum": "sha256:92e9e1cb99f2d066d87f44abd1cdb1a1146bbe95710224a1c86e171eeb0b0006",
+      "checksum": "sha256:aa205b212029335610142fbcc9e2bb4ee365b2331c4c90ce3b33ced718412d9e",
       "kind": "checklist"
     },
     {
       "path": "CONTRIBUTING.md",
-      "checksum": "sha256:6b2581f7e034df824f936fb09a3d6c9994301586e30507bcf4b8f7f4b1eb4acb",
-      "kind": "document"
-    },
-    {
-      "path": "db/migrations/README.md",
-      "checksum": "sha256:ca4d7484d01aacf97d636398bd4f4d8d5dc893946b2cbc623061ebc4e545fe3c",
-      "kind": "document"
-    },
-    {
-      "path": "db/schema.dbml",
-      "checksum": "sha256:72659e2418de483b15cb87f9d3b23c2ce3a211f2631ace54081c7cc6dde9b0e9",
-      "kind": "contract"
-    },
-    {
-      "path": "db/seed/README.md",
-      "checksum": "sha256:fa6066ac2373d66715dececf4aacb993f6e473a0a37fa6a12ae0feabacbe5866",
+      "checksum": "sha256:0b7f994ea64c4744cb7fd2b46dcd038bc5966ed41f73240a81c5a28561d30f3a",
       "kind": "document"
     },
     {
       "path": "DEVELOPMENT.md",
-      "checksum": "sha256:0c438de90e7b4aa0027ec225ce643294d5d66bc0a08bac13a1bc1df024809f0d",
+      "checksum": "sha256:980f81cb937abdd6ae8f93ecd94cf0010c934c689e2f684cc4eaba765ee09f6b",
       "kind": "document"
     },
     {
       "path": "diagrams/auth-flow.mmd",
-      "checksum": "sha256:1ad099121cb6e2d503de842ea5e8382d19b147b7021f5c3c2a60b8b0102fb59e",
+      "checksum": "sha256:f6241e7a5f546409facbe3f482b2fcbd97940c40119b8be51c28bdae4e06d91b",
       "kind": "diagram"
     },
     {
       "path": "diagrams/authorization-flow.mmd",
-      "checksum": "sha256:a6af81bc147cc05aa35c08a6d0cbe4d12e11960e3d7a36f359d6cd219d784774",
+      "checksum": "sha256:46a23272eb71a56d43e342716bd8a9e8b35bcdb31c18d7371538c727c0b7463c",
       "kind": "diagram"
     },
     {
       "path": "diagrams/container-view.mmd",
-      "checksum": "sha256:6958779c75afab392b1a24e46456c7f82e8194bdd43b1c268e72f2d52d0e60b3",
+      "checksum": "sha256:bb77722d05502d5f68b1241f8358f63089a944130b71208da3ecee5f1e2cb232",
       "kind": "diagram"
     },
     {
       "path": "diagrams/core-runtime-flow.mmd",
-      "checksum": "sha256:71db24742ece34f27f5f1ae5144ff7ede347cbc4bb3dee0b6c54d40b8f733cc3",
+      "checksum": "sha256:d35cc9256a0c9a0b515a19e72ef55323f6dbf16a3d2ce637a2f71be65b7875b9",
       "kind": "diagram"
     },
     {
       "path": "diagrams/data-model.mmd",
-      "checksum": "sha256:62bc96598d597ff965829d5390d3f025e488042f884480d09fe0db84999d356a",
+      "checksum": "sha256:79ed7791dc85b8177b5a971dee86e148b7e30440f70cb13955b9efa51d06f164",
       "kind": "diagram"
     },
     {
       "path": "diagrams/README.md",
-      "checksum": "sha256:de31e7b178e125f514c7c867d7dbd5b9782067d9233c2b6e2b9a13e19e98dcc0",
+      "checksum": "sha256:c158058efefcedef4a7423f2cf8d38fbad15b0f1fed509736067d882051fde38",
       "kind": "diagram"
     },
     {
       "path": "diagrams/release-flow.mmd",
-      "checksum": "sha256:c75791fa4f92522db3885c806f973e1bcb8e00b7f7f0b563dd10e3785491ca32",
+      "checksum": "sha256:207676b78d11c81b3ed0c843580c969742f285c4699d234a42d8cac62a55267b",
       "kind": "diagram"
     },
     {
       "path": "diagrams/request-lifecycle.mmd",
-      "checksum": "sha256:2db346d1ce023f104210152061b657ac01ff0645acec62278bc6fc153d17204b",
+      "checksum": "sha256:447390ec318740e35205e79363a5e483affc0843693d7a028967b6ab814d225a",
       "kind": "diagram"
     },
     {
       "path": "diagrams/rollback-flow.mmd",
-      "checksum": "sha256:3e06412695cebd1affc60109380d40601cfcf09429a089ac363b8f1739467855",
+      "checksum": "sha256:325e84fcc5fcfdbf5c3dcc835bd6438ca0b7e74aaee9b272ec8561a38d4aa8b6",
       "kind": "diagram"
     },
     {
       "path": "diagrams/system-context.mmd",
-      "checksum": "sha256:d82e351bd752b625dda1bc2fef0fa12d8cd6026dc144ee01981307f757aa1812",
+      "checksum": "sha256:9f6ea35e4f43cb28750e7a88c05eccf9e5d7656f521cb3671c4c90c516c76258",
       "kind": "diagram"
     },
     {
       "path": "docs/adr/0000-template.md",
-      "checksum": "sha256:101512503e6ba5ae15250969060a8f44ca59d54955c2fadadf8c70c2c0d89a92",
+      "checksum": "sha256:fc34adb691813b720a4589730c4fd373e8c0a4a40a0622cbc3a1fc1b49b05188",
       "kind": "document"
     },
     {
       "path": "docs/adr/0001-initial-architecture-boundaries.md",
-      "checksum": "sha256:846e2317cc0db8e6d052ddfffd10e7b0f524f45de368b55ac04825f81fb79296",
+      "checksum": "sha256:0e770308b0ed8fd9ea36f7f3224d4c81b1ad22ff84c749fe55b8d6857b702041",
       "kind": "document"
     },
     {
       "path": "docs/adr/0002-contract-source-of-truth.md",
-      "checksum": "sha256:d48014875fc499550eecf717d1dc28eff9c15a69bde5130ec690d3efd73dac02",
+      "checksum": "sha256:a26d074d3729a0e53db810885010d7dde4c7a02e6c0f0951d1126b39e322992e",
       "kind": "document"
     },
     {
       "path": "docs/adr/README.md",
-      "checksum": "sha256:e2312ed94adfb9c479c260851a0cb19f67b6a9c98e1c0434d9aa58aa5575828b",
+      "checksum": "sha256:32c287ca91b3c580fce23e2a47f346a4aeea133104824416b6f77bd9b8d9751d",
       "kind": "document"
     },
     {
       "path": "docs/architecture/00-system-boundary.md",
-      "checksum": "sha256:9858910aee6d3561dce90adecb9e55e31078a2c35713a66983232590ebfb2505",
+      "checksum": "sha256:0e12384a3c81b64340ec93115ea4d800a3661db3b0474c7fa6a45833d909ad34",
       "kind": "document"
     },
     {
       "path": "docs/architecture/01-domain-model.md",
-      "checksum": "sha256:8d08084c8d4a3cce288d50b43831ca4b2522e949799ec2c505431371303d3369",
+      "checksum": "sha256:ef0a0f7a19e0f4426e09e8173956586a24acf1804d6bc875bb9e42b974b716c0",
       "kind": "document"
     },
     {
       "path": "docs/architecture/02-runtime-flow.md",
-      "checksum": "sha256:7eaff6a7a429daa18798c7612760973c1e3eb8042715505f2b10f80302aa324f",
+      "checksum": "sha256:5dbc46baa982d34d7f94edbb6de66ed3886b614d08b749838c976ed6ba132574",
       "kind": "document"
     },
     {
       "path": "docs/architecture/03-quality-attributes.md",
-      "checksum": "sha256:53ddf09700135966e667c3e33e29b03f5701b4ea4f6771467a6adeb2d3ad77ad",
+      "checksum": "sha256:1c1c2c91d092b9f664f39976d08f846d56692a46cb084805697bd1531ad0ac37",
       "kind": "document"
     },
     {
       "path": "docs/backend/00-api-server-boundary.md",
-      "checksum": "sha256:cfee7ab53f49d2acb6b35147b445601038159cd57b5d72034e266e391800e94e",
+      "checksum": "sha256:731241956db52569351a744495f1024198a16f6b6fa56e6659ebe232c24524ee",
       "kind": "document"
     },
     {
       "path": "docs/backend/01-authentication.md",
-      "checksum": "sha256:2385380a68d93f1c6e306a0cc20f58b51743d84c1db10897ef72a0793cf01486",
+      "checksum": "sha256:3330c799f58f293c7159dbc5260faee995a98a5622bab436034059ffff0d9ac0",
       "kind": "document"
     },
     {
       "path": "docs/backend/02-authorization.md",
-      "checksum": "sha256:510a4805a74d936992e2db884afb65a775897c16744b74d00a92e202e21f1eb8",
+      "checksum": "sha256:54dd68356e7f412af9118967d9dfd49aeb87f6dcef79f2f188526ba54e0bf9a3",
       "kind": "document"
     },
     {
       "path": "docs/backend/03-persistence-model.md",
-      "checksum": "sha256:22f1481d337a8221bb1e2ad6dfc6986b4b4036cefa488f6ffbb6f74ccc625d85",
+      "checksum": "sha256:a0f0413d5da8c3af70202d4bb4ec36c10711853a007f0f11c0edf79fdf37dd71",
       "kind": "document"
     },
     {
       "path": "docs/backend/04-http-api-policy.md",
-      "checksum": "sha256:47e1f1d9d9e625925da74e30eacf6fa5a6d08d59cfc8ac6402d6f6254617f318",
+      "checksum": "sha256:5d9f24174d0376b0663b945175a4e331882c4b4123d99cf13b00a655bf68368f",
       "kind": "document"
     },
     {
       "path": "docs/backend/05-error-response.md",
-      "checksum": "sha256:37d02e145855dedcbd09bacedfe60d564e5af2fae3a449c923e5f1dc0e511a10",
+      "checksum": "sha256:3c8c1790f6e73fb1dd01a8869e6903a0b3fe5dda8a9158686118eddd7690a601",
       "kind": "document"
     },
     {
       "path": "docs/backend/06-logging-and-observability.md",
-      "checksum": "sha256:f03b3ac59482984b918672f85d936b722b89a639b489148370d56cf46af947cd",
+      "checksum": "sha256:b53d9e78f3f18dd9f2d9f67190246ef9975e885fc21fbc08fed517c60e3438a8",
       "kind": "document"
     },
     {
       "path": "docs/backend/07-migration-strategy.md",
-      "checksum": "sha256:e3f7347b65388b587333d4b806160c7507b7ef9e56eec936cd34db82e27b0a96",
+      "checksum": "sha256:6c0fb1b0a571720b1f8ba27d77b43e2996578a8e4365f5fc912347951fd491c1",
       "kind": "document"
     },
     {
       "path": "docs/backend/08-backend-security.md",
-      "checksum": "sha256:231b6ddaf1e3903f5c11adf9d6f2c810fdf2f0b46c3db4e908ffeb127481d49e",
+      "checksum": "sha256:f1dcfd0db7f4b547df6bbfe2503102408c4b69ce69b7852576b1333057de727e",
       "kind": "document"
     },
     {
       "path": "docs/backend/09-api-evolution.md",
-      "checksum": "sha256:7d2cd3d9f70badcbca30ba49ad11f4bee25edf0bc71e29d26b46525e712f6fce",
+      "checksum": "sha256:26b53510e69c5d0bdd942e3f332cb27258afaee97d48c97781e8174a51844c28",
       "kind": "document"
     },
     {
       "path": "docs/backend/10-data-integrity.md",
-      "checksum": "sha256:ee9fe0d200b044e4472523baca986429a519a6d293edb05f6945cc39388ef264",
+      "checksum": "sha256:1648d50a2b3757832cde83b7ad463c70f80ae5cc82ab4b87420dd1ee80972ae6",
       "kind": "document"
     },
     {
       "path": "docs/backend/README.md",
-      "checksum": "sha256:1c6c3d9284f3bbcc806ea60c3033f5d32bbac4c887150bfb30e3c2c4ca06ca6e",
+      "checksum": "sha256:782e67fb969380bf1a5c22b969f27c2f777ed1c184b09567f32f7e1983faa2dd",
       "kind": "document"
     },
     {
       "path": "docs/engineering/00-project-invariants.md",
-      "checksum": "sha256:073f47262aa5dacdffa1a9c6bd7f1efe8bd8fb0e65162b13083822c7bf17f32e",
+      "checksum": "sha256:1cabd8848f19fd2ada385dc50e94eba231c305dbf30fb5ae65e878ccaa79ed0e",
       "kind": "document"
     },
     {
       "path": "docs/engineering/01-design-review-questions.md",
-      "checksum": "sha256:f762e5ad5118bee6dd8dcefa7f17ce7d60e896dfa5d1712cfcf56b6a3313f256",
+      "checksum": "sha256:c715e151a2c45481646698fe1b0ad0e39699f60b5dcff3971ed9d340cd23cb57",
       "kind": "document"
     },
     {
       "path": "docs/engineering/02-code-review-checklist.md",
-      "checksum": "sha256:cafc7eecbecdfa73c5606dd1bcd1a99ad8fd2a3a37c0dd218a3e4b740dd64b26",
+      "checksum": "sha256:f2e71c917ec26f3f4c11e94963fa5a4a3f4d423ecb34b122442b9818e0d728f2",
       "kind": "document"
     },
     {
       "path": "docs/engineering/03-performance-budget.md",
-      "checksum": "sha256:bbf41ff7c88936f1922e887702adf442905a26a24c3e7486339549d8d931a447",
+      "checksum": "sha256:681b0e42519c241888cfc586e9045b6e56f93efc8b1632d93286add00f23dd2f",
       "kind": "document"
     },
     {
       "path": "docs/engineering/04-security-baseline.md",
-      "checksum": "sha256:86f9228f277aae48f52d018858ca62d760df3f1c8e149cb3e282b69df4ead1bc",
+      "checksum": "sha256:fcd8e8f6742ce793f48d085b423a9b886bfca682d856f09c0c1f522f6869b276",
       "kind": "document"
     },
     {
       "path": "docs/engineering/05-testing-standard.md",
-      "checksum": "sha256:0a2e42f3f00b4e02102394f350239a9985bfe5b8df337900a4a24c09b07ff991",
+      "checksum": "sha256:ab7729c965679028d2f04d82e18e29c2a341d6d0722e3efd46ce6d6e6e992a4b",
       "kind": "document"
     },
     {
       "path": "docs/engineering/06-dependency-and-change-policy.md",
-      "checksum": "sha256:f17096aee7089782dde56c0b9125a14f0685f540a6916f7db85b49b25680dfe0",
+      "checksum": "sha256:2628b0af77205fd161e94204aa2ede64afec964da04ccd80f46ad50dcdd9e5a6",
       "kind": "document"
     },
     {
       "path": "docs/engineering/07-operability-and-failure-standard.md",
-      "checksum": "sha256:4fb1d4c16b5f58e3aa23738630afee87a06da7f36bd89c0fb4422ac90e7675fe",
+      "checksum": "sha256:ec801342052eac33080124a908b9de9eed09e0291a78de1e95d98d9af2b996da",
       "kind": "document"
     },
     {
       "path": "docs/engineering/08-threat-model.md",
-      "checksum": "sha256:129ca46e82b2377264b915427e27efdab782eb29997e45de7be932574e89b8b0",
+      "checksum": "sha256:9036dcf428aeb5314732080ee71ec3223ce42e286d5b6147f116a5e9a8b49135",
       "kind": "document"
     },
     {
       "path": "docs/engineering/09-data-integrity.md",
-      "checksum": "sha256:77c0abe53c3a9b4c05af27371e268b55e42c2a2d3b46130b13c5f7d55099a5c7",
+      "checksum": "sha256:92282de1c0436c09037e4dc87d285c872acdd2c64824edef386975a9bfb7be68",
       "kind": "document"
     },
     {
       "path": "docs/library/compatibility.md",
-      "checksum": "sha256:8b7c2b469c39d3d04878f6a424e4d865334eb3357a3ba4820a940f4177f4e91c",
+      "checksum": "sha256:c59da201a2ce1c4679af41024b7143dad4d7b39370819de5d0afa3fe7297d3c1",
       "kind": "document"
     },
     {
       "path": "docs/library/migration-guide.md",
-      "checksum": "sha256:869731203aa7b7ddc7420b25467c80e3e02c67199087cb30c7e7fc4f9bbe9080",
+      "checksum": "sha256:ba8e529e38f0bf47e01aae99438c4f367c3bedda585e198a4ba022923b36f8c6",
       "kind": "document"
     },
     {
       "path": "docs/library/package-surface.md",
-      "checksum": "sha256:b9196f6d8dfd04dd16019bfed1bae4b4801cddaf15339d5a1b4d0cad6904adf0",
+      "checksum": "sha256:34a173ddb1405f8cafbd78cd6c62a106b243fca7ec253eacd0e367c16b24dbd9",
       "kind": "document"
     },
     {
       "path": "docs/library/public-api.md",
-      "checksum": "sha256:62eb0f1516059c80ad75aca6970aae039225a52cb34e2acdd4b3f499a1f6b124",
+      "checksum": "sha256:9db56891fa3496ed22be4c5d3503562feb1a6d905a02d5e0166bad9fb2d5522f",
       "kind": "document"
     },
     {
       "path": "docs/library/README.md",
-      "checksum": "sha256:07df1b36d876554f3e9e52aeecb93ae6efa11860633492cec2d103ec55634f1e",
+      "checksum": "sha256:57382adbf24dd6d48af4b29654ec25963eeaf3987f3b698c1f8e46f55d15aee1",
       "kind": "document"
     },
     {
       "path": "docs/library/semver.md",
-      "checksum": "sha256:e6162cf6da62c5e9b267efe33a0ecd169f42e56c65d734a788438f823f759e34",
+      "checksum": "sha256:e97953b2f06cc202fa36a2a343201f160cd5245dee4fdcbfe26601d06a5e5eeb",
       "kind": "document"
     },
     {
       "path": "docs/ops/00-operational-contract.md",
-      "checksum": "sha256:6aa2aafbcd19eb8d9bbad676b97fafb5999f83629452c83c46947e4854a22394",
+      "checksum": "sha256:59224b6887b1093379b3a78c57f15a3aa1608cea6f8960b018f1980ca0316f2f",
       "kind": "document"
     },
     {
       "path": "docs/ops/backup-and-restore.md",
-      "checksum": "sha256:a05c94400dbfc752c734e4226f3bcc52ea79f0469581532c38b45c66501eb0b1",
+      "checksum": "sha256:072aff0342ea28cf3ec98554e187b3a8dd55a3836de6ed4a95508207182a037a",
       "kind": "document"
     },
     {
       "path": "docs/ops/ci.md",
-      "checksum": "sha256:84230d18c038fad55557eed25f080012d1292e7d56b31b3c04c89ab49523c6ec",
+      "checksum": "sha256:5e01ac2672b482533e27bd33d49988d3711dfd84966a0ef4b7d2ef4c2fa22853",
       "kind": "document"
     },
     {
       "path": "docs/ops/config-and-env.md",
-      "checksum": "sha256:3d40fb7c73c3a4c28f24b31347a2c6ace81a3b4d8dcff54554078b575061dc5a",
+      "checksum": "sha256:6b176ce85d1494dc090ce559d338196e96c3c71612b14aae4f0f17b7128590de",
       "kind": "document"
     },
     {
       "path": "docs/ops/disaster-recovery.md",
-      "checksum": "sha256:87d4e168561e5f1d24c77dbf7c0bcf3c643820ed77cf2df0fe2170eaf5f4b964",
+      "checksum": "sha256:b631698c544c46744f49b400da84b620553300e46f3fd6a579986471e0eeeed3",
       "kind": "document"
     },
     {
       "path": "docs/ops/incident-response.md",
-      "checksum": "sha256:582e4c1d30843019f0b830ca47c2ba9cade0849b49c5abceabacaa185e4f2cb7",
+      "checksum": "sha256:31ed0725b8990721e3fc7a8d86149724c6f155a8e1d55cf63657f2637c07b67b",
       "kind": "document"
     },
     {
       "path": "docs/ops/observability.md",
-      "checksum": "sha256:363ff0a58487e04f1be0a90ce49fb4f9ff5e07aedb2e6dfdf515d26092bb219a",
+      "checksum": "sha256:1682c394389b6ba332054fef9f1a2447f8e5f3993ba27be15415a78a3212827e",
       "kind": "document"
     },
     {
       "path": "docs/ops/release.md",
-      "checksum": "sha256:1932d2a53aba0aa7f465399a8b3808968438d888d3ecd745c60a307cdf9bb2cf",
+      "checksum": "sha256:01fcd8c946d72da7605afbe9c0d78a91c16544cbdbcdf29756bba76fb59a2ef8",
       "kind": "document"
     },
     {
       "path": "docs/ops/rollback.md",
-      "checksum": "sha256:c0620ef6e1ca0e2d9cd6516eaea7460bb7986060f0aacf526ab7acb76bfe49f0",
+      "checksum": "sha256:04e444085cacddc54048509c0b467610235d9340b6ae5e604e939b9436007fb7",
       "kind": "document"
     },
     {
       "path": "docs/ops/secrets.md",
-      "checksum": "sha256:f87945c72489fd41ed6df3d86056f28ea14becbbbfd20c23423875629273662a",
+      "checksum": "sha256:9267822be06bf5745bd78dd3e6b10e9ce2fcd7b1b62ed58329a4d6f4205d01e2",
       "kind": "document"
     },
     {
       "path": "docs/ops/service-levels.md",
-      "checksum": "sha256:1c3612522ce7b1d732d5b35bbe1d0537f366797e1bac74e15b0858f1bac8a930",
+      "checksum": "sha256:4cf97172aa3b02bb33fef9d478c896a261fc1f7af3dc3b2fc1fa08aca862faeb",
       "kind": "document"
     },
     {
       "path": "docs/product/00-product-brief.md",
-      "checksum": "sha256:22656608af8cf6c002bdf37b68c21047b2677706f45f0cdf678ffeb31abc9359",
+      "checksum": "sha256:17f9b9013c205acc00f2b1a025a1196851bf029f16006fe10600a8ee7e95867e",
       "kind": "document"
     },
     {
       "path": "docs/product/01-roadmap.md",
-      "checksum": "sha256:17b1509eecc5ebaba65ea4983a0641200edbff1810262746afa96f740999d467",
+      "checksum": "sha256:39030e279ec4b1e6b903688443ef3f75095715359e050239227ed8abc2f9c938",
       "kind": "document"
     },
     {
       "path": "docs/product/02-spec.md",
-      "checksum": "sha256:88d06c4f89a24754a69e86cd5316213ccc26b8ac1a9f9c00d1fc1794f4feb539",
+      "checksum": "sha256:b58edd82faf2ddae48c14ed831973306ca348770418890f53ee25ee4623ac1a8",
       "kind": "document"
     },
     {
       "path": "docs/product/03-risk-register.md",
-      "checksum": "sha256:26b68925311621d0fd1a9244ac317a74306f393bdeb3debaa9c06ce12b76715c",
+      "checksum": "sha256:21b7e3234995bcc45a3de622f3c661e60851fe4f6912c7705c5703f86da08e6f",
       "kind": "document"
     },
     {
       "path": "docs/README.md",
-      "checksum": "sha256:a365f979c8c97a9c079b5156932e2532a26cfbd94698d757e4894d8051391e24",
+      "checksum": "sha256:b4c3d66a9d69e66fcd41a67024e706f91ce5719a4315aa69dba958ca91904c3a",
       "kind": "document"
     },
     {
       "path": "docs/sdk/compatibility.md",
-      "checksum": "sha256:bcdb7f99de793a0e14929b7575b7686242da080e74ca14c440835fc84a5cb3e5",
+      "checksum": "sha256:7b0652fd7e88ee784227d8ed1445b8507489637437796a5681af7d2f2dc21d4a",
       "kind": "document"
     },
     {
       "path": "docs/sdk/examples-and-samples.md",
-      "checksum": "sha256:0940b85c4bec606336f2f9f33e7409f4cd93cb1f0207e1f763ee5a77924343c1",
+      "checksum": "sha256:141edd7476324a89ece28f503c1e5475d1521a51e2aa5e6a09f325ac2cb9368c",
       "kind": "document"
     },
     {
       "path": "docs/sdk/public-api.md",
-      "checksum": "sha256:ad30679a331fd116e157d8b7671f762400419cb12acc45ff9472268a49b1b3f7",
+      "checksum": "sha256:3a22b15680a37af4c7cf01cb7d819515d30e566a74a255b358b4c807ddbc2ab8",
       "kind": "document"
     },
     {
       "path": "docs/sdk/README.md",
-      "checksum": "sha256:187dfb6671576de4bd80c7f828c2129fd85730dcd96ebb93a2129391611b6067",
+      "checksum": "sha256:c1a9f78f66d91a7250a0e0bfe6cc4466349c7d37342f36f527825d5e52145a8d",
       "kind": "document"
     },
     {
       "path": "README.md",
-      "checksum": "sha256:be350a5e863ebd1890b876a09a5687b5e93f5cd8d088ef0b8a317646ad565af1",
+      "checksum": "sha256:f258f5ab4dd8570a3d9cd27e1c1d07c296a87728120b5652d44f26a914a4bfee",
       "kind": "document"
     },
     {
       "path": "VALIDATION.md",
-      "checksum": "sha256:f9cbc7b847c79ef2505b7bc8da47fb0576ecbf4b859493dd8b2a3f0be6d54a99",
+      "checksum": "sha256:d1cb4f0f09145078dad8da9226a9d2b1ede20bdc730df624006cff38b19e53dd",
       "kind": "validation"
     }
   ]
