@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/0disoft/genai-telemetry-redactor"
+    "url": "git+https://github.com/0disoft/genai-telemetry-redactor.git"
   },
   "bugs": {
     "url": "https://github.com/0disoft/genai-telemetry-redactor/issues"
