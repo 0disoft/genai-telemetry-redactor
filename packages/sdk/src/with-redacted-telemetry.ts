@@ -1,6 +1,7 @@
 import type {
   RedactionReport,
   RedactionResult,
+  RedactionWarningCode,
   RedactionWarning,
   SafeRedactionErrorCode,
 } from "../../core/src/index.js";
@@ -80,18 +81,26 @@ async function withOpenAICompatibleRedactedTelemetry(
   }
 
   const report = mergeReports(reports);
-  const telemetry = mapRedactionReportToGenAIMetadata(
+  let telemetry = mapRedactionReportToGenAIMetadata(report, options.telemetry);
+  const finalReport = invokeReportCallback(
+    options,
     report,
-    options.telemetry,
+    telemetry,
+    reportContext,
   );
-  invokeReportCallback(options, report, telemetry, reportContext);
+  if (finalReport !== report) {
+    telemetry = mapRedactionReportToGenAIMetadata(
+      finalReport,
+      options.telemetry,
+    );
+  }
 
   const value: WithRedactedTelemetryValue = {
     redactedRequest: request.value,
     telemetry,
-    report,
+    report: finalReport,
     reportContext,
-    warnings: report.warnings,
+    warnings: finalReport.warnings,
   };
 
   if ("response" in options) {
@@ -102,9 +111,9 @@ async function withOpenAICompatibleRedactedTelemetry(
     ok: true,
     value,
     telemetry,
-    report,
+    report: finalReport,
     reportContext,
-    warnings: report.warnings,
+    warnings: finalReport.warnings,
   };
 }
 
@@ -115,18 +124,26 @@ function failureFromRedaction<T>(
 ): WithRedactedTelemetryResult {
   const reportContext = sanitizeReportContext(options.reportContext);
   const report = mergeReports([...priorReports, result.report]);
-  const telemetry = mapRedactionReportToGenAIMetadata(
+  let telemetry = mapRedactionReportToGenAIMetadata(report, options.telemetry);
+  const finalReport = invokeReportCallback(
+    options,
     report,
-    options.telemetry,
+    telemetry,
+    reportContext,
   );
-  invokeReportCallback(options, report, telemetry, reportContext);
+  if (finalReport !== report) {
+    telemetry = mapRedactionReportToGenAIMetadata(
+      finalReport,
+      options.telemetry,
+    );
+  }
 
   return {
     ok: false,
     telemetry,
-    report,
+    report: finalReport,
     reportContext,
-    warnings: report.warnings,
+    warnings: finalReport.warnings,
     error: result.error,
   };
 }
@@ -136,8 +153,27 @@ function invokeReportCallback(
   report: RedactionReport,
   telemetry: ReturnType<typeof mapRedactionReportToGenAIMetadata>,
   context: RedactedTelemetryReportContext,
-) {
-  options.onReport?.(report, telemetry, context);
+): RedactionReport {
+  if (!options.onReport) {
+    return report;
+  }
+
+  try {
+    options.onReport(report, telemetry, context);
+    return report;
+  } catch {
+    return appendReportWarning(report, "report_callback_failed");
+  }
+}
+
+function appendReportWarning(
+  report: RedactionReport,
+  code: RedactionWarningCode,
+): RedactionReport {
+  return {
+    ...report,
+    warnings: [...report.warnings, { code }],
+  };
 }
 
 function sanitizeReportContext(

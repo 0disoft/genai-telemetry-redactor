@@ -17,10 +17,13 @@ not proof of complete PII or DLP coverage.
 - Detector context includes an `AbortSignal` and, when a detector timeout is
   configured, a `deadlineEpochMs` timestamp. Custom async detectors should stop
   promptly when the signal is aborted.
-- Overlapping detections are resolved deterministically: lower `start` wins, and
-  the longest detection wins when multiple detections share the same `start`.
-  Omitted overlaps are reported with `overlapping_detection`.
-- Built-in MVP categories are email, bearer token, API-key-like string, and URL.
+- Overlapping detections are resolved deterministically only when multiple
+  detections share the same `start`; the longest detection wins and omitted
+  same-start overlaps are reported with `overlapping_detection`. Partial overlaps
+  from different starts fail closed with `overlapping_detection` because the
+  redactor cannot prove that the non-overlapping suffix is safe to export.
+- Built-in MVP categories are email, bearer or HTTP auth token, API-key-like
+  strings including common cloud and source-control token shapes, and URL.
 - Custom detectors must be isolated so thrown errors cannot leak raw input.
 - Custom detector reason codes must be safe category labels. Built-in reasons
   are fixed, and custom reasons must use a bounded `custom:<label>` form that

@@ -22,8 +22,11 @@ instead of being coerced into `{}`.
   `maxTotalNodes`.
 - Maximum total redaction count per operation: configurable through
   `maxTotalDetections`.
-- Maximum detector execution count per operation: configurable through
-  `maxDetectorRuns`.
+- Maximum detector count per text value or key check: configurable through
+  `maxDetectors`.
+- Maximum cumulative detector execution count per JSON-like traversal:
+  configurable through `maxDetectorRuns`. Object key checks and string value
+  checks both count against this budget.
 - Maximum per-detector duration for async detectors: configurable through
   `maxDetectorDurationMs`.
 - Circular reference behavior: fail closed with `circular_reference`.
@@ -37,6 +40,11 @@ a denial-of-service amplifier:
 - `maxTotalNodes`: 10,000 visited nodes.
 - `maxTotalDetections`: 10,000 selected detections.
 - `maxDetectorRuns`: 50,000 detector executions.
+
+`redactText` uses `maxDetectors` to cap how many detectors may run for a single
+input string. It does not interpret `maxDetectorRuns` as a detector-count limit.
+`redactJsonLike` uses `maxDetectorRuns` as an aggregate traversal budget and
+applies `maxDetectors` before each key or value detector pass.
 
 Per-detector duration has no default timeout because existing synchronous
 detectors cannot be preempted safely. When configured, async detectors receive an

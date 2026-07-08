@@ -10,8 +10,9 @@ const EMAIL_PATTERN =
   /\b[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b/g;
 const URL_PATTERN = /\bhttps?:\/\/[^\s"'<>]+/g;
 const API_KEY_PATTERN =
-  /\b(?:(?:sk|pk|api|key|token)_(?:test_)?[A-Za-z0-9][A-Za-z0-9_-]{5,}|sk-(?:proj-)?[A-Za-z0-9][A-Za-z0-9_-]{11,})\b/g;
-const BEARER_PATTERN = /\b[Bb]earer\s+([A-Za-z0-9._~+/=-]{6,})/g;
+  /\b(?:(?:sk|pk|api|key|token)_(?:test_)?[A-Za-z0-9][A-Za-z0-9_-]{5,}|sk-(?:proj-)?[A-Za-z0-9][A-Za-z0-9_-]{11,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36}|AIza[0-9A-Za-z_-]{35}|xox[aboprst]-[A-Za-z0-9-]{10,})\b/g;
+const BEARER_PATTERN =
+  /\b(?:Bearer|Token|Basic)\s+([A-Za-z0-9._~+/=-]{6,})\b/gi;
 
 const DEFAULT_BUILT_INS: readonly BuiltInDetectorName[] = [
   "email",

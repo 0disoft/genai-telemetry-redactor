@@ -150,8 +150,9 @@ This repository type owns public API surface, package compatibility, semantic ve
   in warning paths.
 - `RedactionLimits`: per-value and aggregate operation budgets for string length,
   object depth, object keys, array length, node count, redaction count, and
-  detector executions. Async detector duration can also be bounded with
-  `maxDetectorDurationMs`.
+  detector count. JSON-like traversal additionally tracks cumulative detector
+  executions with `maxDetectorRuns`, including object-key safety checks. Async
+  detector duration can also be bounded with `maxDetectorDurationMs`.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.
@@ -200,7 +201,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Unknown adapter names from untyped callers return a safe failure, and
   adapter-specific option bags cannot override core detector policy.
 - The helper accepts optional report callbacks that receive reports and metadata
-  only.
+  only. Callback exceptions are converted to a `report_callback_failed` warning
+  so redacted payloads are not discarded after successful redaction.
 
 ## Review Blockers
 

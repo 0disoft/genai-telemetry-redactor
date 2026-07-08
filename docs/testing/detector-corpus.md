@@ -9,9 +9,9 @@ demonstrate what categories are tested without becoming a sensitive-data dump.
 
 ## Required Coverage
 
-- Positive and negative examples for email, bearer token, API-key-like string,
-  and URL.
-- Overlapping detections.
+- Positive and negative examples for email, bearer or HTTP auth token,
+  API-key-like string including cloud and source-control token shapes, and URL.
+- Same-start overlapping detections and different-start partial overlaps.
 - Repeated detections.
 - Unicode text.
 - Long strings and ReDoS-shaped inputs.

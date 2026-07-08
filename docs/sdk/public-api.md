@@ -69,10 +69,14 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `options.reportContext` accepts caller-owned `operationId`, `attemptId`, and
   `idempotencyKey` values for retry-safe report callback writes. These values are
   treated as labels, not content; unsafe values are dropped and listed by key.
+  The SDK preserves the key for caller-owned deduplication but does not keep an
+  internal idempotency cache or suppress duplicate callback invocations.
 - `options.onReport(report, telemetry)` receives redaction report and safe metadata
   only, not raw request or response payloads. The callback also receives safe
   report context so external metrics, logs, or audit writes can deduplicate
-  retries without reading payload content.
+  retries without reading payload content. If the callback throws, the SDK keeps
+  the redacted result and adds `report_callback_failed` to returned warnings and
+  telemetry warning codes.
 - On any redaction failure, the helper returns `ok: false`, safe error details,
   metadata, report, and warnings without returning partially redacted payloads.
 - Unknown adapter names from untyped JavaScript callers return a safe failure

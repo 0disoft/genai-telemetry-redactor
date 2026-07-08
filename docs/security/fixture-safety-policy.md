@@ -19,6 +19,8 @@ values only.
 - Real prompts, completions, or tool arguments.
 - Real provider responses or telemetry exports.
 - Live-looking API keys, bearer tokens, private URLs, or customer identifiers.
+- Live-looking cloud, source-control, Google, or Slack token strings, even when
+  they are synthetic examples for detector tests.
 - Public PII datasets or copied production logs.
 
 ## Review Blockers

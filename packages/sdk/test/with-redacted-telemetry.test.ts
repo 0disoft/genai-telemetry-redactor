@@ -102,6 +102,33 @@ describe("withRedactedTelemetry", () => {
     expect(seen[0]).toContain("genai_redactor.redaction.total_count");
   });
 
+  it("preserves redacted results when report callbacks throw", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+      onReport() {
+        throw new Error("synthetic callback failure");
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
+    expect(result.value.report.warnings).toContainEqual(
+      expect.objectContaining({ code: "report_callback_failed" }),
+    );
+    expect(
+      result.value.telemetry.attributes[
+        "genai_redactor.redaction.warning_codes"
+      ],
+    ).toEqual(["report_callback_failed"]);
+  });
+
   it("passes safe idempotency context to report callbacks and results", async () => {
     const contexts: unknown[] = [];
     const result = await withRedactedTelemetry({

@@ -525,7 +525,7 @@ function isRecord(value: unknown): value is MutableRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function cloneRecord<T extends MutableRecord>(value: T): MutableRecord {
+function cloneRecord<T extends MutableRecord>(value: T): T {
   return { ...value };
 }
 
@@ -570,12 +570,12 @@ function failureFromResult<T>(
   };
 }
 
-function validateAllowedKeys<T>(
+function validateAllowedKeys(
   record: MutableRecord,
   allowedKeys: ReadonlySet<string>,
   state: AdapterState,
   path: string,
-): RedactionResult<T> {
+): RedactionResult<void> {
   const keys = Object.keys(record);
   for (const [index, key] of keys.entries()) {
     if (!allowedKeys.has(key)) {
@@ -583,5 +583,5 @@ function validateAllowedKeys<T>(
     }
   }
 
-  return success(undefined as T, state);
+  return success(undefined, state);
 }

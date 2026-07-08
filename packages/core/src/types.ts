@@ -41,6 +41,7 @@ export type RedactionLimits = {
   maxArrayLength?: number;
   maxTotalNodes?: number;
   maxTotalDetections?: number;
+  maxDetectors?: number;
   maxDetectorRuns?: number;
   maxDetectorDurationMs?: number;
 };
@@ -69,6 +70,7 @@ export type RedactionWarningCode =
   | "max_array_length_exceeded"
   | "max_total_nodes_exceeded"
   | "max_total_detections_exceeded"
+  | "max_detectors_exceeded"
   | "max_detector_runs_exceeded"
   | "redaction_aborted"
   | "circular_reference"
@@ -76,6 +78,7 @@ export type RedactionWarningCode =
   | "unsupported_json_like"
   | "unsupported_provider_shape"
   | "streaming_content_omitted"
+  | "report_callback_failed"
   | "malformed_tool_arguments";
 
 export type RedactionWarning = {
@@ -107,7 +110,9 @@ export type SafeRedactionErrorCode =
   | "max_array_length_exceeded"
   | "max_total_nodes_exceeded"
   | "max_total_detections_exceeded"
+  | "max_detectors_exceeded"
   | "max_detector_runs_exceeded"
+  | "overlapping_detection"
   | "redaction_aborted"
   | "circular_reference"
   | "unsafe_object_key"

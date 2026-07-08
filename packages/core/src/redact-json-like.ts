@@ -34,6 +34,7 @@ type TraversalState = {
       | "maxTotalNodes"
       | "maxTotalStringLength"
       | "maxTotalDetections"
+      | "maxDetectors"
       | "maxDetectorRuns"
     >
   >;
@@ -64,6 +65,7 @@ export async function redactJsonLike<T>(
         options.limits?.maxTotalStringLength ?? DEFAULT_MAX_TOTAL_STRING_LENGTH,
       maxTotalDetections:
         options.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS,
+      maxDetectors: options.limits?.maxDetectors ?? Number.MAX_SAFE_INTEGER,
       maxDetectorRuns:
         options.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS,
     },
@@ -124,15 +126,9 @@ async function visit(
       );
     }
 
-    const detectorRunCount = countDetectorRuns(state.options);
-    state.detectorRuns += detectorRunCount;
-    if (state.detectorRuns > state.limits.maxDetectorRuns) {
-      state.warnings.push({ code: "max_detector_runs_exceeded", path });
-      return createTraversalFailure(
-        state,
-        "max_detector_runs_exceeded",
-        "Detector execution count exceeded the configured redaction limit.",
-      );
+    const runBudget = countDetectorRunsForPath(state, path);
+    if (!runBudget.ok) {
+      return runBudget;
     }
 
     const result = await redactText(value, state.options);
@@ -211,6 +207,39 @@ function countDetectorRuns(options: RedactionOptions): number {
   return builtInDetectorCount + (options.detectors?.length ?? 0);
 }
 
+function countDetectorRunsForPath(
+  state: TraversalState,
+  path: string,
+): RedactionResult<void> {
+  const detectorRunCount = countDetectorRuns(state.options);
+  if (detectorRunCount > state.limits.maxDetectors) {
+    state.warnings.push({ code: "max_detectors_exceeded", path });
+    return createTraversalFailure(
+      state,
+      "max_detectors_exceeded",
+      "Detector count exceeded the configured redaction limit.",
+    );
+  }
+
+  state.detectorRuns += detectorRunCount;
+  if (state.detectorRuns > state.limits.maxDetectorRuns) {
+    state.warnings.push({ code: "max_detector_runs_exceeded", path });
+    return createTraversalFailure(
+      state,
+      "max_detector_runs_exceeded",
+      "Detector execution count exceeded the configured redaction limit.",
+    );
+  }
+
+  const report = state.reportAccumulator.snapshot();
+  return {
+    ok: true,
+    value: undefined,
+    report,
+    warnings: report.warnings,
+  };
+}
+
 async function visitArray(
   value: readonly unknown[],
   path: string,
@@ -258,6 +287,11 @@ async function visitObject(
   const next: JsonLikeRecord = {};
   for (const [index, [key, item]] of entries.entries()) {
     const safeChildPath = `${path}.{${index}}`;
+    const keyRunBudget = countDetectorRunsForPath(state, safeChildPath);
+    if (!keyRunBudget.ok) {
+      return keyRunBudget;
+    }
+
     const keySafety = await redactText(key, state.options);
     if (!keySafety.ok) {
       state.warnings.push({ code: keySafety.error.code, path: safeChildPath });

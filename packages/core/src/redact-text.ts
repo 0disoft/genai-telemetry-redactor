@@ -64,15 +64,15 @@ export async function redactText(
   }
 
   const detectors = detectorResult.value;
-  const maxDetectorRuns = options.limits?.maxDetectorRuns;
+  const maxDetectors = options.limits?.maxDetectors;
   if (
-    maxDetectorRuns !== undefined &&
-    detectors.length > Math.max(0, maxDetectorRuns)
+    maxDetectors !== undefined &&
+    detectors.length > Math.max(0, maxDetectors)
   ) {
-    warnings.push({ code: "max_detector_runs_exceeded" });
+    warnings.push({ code: "max_detectors_exceeded" });
     return createFailure(
-      "max_detector_runs_exceeded",
-      "Detector execution count exceeded the configured redaction limit.",
+      "max_detectors_exceeded",
+      "Detector count exceeded the configured redaction limit.",
       warnings,
     );
   }
@@ -137,10 +137,15 @@ export async function redactText(
     }
   }
 
-  const selectedDetections = selectNonOverlappingDetections(
+  const selectedDetectionsResult = selectNonOverlappingDetections(
     detections,
     warnings,
   );
+  if (!selectedDetectionsResult.ok) {
+    return selectedDetectionsResult;
+  }
+
+  const selectedDetections = selectedDetectionsResult.value;
   const maxTotalDetections = options.limits?.maxTotalDetections;
   if (
     maxTotalDetections !== undefined &&
@@ -261,18 +266,22 @@ async function runDetector(
     }),
   );
 
-  return Promise.race([
-    detectPromise,
-    new Promise<never>((_, reject) => {
-      control.signal.addEventListener(
-        "abort",
-        () => {
-          reject(new DetectorRunError(control.failureCode()));
-        },
-        { once: true },
-      );
-    }),
-  ]);
+  let removeAbortListener = () => undefined;
+  const abortPromise = new Promise<never>((_, reject) => {
+    const abort = () => {
+      reject(new DetectorRunError(control.failureCode()));
+    };
+    control.signal.addEventListener("abort", abort, { once: true });
+    removeAbortListener = () => {
+      control.signal.removeEventListener("abort", abort);
+    };
+  });
+
+  try {
+    return await Promise.race([detectPromise, abortPromise]);
+  } finally {
+    removeAbortListener();
+  }
 }
 
 function detectorFailureMessage(
@@ -401,7 +410,7 @@ function isLowSurrogate(codeUnit: number): boolean {
 function selectNonOverlappingDetections(
   detections: readonly Detection[],
   warnings: RedactionWarning[],
-): Detection[] {
+): RedactionResult<Detection[]> {
   const sorted = [...detections].sort((left, right) => {
     if (left.start !== right.start) {
       return left.start - right.start;
@@ -412,6 +421,7 @@ function selectNonOverlappingDetections(
 
   const selected: Detection[] = [];
   let lastEnd = -1;
+  let lastStart = -1;
 
   for (const detection of sorted) {
     if (detection.start < lastEnd) {
@@ -419,14 +429,32 @@ function selectNonOverlappingDetections(
         code: "overlapping_detection",
         ...safeWarningReasonFields(detection.reason),
       });
-      continue;
+
+      if (detection.start === lastStart) {
+        continue;
+      }
+
+      return createFailure(
+        "overlapping_detection",
+        "Overlapping detector ranges could not be safely resolved.",
+        warnings,
+      );
     }
 
     selected.push(detection);
+    lastStart = detection.start;
     lastEnd = detection.end;
   }
 
-  return selected;
+  return {
+    ok: true,
+    value: selected,
+    report: createRedactionReport(
+      selected.map((detection) => detection.reason),
+      warnings,
+    ),
+    warnings,
+  };
 }
 
 function applyRedactions(

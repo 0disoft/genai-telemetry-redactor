@@ -229,6 +229,59 @@ describe("redactJsonLike", () => {
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
+  it("counts object key detector runs against aggregate limits", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "safe",
+      },
+      {
+        builtInDetectors: ["email"],
+        limits: {
+          maxDetectorRuns: 1,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "max_detector_runs_exceeded",
+        path: "$.{0}",
+      }),
+    );
+  });
+
+  it("fails closed when detector count exceeds limits during traversal", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "safe",
+      },
+      {
+        limits: {
+          maxDetectors: 3,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detectors_exceeded");
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "max_detectors_exceeded",
+        path: "$.{0}",
+      }),
+    );
+  });
+
   it("fails closed when aggregate detections exceed limits", async () => {
     const result = await redactJsonLike(
       {

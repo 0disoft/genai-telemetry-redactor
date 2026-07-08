@@ -50,6 +50,36 @@ describe("redactText", () => {
     expect(result.report.countsByReason.api_key).toBe(1);
   });
 
+  it("redacts common cloud and source-control token shapes", async () => {
+    const awsAccessKey = ["AKIA", "ABCDEFGHIJKLMNOP"].join("");
+    const githubToken = ["ghp_", "a".repeat(36)].join("");
+    const googleApiKey = ["AIza", "b".repeat(35)].join("");
+    const slackToken = ["xoxb-", "c".repeat(12)].join("");
+    const authToken = ["Basic", "token_example_value"].join(" ");
+    const input = [
+      awsAccessKey,
+      githubToken,
+      googleApiKey,
+      slackToken,
+      authToken,
+    ].join(" ");
+
+    const result = await redactText(input);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.report.countsByReason.api_key).toBe(4);
+    expect(result.report.countsByReason.bearer_token).toBe(1);
+    expect(JSON.stringify(result)).not.toContain(awsAccessKey);
+    expect(JSON.stringify(result)).not.toContain(githubToken);
+    expect(JSON.stringify(result)).not.toContain(googleApiKey);
+    expect(JSON.stringify(result)).not.toContain(slackToken);
+    expect(JSON.stringify(result)).not.toContain("token_example_value");
+  });
+
   it("supports custom detectors without preserving original values", async () => {
     const detector: Detector = {
       id: "custom:account",
@@ -295,6 +325,43 @@ describe("redactText", () => {
     );
   });
 
+  it("fails closed when different-start detections partially overlap", async () => {
+    const detector: Detector = {
+      id: "custom:partial-overlap",
+      reasons: ["custom:first", "custom:second"],
+      detect() {
+        return [
+          {
+            reason: "custom:first",
+            start: 0,
+            end: 10,
+          },
+          {
+            reason: "custom:second",
+            start: 5,
+            end: 20,
+          },
+        ];
+      },
+    };
+
+    const input = "acct_example_value!! safe suffix";
+    const result = await redactText(input, {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("overlapping_detection");
+    expect(result.report.status).toBe("failed");
+    expect(result.report.totalRedactions).toBe(0);
+    expect(JSON.stringify(result)).not.toContain(input.slice(10, 20));
+  });
+
   it("fails closed when a detector throws", async () => {
     const detector: Detector = {
       id: "custom:throwing",
@@ -476,10 +543,10 @@ describe("redactText", () => {
     expect(result.error.code).toBe("max_string_length_exceeded");
   });
 
-  it("fails closed when detector runs exceed the configured limit", async () => {
+  it("fails closed when detector count exceeds the configured limit", async () => {
     const result = await redactText("Contact user@example.invalid", {
       limits: {
-        maxDetectorRuns: 3,
+        maxDetectors: 3,
       },
     });
 
@@ -488,7 +555,7 @@ describe("redactText", () => {
       return;
     }
 
-    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(result.error.code).toBe("max_detectors_exceeded");
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
