@@ -55,6 +55,19 @@ export async function redactText(
   }
 
   const detectors = detectorResult.value;
+  const maxDetectorRuns = options.limits?.maxDetectorRuns;
+  if (
+    maxDetectorRuns !== undefined &&
+    detectors.length > Math.max(0, maxDetectorRuns)
+  ) {
+    warnings.push({ code: "max_detector_runs_exceeded" });
+    return createFailure(
+      "max_detector_runs_exceeded",
+      "Detector execution count exceeded the configured redaction limit.",
+      warnings,
+    );
+  }
+
   const detections: Detection[] = [];
 
   for (const detector of detectors) {
@@ -119,6 +132,19 @@ export async function redactText(
     detections,
     warnings,
   );
+  const maxTotalDetections = options.limits?.maxTotalDetections;
+  if (
+    maxTotalDetections !== undefined &&
+    selectedDetections.length > Math.max(0, maxTotalDetections)
+  ) {
+    warnings.push({ code: "max_total_detections_exceeded" });
+    return createFailure(
+      "max_total_detections_exceeded",
+      "Detection count exceeded the configured redaction limit.",
+      warnings,
+    );
+  }
+
   const replacement = options.replacement ?? defaultReplacementToken;
   const redaction = applyRedactions(
     input,

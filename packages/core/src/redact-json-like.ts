@@ -11,6 +11,10 @@ import type {
 const DEFAULT_MAX_OBJECT_DEPTH = 16;
 const DEFAULT_MAX_OBJECT_KEYS = 1_000;
 const DEFAULT_MAX_ARRAY_LENGTH = 1_000;
+const DEFAULT_MAX_TOTAL_NODES = 10_000;
+const DEFAULT_MAX_TOTAL_STRING_LENGTH = 1_000_000;
+const DEFAULT_MAX_TOTAL_DETECTIONS = 10_000;
+const DEFAULT_MAX_DETECTOR_RUNS = 50_000;
 
 type JsonLikeRecord = Record<string, unknown>;
 
@@ -22,9 +26,19 @@ type TraversalState = {
   limits: Required<
     Pick<
       NonNullable<RedactionOptions["limits"]>,
-      "maxObjectDepth" | "maxObjectKeys" | "maxArrayLength"
+      | "maxObjectDepth"
+      | "maxObjectKeys"
+      | "maxArrayLength"
+      | "maxTotalNodes"
+      | "maxTotalStringLength"
+      | "maxTotalDetections"
+      | "maxDetectorRuns"
     >
   >;
+  totalNodes: number;
+  totalStringLength: number;
+  totalDetections: number;
+  detectorRuns: number;
 };
 
 export async function redactJsonLike<T>(
@@ -43,7 +57,18 @@ export async function redactJsonLike<T>(
       maxObjectKeys: options.limits?.maxObjectKeys ?? DEFAULT_MAX_OBJECT_KEYS,
       maxArrayLength:
         options.limits?.maxArrayLength ?? DEFAULT_MAX_ARRAY_LENGTH,
+      maxTotalNodes: options.limits?.maxTotalNodes ?? DEFAULT_MAX_TOTAL_NODES,
+      maxTotalStringLength:
+        options.limits?.maxTotalStringLength ?? DEFAULT_MAX_TOTAL_STRING_LENGTH,
+      maxTotalDetections:
+        options.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS,
+      maxDetectorRuns:
+        options.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS,
     },
+    totalNodes: 0,
+    totalStringLength: 0,
+    totalDetections: 0,
+    detectorRuns: 0,
   };
 
   const value = await visit(input, "$", 0, state);
@@ -73,10 +98,55 @@ async function visit(
   depth: number,
   state: TraversalState,
 ): Promise<RedactionResult<unknown>> {
+  state.totalNodes += 1;
+  if (state.totalNodes > state.limits.maxTotalNodes) {
+    state.warnings.push({ code: "max_total_nodes_exceeded", path });
+    return createTraversalFailure(
+      state,
+      "max_total_nodes_exceeded",
+      "Node count exceeded the configured redaction limit.",
+    );
+  }
+
   if (typeof value === "string") {
+    state.totalStringLength += value.length;
+    if (state.totalStringLength > state.limits.maxTotalStringLength) {
+      state.warnings.push({
+        code: "max_total_string_length_exceeded",
+        path,
+      });
+      return createTraversalFailure(
+        state,
+        "max_total_string_length_exceeded",
+        "Total string length exceeded the configured redaction limit.",
+      );
+    }
+
+    const detectorRunCount = countDetectorRuns(state.options);
+    state.detectorRuns += detectorRunCount;
+    if (state.detectorRuns > state.limits.maxDetectorRuns) {
+      state.warnings.push({ code: "max_detector_runs_exceeded", path });
+      return createTraversalFailure(
+        state,
+        "max_detector_runs_exceeded",
+        "Detector execution count exceeded the configured redaction limit.",
+      );
+    }
+
     const result = await redactText(value, state.options);
     if (!result.ok) {
       return result;
+    }
+
+    state.totalDetections += result.report.totalRedactions;
+    if (state.totalDetections > state.limits.maxTotalDetections) {
+      state.reports.push(result.report);
+      state.warnings.push({ code: "max_total_detections_exceeded", path });
+      return createTraversalFailure(
+        state,
+        "max_total_detections_exceeded",
+        "Detection count exceeded the configured redaction limit.",
+      );
     }
 
     state.reports.push(result.report);
@@ -129,6 +199,14 @@ async function visit(
   } finally {
     state.seen.delete(value);
   }
+}
+
+function countDetectorRuns(options: RedactionOptions): number {
+  const builtInDetectorCount =
+    options.builtInDetectors === false
+      ? 0
+      : (options.builtInDetectors?.length ?? 4);
+  return builtInDetectorCount + (options.detectors?.length ?? 0);
 }
 
 async function visitArray(

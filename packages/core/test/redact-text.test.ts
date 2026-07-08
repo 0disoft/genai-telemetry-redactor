@@ -406,4 +406,41 @@ describe("redactText", () => {
 
     expect(result.error.code).toBe("max_string_length_exceeded");
   });
+
+  it("fails closed when detector runs exceed the configured limit", async () => {
+    const result = await redactText("Contact user@example.invalid", {
+      limits: {
+        maxDetectorRuns: 3,
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when detections exceed the configured limit", async () => {
+    const result = await redactText(
+      "First user@example.invalid second admin@example.invalid",
+      {
+        builtInDetectors: ["email"],
+        limits: {
+          maxTotalDetections: 1,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_detections_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result)).not.toContain("admin@example.invalid");
+  });
 });

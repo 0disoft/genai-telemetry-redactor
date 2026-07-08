@@ -33,9 +33,13 @@ export type ReplacementTokenPolicy = (reason: RedactionReason) => string;
 
 export type RedactionLimits = {
   maxStringLength?: number;
+  maxTotalStringLength?: number;
   maxObjectDepth?: number;
   maxObjectKeys?: number;
   maxArrayLength?: number;
+  maxTotalNodes?: number;
+  maxTotalDetections?: number;
+  maxDetectorRuns?: number;
 };
 
 export type RedactionOptions = {
@@ -54,9 +58,13 @@ export type RedactionWarningCode =
   | "overlapping_detection"
   | "replacement_failed"
   | "max_string_length_exceeded"
+  | "max_total_string_length_exceeded"
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
+  | "max_total_nodes_exceeded"
+  | "max_total_detections_exceeded"
+  | "max_detector_runs_exceeded"
   | "circular_reference"
   | "unsafe_object_key"
   | "unsupported_json_like"
@@ -86,9 +94,13 @@ export type SafeRedactionErrorCode =
   | "invalid_redaction_reason"
   | "replacement_failed"
   | "max_string_length_exceeded"
+  | "max_total_string_length_exceeded"
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
+  | "max_total_nodes_exceeded"
+  | "max_total_detections_exceeded"
+  | "max_detector_runs_exceeded"
   | "circular_reference"
   | "unsafe_object_key"
   | "unsupported_json_like"

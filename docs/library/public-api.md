@@ -146,6 +146,9 @@ This repository type owns public API surface, package compatibility, semantic ve
   leaves while preserving safe plain-object and array shape. Non-plain objects
   and content-bearing object keys fail closed instead of being coerced or echoed
   in warning paths.
+- `RedactionLimits`: per-value and aggregate operation budgets for string length,
+  object depth, object keys, array length, node count, redaction count, and
+  detector executions.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.

@@ -13,12 +13,28 @@ instead of being coerced into `{}`.
 ## Implemented Limits
 
 - Maximum string length: configurable through `maxStringLength`.
+- Maximum total string length per JSON-like traversal: configurable through
+  `maxTotalStringLength`.
 - Maximum object depth: configurable through `maxObjectDepth`.
 - Maximum key count: configurable through `maxObjectKeys`.
 - Maximum array length: configurable through `maxArrayLength`.
+- Maximum total node count per JSON-like traversal: configurable through
+  `maxTotalNodes`.
+- Maximum total redaction count per operation: configurable through
+  `maxTotalDetections`.
+- Maximum detector execution count per operation: configurable through
+  `maxDetectorRuns`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
+
+The JSON-like traversal applies aggregate defaults to avoid turning redaction into
+a denial-of-service amplifier:
+
+- `maxTotalStringLength`: 1,000,000 UTF-16 code units.
+- `maxTotalNodes`: 10,000 visited nodes.
+- `maxTotalDetections`: 10,000 selected detections.
+- `maxDetectorRuns`: 50,000 detector executions.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.

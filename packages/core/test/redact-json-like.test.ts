@@ -162,6 +162,98 @@ describe("redactJsonLike", () => {
     expect(result.error.code).toBe("max_array_length_exceeded");
   });
 
+  it("fails closed when aggregate node count exceeds limits", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "safe",
+        second: "user@example.invalid",
+      },
+      {
+        limits: {
+          maxTotalNodes: 2,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_nodes_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when aggregate string length exceeds limits", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "safe",
+        second: "user@example.invalid",
+      },
+      {
+        limits: {
+          maxTotalStringLength: 10,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_string_length_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when aggregate detector runs exceed limits", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "safe",
+        second: "user@example.invalid",
+      },
+      {
+        builtInDetectors: ["email"],
+        limits: {
+          maxDetectorRuns: 1,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when aggregate detections exceed limits", async () => {
+    const result = await redactJsonLike(
+      {
+        first: "user@example.invalid",
+        second: "admin@example.invalid",
+      },
+      {
+        builtInDetectors: ["email"],
+        limits: {
+          maxTotalDetections: 1,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_detections_exceeded");
+    expect(result.report.totalRedactions).toBe(2);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result)).not.toContain("admin@example.invalid");
+  });
+
   it("fails closed when a nested detector throws", async () => {
     const detector: Detector = {
       id: "custom:throwing",
