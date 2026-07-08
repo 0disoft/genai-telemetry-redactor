@@ -53,6 +53,20 @@ The helper returns redacted request and response payloads plus metadata-only
 telemetry attributes. It does not call a model provider, own credentials, export
 spans, store prompts, or guarantee perfect sensitive-data detection.
 
+## Limit and Report Notes
+
+`maxDetectors` limits how many detectors may run for one text or object-key
+check. `maxDetectorRuns` limits cumulative detector executions during JSON-like
+traversal, including object-key safety checks.
+
+Redaction reports may include numeric `timings` such as operation duration,
+detector duration, and detector run count. These metrics are safe summaries only:
+they do not include matched values, raw content, detector IDs, or field paths.
+
+`onReport` callback failures do not discard already redacted results. The SDK
+returns a `report_callback_failed` warning so callers can observe the callback
+failure without exporting partial or raw payloads.
+
 ## Source Files
 
 - AGENTS.md: agent working rules
@@ -97,8 +111,9 @@ OpenTelemetry GenAI metadata mapping.
 The current implementation starts with `packages/core`: async `redactText`,
 `redactJsonLike`, and `redactToolArguments`; built-in detectors for email,
 bearer token, API-key-like strings, and URLs; category-only replacement tokens;
-redaction reports; shape-preserving JSON-like traversal; and fail-closed
-detector, traversal, circular-reference, and limit behavior.
+redaction reports; shape-preserving JSON-like traversal with shared-reference
+reuse; and fail-closed detector, traversal, circular-reference, overlap, and
+limit behavior.
 
 It also includes `packages/openai-compatible`: provider-SDK-free request and
 response shape helpers for `messages`, `prompt`, `input`, `choices`, completion
