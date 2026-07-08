@@ -28,6 +28,10 @@ export async function redactText(
   options: RedactionOptions = {},
 ): Promise<RedactionResult<string>> {
   const startedAtMs = Date.now();
+  const totalDeadlineEpochMs = totalDeadlineEpochMsFromOptions(
+    startedAtMs,
+    options,
+  );
   let detectorRuns = 0;
   let detectorDurationMs = 0;
   const warnings: RedactionWarning[] = [];
@@ -39,6 +43,15 @@ export async function redactText(
       warnings,
       {},
       timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
+    );
+  }
+
+  if (isTotalDurationExceeded(totalDeadlineEpochMs)) {
+    return totalDurationFailure(
+      warnings,
+      startedAtMs,
+      detectorDurationMs,
+      detectorRuns,
     );
   }
 
@@ -67,6 +80,15 @@ export async function redactText(
     );
   }
 
+  if (isTotalDurationExceeded(totalDeadlineEpochMs)) {
+    return totalDurationFailure(
+      warnings,
+      startedAtMs,
+      detectorDurationMs,
+      detectorRuns,
+    );
+  }
+
   const detectorResult = resolveDetectors(options, warnings);
   if (!detectorResult.ok) {
     return detectorResult;
@@ -91,8 +113,20 @@ export async function redactText(
   const detections: Detection[] = [];
 
   for (const detector of detectors) {
+    if (isTotalDurationExceeded(totalDeadlineEpochMs)) {
+      return totalDurationFailure(
+        warnings,
+        startedAtMs,
+        detectorDurationMs,
+        detectorRuns,
+      );
+    }
+
     let detectorDetections: Detection[];
-    const detectorControl = createDetectorControl(options);
+    const detectorControl = createDetectorControl(
+      options,
+      totalDeadlineEpochMs,
+    );
     const detectorStartedAtMs = Date.now();
     let detectorDurationRecorded = false;
     detectorRuns += 1;
@@ -215,20 +249,28 @@ type DetectorControl = {
   deadlineEpochMs?: number;
   timeoutMs?: number;
   dispose(): void;
-  failureCode(): "detector_timeout" | "redaction_aborted";
+  failureCode():
+    "detector_timeout" | "max_total_duration_exceeded" | "redaction_aborted";
 };
 
 class DetectorRunError extends Error {
-  constructor(readonly code: "detector_timeout" | "redaction_aborted") {
+  constructor(
+    readonly code:
+      "detector_timeout" | "max_total_duration_exceeded" | "redaction_aborted",
+  ) {
     super(code);
   }
 }
 
-function createDetectorControl(options: RedactionOptions): DetectorControl {
+function createDetectorControl(
+  options: RedactionOptions,
+  totalDeadlineEpochMs: number | undefined,
+): DetectorControl {
   const timeoutMs = options.limits?.maxDetectorDurationMs;
   const parentSignal = options.signal;
   const controller = new AbortController();
-  let timedOut = false;
+  let detectorTimedOut = false;
+  let totalTimedOut = false;
 
   const abortFromParent = () => {
     controller.abort();
@@ -243,31 +285,73 @@ function createDetectorControl(options: RedactionOptions): DetectorControl {
 
   const normalizedTimeoutMs =
     timeoutMs === undefined ? undefined : Math.max(0, timeoutMs);
-  const timer =
+  const detectorTimer =
     normalizedTimeoutMs === undefined
       ? undefined
       : setTimeout(() => {
-          timedOut = true;
+          detectorTimedOut = true;
           controller.abort();
         }, normalizedTimeoutMs);
+  const totalRemainingMs =
+    totalDeadlineEpochMs === undefined
+      ? undefined
+      : Math.max(0, totalDeadlineEpochMs - Date.now());
+  const totalTimer =
+    totalRemainingMs === undefined
+      ? undefined
+      : totalRemainingMs === 0
+        ? (() => {
+            totalTimedOut = true;
+            controller.abort();
+            return undefined;
+          })()
+        : setTimeout(() => {
+            totalTimedOut = true;
+            controller.abort();
+          }, totalRemainingMs);
 
   const control: DetectorControl = {
     signal: controller.signal,
     dispose() {
-      if (timer) {
-        clearTimeout(timer);
+      if (detectorTimer) {
+        clearTimeout(detectorTimer);
+      }
+
+      if (totalTimer) {
+        clearTimeout(totalTimer);
       }
 
       parentSignal?.removeEventListener("abort", abortFromParent);
     },
     failureCode() {
-      return timedOut ? "detector_timeout" : "redaction_aborted";
+      if (
+        totalTimedOut ||
+        (totalDeadlineEpochMs !== undefined &&
+          Date.now() >= totalDeadlineEpochMs &&
+          !detectorTimedOut)
+      ) {
+        return "max_total_duration_exceeded";
+      }
+
+      return detectorTimedOut ? "detector_timeout" : "redaction_aborted";
     },
   };
 
+  const detectorDeadlineEpochMs =
+    normalizedTimeoutMs === undefined
+      ? undefined
+      : Date.now() + normalizedTimeoutMs;
+  const effectiveDeadlineEpochMs = earliestDeadlineEpochMs(
+    detectorDeadlineEpochMs,
+    totalDeadlineEpochMs,
+  );
+
   if (normalizedTimeoutMs !== undefined) {
     control.timeoutMs = normalizedTimeoutMs;
-    control.deadlineEpochMs = Date.now() + normalizedTimeoutMs;
+  }
+
+  if (effectiveDeadlineEpochMs !== undefined) {
+    control.deadlineEpochMs = effectiveDeadlineEpochMs;
   }
 
   return control;
@@ -312,11 +396,17 @@ async function runDetector(
 }
 
 function detectorFailureMessage(
-  code: "detector_failed" | "detector_timeout" | "redaction_aborted",
+  code:
+    | "detector_failed"
+    | "detector_timeout"
+    | "max_total_duration_exceeded"
+    | "redaction_aborted",
 ): string {
   switch (code) {
     case "detector_timeout":
       return "A detector timed out before content could be safely redacted.";
+    case "max_total_duration_exceeded":
+      return "Redaction exceeded the configured total operation duration.";
     case "redaction_aborted":
       return "Redaction was aborted before content could be safely redacted.";
     case "detector_failed":
@@ -537,6 +627,51 @@ function timingMetrics(
     detectorDurationMs,
     detectorRuns,
   };
+}
+
+function totalDeadlineEpochMsFromOptions(
+  startedAtMs: number,
+  options: RedactionOptions,
+): number | undefined {
+  const maxTotalDurationMs = options.limits?.maxTotalDurationMs;
+  return maxTotalDurationMs === undefined
+    ? undefined
+    : startedAtMs + Math.max(0, maxTotalDurationMs);
+}
+
+function earliestDeadlineEpochMs(
+  left: number | undefined,
+  right: number | undefined,
+): number | undefined {
+  if (left === undefined) {
+    return right;
+  }
+
+  if (right === undefined) {
+    return left;
+  }
+
+  return Math.min(left, right);
+}
+
+function isTotalDurationExceeded(deadlineEpochMs: number | undefined): boolean {
+  return deadlineEpochMs !== undefined && Date.now() >= deadlineEpochMs;
+}
+
+function totalDurationFailure<T>(
+  warnings: RedactionWarning[],
+  startedAtMs: number,
+  detectorDurationMs: number,
+  detectorRuns: number,
+): RedactionResult<T> {
+  warnings.push({ code: "max_total_duration_exceeded" });
+  return createFailure(
+    "max_total_duration_exceeded",
+    "Redaction exceeded the configured total operation duration.",
+    warnings,
+    {},
+    timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
+  );
 }
 
 function isBuiltInDetectorName(value: unknown): value is BuiltInDetectorName {

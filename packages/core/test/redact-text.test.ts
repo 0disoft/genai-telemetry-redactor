@@ -550,6 +550,49 @@ describe("redactText", () => {
     expect(result.error.code).toBe("max_string_length_exceeded");
   });
 
+  it("fails closed when total operation duration is already exhausted", async () => {
+    const result = await redactText("Contact user@example.invalid", {
+      limits: {
+        maxTotalDurationMs: 0,
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_duration_exceeded");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("aborts async detectors when total operation duration is exceeded", async () => {
+    const detector: Detector = {
+      id: "custom:slow-total",
+      reasons: ["custom:slow_total"],
+      detect() {
+        return new Promise(() => undefined);
+      },
+    };
+
+    const result = await redactText("Sensitive user@example.invalid", {
+      builtInDetectors: false,
+      detectors: [detector],
+      limits: {
+        maxTotalDurationMs: 1,
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_duration_exceeded");
+    expect(result.error.detectorId).toBe("custom:slow-total");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("fails closed when detector count exceeds the configured limit", async () => {
     const result = await redactText("Contact user@example.invalid", {
       limits: {

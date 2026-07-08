@@ -29,6 +29,8 @@ instead of being coerced into `{}`.
   checks both count against this budget.
 - Maximum per-detector duration for async detectors: configurable through
   `maxDetectorDurationMs`.
+- Maximum total redaction operation duration: configurable through
+  `maxTotalDurationMs`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
@@ -53,6 +55,15 @@ applies `maxDetectors` before each key or value detector pass.
 Per-detector duration has no default timeout because existing synchronous
 detectors cannot be preempted safely. When configured, async detectors receive an
 abort signal and deadline and timeout with `detector_timeout`.
+
+Total operation duration also has no default timeout. When configured,
+`maxTotalDurationMs` bounds the whole redaction operation across traversal,
+object-key checks, string redaction, and async detector work. Exceeding the total
+budget fails closed with `max_total_duration_exceeded`; async detectors receive
+the earlier of the per-detector deadline and the remaining total-operation
+deadline. Synchronous detector or regex execution still cannot be interrupted
+mid-call, so the total budget is checked before dispatch, after control returns,
+and while moving between traversal steps.
 
 Redaction reports may include `timings` with numeric operation duration,
 detector duration, and detector run count. These metrics are safe summaries only

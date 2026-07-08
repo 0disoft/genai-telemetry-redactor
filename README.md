@@ -57,7 +57,9 @@ spans, store prompts, or guarantee perfect sensitive-data detection.
 
 `maxDetectors` limits how many detectors may run for one text or object-key
 check. `maxDetectorRuns` limits cumulative detector executions during JSON-like
-traversal, including object-key safety checks.
+traversal, including object-key safety checks. `maxTotalDurationMs` bounds the
+whole redaction operation and fails closed with `max_total_duration_exceeded`
+when the budget is exceeded.
 
 Redaction reports may include numeric `timings` such as operation duration,
 detector duration, and detector run count. These metrics are safe summaries only:
@@ -141,7 +143,8 @@ without owning provider credentials, retries, routing, transport, telemetry
 exporters, or prompt storage.
 
 `examples` contains executable TypeScript samples for the first safe integration
-paths: OpenAI-compatible request/response wrapping, custom detector registration,
+paths: OpenAI-compatible request-only wrapping, request/response wrapping, tool
+call argument redaction with a report callback, custom detector registration,
 and streaming metadata-only handling. The contract runner imports these samples
 against built package exports so example drift is treated as a package contract
 failure.

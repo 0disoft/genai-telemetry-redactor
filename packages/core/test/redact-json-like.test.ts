@@ -269,6 +269,28 @@ describe("redactJsonLike", () => {
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
+  it("fails closed when total traversal duration is already exhausted", async () => {
+    const result = await redactJsonLike(
+      {
+        email: "user@example.invalid",
+      },
+      {
+        limits: {
+          maxTotalDurationMs: 0,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_duration_exceeded");
+    expect(result.report.status).toBe("failed");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("counts object key detector runs against aggregate limits", async () => {
     const result = await redactJsonLike(
       {

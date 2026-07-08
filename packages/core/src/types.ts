@@ -44,6 +44,7 @@ export type RedactionLimits = {
   maxDetectors?: number;
   maxDetectorRuns?: number;
   maxDetectorDurationMs?: number;
+  maxTotalDurationMs?: number;
 };
 
 export type RedactionOptions = {
@@ -72,6 +73,7 @@ export type RedactionWarningCode =
   | "max_total_detections_exceeded"
   | "max_detectors_exceeded"
   | "max_detector_runs_exceeded"
+  | "max_total_duration_exceeded"
   | "redaction_aborted"
   | "circular_reference"
   | "unsafe_object_key"
@@ -119,6 +121,7 @@ export type SafeRedactionErrorCode =
   | "max_total_detections_exceeded"
   | "max_detectors_exceeded"
   | "max_detector_runs_exceeded"
+  | "max_total_duration_exceeded"
   | "overlapping_detection"
   | "redaction_aborted"
   | "circular_reference"

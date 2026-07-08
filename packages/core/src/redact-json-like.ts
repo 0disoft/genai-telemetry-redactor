@@ -27,6 +27,7 @@ type TraversalState = {
   seen: WeakSet<object>;
   completed: WeakMap<object, unknown>;
   startedAtMs: number;
+  totalDeadlineEpochMs: number | undefined;
   limits: Required<
     Pick<
       NonNullable<RedactionOptions["limits"]>,
@@ -51,13 +52,15 @@ export async function redactJsonLike<T>(
   options: RedactionOptions = {},
 ): Promise<RedactionResult<T>> {
   const warnings: RedactionWarning[] = [];
+  const startedAtMs = Date.now();
   const state: TraversalState = {
     options,
     warnings,
     reportAccumulator: createRedactionReportAccumulator(),
     seen: new WeakSet<object>(),
     completed: new WeakMap<object, unknown>(),
-    startedAtMs: Date.now(),
+    startedAtMs,
+    totalDeadlineEpochMs: totalDeadlineEpochMsFromOptions(startedAtMs, options),
     limits: {
       maxObjectDepth:
         options.limits?.maxObjectDepth ?? DEFAULT_MAX_OBJECT_DEPTH,
@@ -106,6 +109,15 @@ async function visit(
   depth: number,
   state: TraversalState,
 ): Promise<RedactionResult<unknown>> {
+  if (isTotalDurationExceeded(state)) {
+    state.warnings.push({ code: "max_total_duration_exceeded", path });
+    return createTraversalFailure(
+      state,
+      "max_total_duration_exceeded",
+      "Redaction exceeded the configured total operation duration.",
+    );
+  }
+
   state.totalNodes += 1;
   if (state.totalNodes > state.limits.maxTotalNodes) {
     state.warnings.push({ code: "max_total_nodes_exceeded", path });
@@ -135,7 +147,7 @@ async function visit(
       return runBudget;
     }
 
-    const result = await redactText(value, state.options);
+    const result = await redactText(value, optionsForCurrentBudget(state));
     if (!result.ok) {
       return result;
     }
@@ -225,6 +237,15 @@ function countDetectorRunsForPath(
   state: TraversalState,
   path: string,
 ): RedactionResult<void> {
+  if (isTotalDurationExceeded(state)) {
+    state.warnings.push({ code: "max_total_duration_exceeded", path });
+    return createTraversalFailure(
+      state,
+      "max_total_duration_exceeded",
+      "Redaction exceeded the configured total operation duration.",
+    );
+  }
+
   const detectorRunCount = countDetectorRuns(state.options);
   if (detectorRunCount > state.limits.maxDetectors) {
     state.warnings.push({ code: "max_detectors_exceeded", path });
@@ -306,7 +327,7 @@ async function visitObject(
       return keyRunBudget;
     }
 
-    const keySafety = await redactText(key, state.options);
+    const keySafety = await redactText(key, optionsForCurrentBudget(state));
     if (!keySafety.ok) {
       state.warnings.push({ code: keySafety.error.code, path: safeChildPath });
       return createTraversalFailure(
@@ -386,6 +407,42 @@ function withTraversalTiming(
       ...report.timings,
       durationMs: Date.now() - state.startedAtMs,
       detectorRuns: state.detectorRuns,
+    },
+  };
+}
+
+function totalDeadlineEpochMsFromOptions(
+  startedAtMs: number,
+  options: RedactionOptions,
+): number | undefined {
+  const maxTotalDurationMs = options.limits?.maxTotalDurationMs;
+  return maxTotalDurationMs === undefined
+    ? undefined
+    : startedAtMs + Math.max(0, maxTotalDurationMs);
+}
+
+function remainingTotalDurationMs(state: TraversalState): number | undefined {
+  return state.totalDeadlineEpochMs === undefined
+    ? undefined
+    : Math.max(0, state.totalDeadlineEpochMs - Date.now());
+}
+
+function isTotalDurationExceeded(state: TraversalState): boolean {
+  const remainingMs = remainingTotalDurationMs(state);
+  return remainingMs !== undefined && remainingMs <= 0;
+}
+
+function optionsForCurrentBudget(state: TraversalState): RedactionOptions {
+  const remainingMs = remainingTotalDurationMs(state);
+  if (remainingMs === undefined) {
+    return state.options;
+  }
+
+  return {
+    ...state.options,
+    limits: {
+      ...state.options.limits,
+      maxTotalDurationMs: remainingMs,
     },
   };
 }

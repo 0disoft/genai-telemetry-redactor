@@ -77,6 +77,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
   retries without reading payload content. If the callback throws, the SDK keeps
   the redacted result and adds `report_callback_failed` to returned warnings and
   telemetry warning codes.
+- Executable SDK examples cover OpenAI-compatible request-only wrapping,
+  request/response wrapping, tool-call argument redaction, report callbacks, and
+  timing metadata without storing raw payload content.
 - On any redaction failure, the helper returns `ok: false`, safe error details,
   metadata, report, and warnings without returning partially redacted payloads.
 - Unknown adapter names from untyped JavaScript callers return a safe failure

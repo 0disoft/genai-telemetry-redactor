@@ -31,6 +31,21 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.1.8
+
+`RedactionLimits` now accepts `maxTotalDurationMs` to bound the whole redaction
+operation. When the budget is exceeded, core APIs fail closed with
+`max_total_duration_exceeded` instead of returning partially redacted content.
+Async detectors receive the earlier of their per-detector deadline and the
+remaining total-operation deadline. Synchronous detector and regex execution
+cannot be preempted mid-call, so callers should continue to pair this limit with
+string length, detector-count, detector-run, and regex-safety controls.
+
+The executable examples now include request-only OpenAI-compatible wrapping,
+request-plus-response wrapping with timing assertions, and tool-call argument
+redaction with a report callback. All examples use fake `.invalid` or
+`*_example` values and are validated by the package contract runner.
+
 ## 0.1.7
 
 `RedactionReport` can now include a `timings` object with safe numeric summaries:

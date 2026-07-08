@@ -154,7 +154,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   object depth, object keys, array length, node count, redaction count, and
   detector count. JSON-like traversal additionally tracks cumulative detector
   executions with `maxDetectorRuns`, including object-key safety checks. Async
-  detector duration can also be bounded with `maxDetectorDurationMs`.
+  detector duration can also be bounded with `maxDetectorDurationMs`, and the
+  whole operation can be bounded with `maxTotalDurationMs`.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.

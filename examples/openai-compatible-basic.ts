@@ -33,6 +33,13 @@ const result = await withRedactedTelemetry({
       totalTokens: 29,
     },
   },
+  redaction: {
+    limits: {
+      maxDetectors: 4,
+      maxDetectorRuns: 64,
+      maxTotalDurationMs: 1_000,
+    },
+  },
 });
 
 if (!result.ok) {
@@ -57,6 +64,12 @@ for (const unsafeValue of [
 if (result.value.report.totalRedactions !== 3) {
   throw new Error(
     `expected 3 redactions, got ${result.value.report.totalRedactions}`,
+  );
+}
+
+if (typeof result.value.report.timings?.durationMs !== "number") {
+  throw new Error(
+    "request/response example must expose safe redaction timings",
   );
 }
 
