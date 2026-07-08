@@ -39,6 +39,10 @@ not proof of complete PII or DLP coverage.
   ignores zero-length matches to avoid scanner loops, and creates a fresh scanner
   per detection call so shared regular-expression state cannot leak between
   reentrant calls.
+- Regex-backed custom detectors must follow
+  `docs/security/custom-regex-redos-guidance.md`. The redactor can bound input
+  size and async detector duration, but it cannot preempt a synchronous
+  JavaScript regex while the engine is evaluating a backtracking-heavy pattern.
 
 ## Safety Requirements
 

@@ -67,6 +67,11 @@ they do not include matched values, raw content, detector IDs, or field paths.
 returns a `report_callback_failed` warning so callers can observe the callback
 failure without exporting partial or raw payloads.
 
+Custom regex detectors should follow
+`docs/security/custom-regex-redos-guidance.md`. Length limits and async detector
+timeouts are guardrails, but synchronous JavaScript regex evaluation cannot be
+preempted once a backtracking-heavy pattern is running.
+
 ## Source Files
 
 - AGENTS.md: agent working rules

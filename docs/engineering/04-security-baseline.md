@@ -24,3 +24,5 @@ blockers.
 - A change adds examples, fixtures, logs, or telemetry with live-looking secrets or
   private identifiers.
 - A change claims complete PII/DLP/compliance coverage.
+- A change adds or recommends custom regex detectors without considering
+  `docs/security/custom-regex-redos-guidance.md`.
