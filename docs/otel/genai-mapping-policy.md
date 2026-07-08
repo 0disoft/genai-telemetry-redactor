@@ -19,7 +19,7 @@ customer identifiers.
   attributes.
 - Separate pure metadata-object mapping from optional span-writer helpers.
 - Treat token usage, model, operation, latency, error class, redaction status,
-  and counts-by-reason as safe candidate fields.
+  counts-by-reason, and numeric redaction timings as safe candidate fields.
 
 ## Implemented Mapper
 
@@ -36,7 +36,8 @@ customer identifiers.
   `gen_ai.usage.total_tokens`.
 - The mapper uses `genai_redactor.*` attributes for redaction status, redaction
   counts, warning codes, content-capture disabled state, mapper semconv source,
-  mapper semconv status, and latency.
+  mapper semconv status, latency, redaction duration, detector duration, and
+  detector run count.
 - Warning `path` and `detectorId` fields are not exported by default.
 - The mapper records `opentelemetry-semconv-genai-main` and `development` as
   semconv metadata. This is not a stability claim.

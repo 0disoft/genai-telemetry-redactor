@@ -67,6 +67,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionReason`
 - `RedactionReport`
 - `RedactionResult`
+- `RedactionTimings`
 - `RedactionWarning`
 - `RedactionWarningCode`
 - `RegexDetectorOptions`
@@ -100,6 +101,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionReason`
 - `RedactionReport`
 - `RedactionResult`
+- `RedactionTimings`
 - `RedactionWarning`
 - `RedactionWarningCode`
 - `RegexDetectorOptions`
@@ -164,6 +166,9 @@ This repository type owns public API surface, package compatibility, semantic ve
   being echoed into redacted output.
 - Public types for detectors, detections, warnings, reports, safe errors, and
   redaction results.
+- `RedactionReport.timings`: safe numeric redaction metrics for operation
+  duration, detector duration, and detector run count. Timings never include raw
+  content, field paths, detector IDs, or matched values.
 
 ## Implemented OpenAI-Compatible Adapter Surface
 

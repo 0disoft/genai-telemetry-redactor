@@ -25,6 +25,8 @@ type TraversalState = {
   warnings: RedactionWarning[];
   reportAccumulator: RedactionReportAccumulator;
   seen: WeakSet<object>;
+  completed: WeakMap<object, unknown>;
+  startedAtMs: number;
   limits: Required<
     Pick<
       NonNullable<RedactionOptions["limits"]>,
@@ -54,6 +56,8 @@ export async function redactJsonLike<T>(
     warnings,
     reportAccumulator: createRedactionReportAccumulator(),
     seen: new WeakSet<object>(),
+    completed: new WeakMap<object, unknown>(),
+    startedAtMs: Date.now(),
     limits: {
       maxObjectDepth:
         options.limits?.maxObjectDepth ?? DEFAULT_MAX_OBJECT_DEPTH,
@@ -80,7 +84,7 @@ export async function redactJsonLike<T>(
     return value;
   }
 
-  const report = state.reportAccumulator.snapshot();
+  const report = withTraversalTiming(state.reportAccumulator.snapshot(), state);
   return {
     ok: true,
     value: value.value as T,
@@ -169,6 +173,11 @@ async function visit(
     );
   }
 
+  const completed = state.completed.get(value);
+  if (completed !== undefined) {
+    return unchanged(completed, state);
+  }
+
   if (depth >= state.limits.maxObjectDepth) {
     state.warnings.push({ code: "max_object_depth_exceeded", path });
     return createTraversalFailure(
@@ -180,20 +189,25 @@ async function visit(
 
   state.seen.add(value);
   try {
+    let result: RedactionResult<unknown[] | JsonLikeRecord>;
     if (Array.isArray(value)) {
-      return await visitArray(value, path, depth, state);
-    }
-
-    if (!isPlainObject(value)) {
+      result = await visitArray(value, path, depth, state);
+    } else if (!isPlainObject(value)) {
       state.warnings.push({ code: "unsupported_json_like", path });
       return createTraversalFailure(
         state,
         "unsupported_json_like",
         "Only plain JSON-like objects can be safely traversed.",
       );
+    } else {
+      result = await visitObject(value as JsonLikeRecord, path, depth, state);
     }
 
-    return await visitObject(value as JsonLikeRecord, path, depth, state);
+    if (result.ok) {
+      state.completed.set(value, result.value);
+    }
+
+    return result;
   } finally {
     state.seen.delete(value);
   }
@@ -326,7 +340,7 @@ async function visitObject(
 }
 
 function unchanged<T>(value: T, state: TraversalState): RedactionResult<T> {
-  const report = state.reportAccumulator.snapshot();
+  const report = withTraversalTiming(state.reportAccumulator.snapshot(), state);
   return {
     ok: true,
     value,
@@ -348,7 +362,7 @@ function createTraversalFailure<T>(
 ): RedactionResult<T> {
   state.reportAccumulator.addWarnings(state.warnings);
   state.reportAccumulator.markFailed();
-  const report = state.reportAccumulator.snapshot();
+  const report = withTraversalTiming(state.reportAccumulator.snapshot(), state);
 
   return {
     ok: false,
@@ -358,6 +372,20 @@ function createTraversalFailure<T>(
       code,
       message,
       ...fields,
+    },
+  };
+}
+
+function withTraversalTiming(
+  report: ReturnType<RedactionReportAccumulator["snapshot"]>,
+  state: TraversalState,
+) {
+  return {
+    ...report,
+    timings: {
+      ...report.timings,
+      durationMs: Date.now() - state.startedAtMs,
+      detectorRuns: state.detectorRuns,
     },
   };
 }

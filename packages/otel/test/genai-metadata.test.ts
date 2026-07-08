@@ -13,6 +13,11 @@ describe("mapRedactionReportToGenAIMetadata", () => {
           api_key: 2,
         },
         warnings: [{ code: "malformed_tool_arguments", path: "$.hidden" }],
+        timings: {
+          durationMs: 12.5,
+          detectorDurationMs: 8,
+          detectorRuns: 4,
+        },
       },
       {
         operationName: "chat",
@@ -46,6 +51,9 @@ describe("mapRedactionReportToGenAIMetadata", () => {
       "gen_ai.usage.output_tokens": 34,
       "gen_ai.usage.total_tokens": 46,
       "genai_redactor.operation.duration_ms": 25.5,
+      "genai_redactor.redaction.duration_ms": 12.5,
+      "genai_redactor.redaction.detector_duration_ms": 8,
+      "genai_redactor.redaction.detector_runs": 4,
     });
     expect(result.droppedMetadataKeys).toEqual([]);
   });

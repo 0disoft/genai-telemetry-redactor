@@ -27,6 +27,9 @@ export async function redactText(
   input: string,
   options: RedactionOptions = {},
 ): Promise<RedactionResult<string>> {
+  const startedAtMs = Date.now();
+  let detectorRuns = 0;
+  let detectorDurationMs = 0;
   const warnings: RedactionWarning[] = [];
   if (typeof input !== "string") {
     warnings.push({ code: "invalid_redaction_input" });
@@ -34,6 +37,8 @@ export async function redactText(
       "invalid_redaction_input",
       "Redaction input must be a string.",
       warnings,
+      {},
+      timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
     );
   }
 
@@ -46,6 +51,8 @@ export async function redactText(
       "redaction_aborted",
       "Redaction was aborted before content could be safely redacted.",
       warnings,
+      {},
+      timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
     );
   }
 
@@ -55,6 +62,8 @@ export async function redactText(
       "max_string_length_exceeded",
       "Input exceeded the configured redaction limit.",
       warnings,
+      {},
+      timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
     );
   }
 
@@ -74,6 +83,8 @@ export async function redactText(
       "max_detectors_exceeded",
       "Detector count exceeded the configured redaction limit.",
       warnings,
+      {},
+      timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
     );
   }
 
@@ -82,10 +93,15 @@ export async function redactText(
   for (const detector of detectors) {
     let detectorDetections: Detection[];
     const detectorControl = createDetectorControl(options);
+    const detectorStartedAtMs = Date.now();
+    let detectorDurationRecorded = false;
+    detectorRuns += 1;
 
     try {
       detectorDetections = await runDetector(detector, input, detectorControl);
     } catch (error) {
+      detectorDurationMs += Date.now() - detectorStartedAtMs;
+      detectorDurationRecorded = true;
       const failureCode =
         error instanceof DetectorRunError ? error.code : "detector_failed";
       warnings.push({ code: failureCode, detectorId: detector.id });
@@ -96,8 +112,12 @@ export async function redactText(
         {
           detectorId: detector.id,
         },
+        timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
       );
     } finally {
+      if (!detectorDurationRecorded) {
+        detectorDurationMs += Date.now() - detectorStartedAtMs;
+      }
       detectorControl.dispose();
     }
 
@@ -115,6 +135,7 @@ export async function redactText(
           {
             detectorId: detector.id,
           },
+          timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
         );
       }
 
@@ -130,6 +151,7 @@ export async function redactText(
           {
             detectorId: detector.id,
           },
+          timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
         );
       }
 
@@ -140,6 +162,7 @@ export async function redactText(
   const selectedDetectionsResult = selectNonOverlappingDetections(
     detections,
     warnings,
+    timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
   );
   if (!selectedDetectionsResult.ok) {
     return selectedDetectionsResult;
@@ -156,6 +179,8 @@ export async function redactText(
       "max_total_detections_exceeded",
       "Detection count exceeded the configured redaction limit.",
       warnings,
+      {},
+      timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
     );
   }
 
@@ -165,6 +190,7 @@ export async function redactText(
     selectedDetections,
     replacement,
     warnings,
+    timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
   );
   if (!redaction.ok) {
     return redaction;
@@ -173,6 +199,7 @@ export async function redactText(
   const report = createRedactionReport(
     selectedDetections.map((detection) => detection.reason),
     warnings,
+    timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
   );
 
   return {
@@ -410,6 +437,7 @@ function isLowSurrogate(codeUnit: number): boolean {
 function selectNonOverlappingDetections(
   detections: readonly Detection[],
   warnings: RedactionWarning[],
+  timings: ReturnType<typeof timingMetrics>,
 ): RedactionResult<Detection[]> {
   const sorted = [...detections].sort((left, right) => {
     if (left.start !== right.start) {
@@ -438,6 +466,8 @@ function selectNonOverlappingDetections(
         "overlapping_detection",
         "Overlapping detector ranges could not be safely resolved.",
         warnings,
+        {},
+        timings,
       );
     }
 
@@ -462,6 +492,7 @@ function applyRedactions(
   detections: readonly Detection[],
   replacement: ReplacementTokenPolicy,
   warnings: RedactionWarning[],
+  timings: ReturnType<typeof timingMetrics>,
 ): RedactionResult<string> {
   let output = "";
   let cursor = 0;
@@ -476,6 +507,8 @@ function applyRedactions(
         "replacement_failed",
         "Replacement token generation failed before content could be safely redacted.",
         warnings,
+        {},
+        timings,
       );
     }
     cursor = detection.end;
@@ -488,8 +521,21 @@ function applyRedactions(
     report: createRedactionReport(
       detections.map((detection) => detection.reason),
       warnings,
+      timings,
     ),
     warnings,
+  };
+}
+
+function timingMetrics(
+  startedAtMs: number,
+  detectorDurationMs: number,
+  detectorRuns: number,
+) {
+  return {
+    durationMs: Date.now() - startedAtMs,
+    detectorDurationMs,
+    detectorRuns,
   };
 }
 

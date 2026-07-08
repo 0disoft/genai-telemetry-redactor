@@ -82,6 +82,27 @@ export function mapRedactionReportToGenAIMetadata(
   assignSafeNumber(
     attributes,
     droppedMetadataKeys,
+    "genai_redactor.redaction.duration_ms",
+    "report.timings.durationMs",
+    report.timings?.durationMs,
+  );
+  assignSafeNumber(
+    attributes,
+    droppedMetadataKeys,
+    "genai_redactor.redaction.detector_duration_ms",
+    "report.timings.detectorDurationMs",
+    report.timings?.detectorDurationMs,
+  );
+  assignSafeNumber(
+    attributes,
+    droppedMetadataKeys,
+    "genai_redactor.redaction.detector_runs",
+    "report.timings.detectorRuns",
+    report.timings?.detectorRuns,
+  );
+  assignSafeNumber(
+    attributes,
+    droppedMetadataKeys,
     "gen_ai.usage.input_tokens",
     "tokenUsage.inputTokens",
     options.tokenUsage?.inputTokens,

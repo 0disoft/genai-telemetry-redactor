@@ -93,6 +93,13 @@ export type RedactionReport = {
   totalRedactions: number;
   countsByReason: Record<string, number>;
   warnings: RedactionWarning[];
+  timings?: RedactionTimings;
+};
+
+export type RedactionTimings = {
+  durationMs?: number;
+  detectorDurationMs?: number;
+  detectorRuns?: number;
 };
 
 export type SafeRedactionErrorCode =

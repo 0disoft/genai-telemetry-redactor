@@ -1,6 +1,7 @@
 import type {
   RedactionReason,
   RedactionReport,
+  RedactionTimings,
   RedactionWarning,
   SafeRedactionError,
 } from "./types.js";
@@ -21,23 +22,27 @@ export type RedactionReportAccumulator = {
 
 export function createEmptyReport(
   warnings: RedactionWarning[] = [],
+  timings?: RedactionTimings,
 ): RedactionReport {
   return {
     status: "unchanged",
     totalRedactions: 0,
     countsByReason: {},
     warnings,
+    ...timingsField(timings),
   };
 }
 
 export function createFailedReport(
   warnings: RedactionWarning[],
+  timings?: RedactionTimings,
 ): RedactionReport {
   return {
     status: "failed",
     totalRedactions: 0,
     countsByReason: {},
     warnings,
+    ...timingsField(timings),
   };
 }
 
@@ -46,10 +51,11 @@ export function createFailure<T>(
   message: string,
   warnings: RedactionWarning[],
   fields: Pick<SafeRedactionError, "detectorId"> = {},
+  timings?: RedactionTimings,
 ) {
   return {
     ok: false as const,
-    report: createFailedReport(warnings),
+    report: createFailedReport(warnings, timings),
     warnings,
     error: {
       code,
@@ -62,6 +68,7 @@ export function createFailure<T>(
 export function createRedactionReport(
   reasons: readonly RedactionReason[],
   warnings: RedactionWarning[],
+  timings?: RedactionTimings,
 ): RedactionReport {
   const countsByReason: Record<string, number> = {};
 
@@ -74,6 +81,7 @@ export function createRedactionReport(
     totalRedactions: reasons.length,
     countsByReason,
     warnings,
+    ...timingsField(timings),
   };
 }
 
@@ -91,6 +99,10 @@ export function mergeReports(
 export function createRedactionReportAccumulator(): RedactionReportAccumulator {
   const countsByReason: Record<string, number> = {};
   const warnings: RedactionWarning[] = [];
+  let durationMs = 0;
+  let detectorDurationMs = 0;
+  let detectorRuns = 0;
+  let hasTimings = false;
   let totalRedactions = 0;
   let failed = false;
 
@@ -102,6 +114,12 @@ export function createRedactionReportAccumulator(): RedactionReportAccumulator {
 
       totalRedactions += report.totalRedactions;
       warnings.push(...report.warnings);
+      if (report.timings) {
+        hasTimings = true;
+        durationMs += report.timings.durationMs ?? 0;
+        detectorDurationMs += report.timings.detectorDurationMs ?? 0;
+        detectorRuns += report.timings.detectorRuns ?? 0;
+      }
 
       for (const [reason, count] of Object.entries(report.countsByReason)) {
         countsByReason[reason] = (countsByReason[reason] ?? 0) + count;
@@ -123,7 +141,54 @@ export function createRedactionReportAccumulator(): RedactionReportAccumulator {
         totalRedactions,
         countsByReason: { ...countsByReason },
         warnings: [...warnings],
+        ...timingsField(
+          hasTimings
+            ? {
+                durationMs,
+                detectorDurationMs,
+                detectorRuns,
+              }
+            : undefined,
+        ),
       };
     },
   };
+}
+
+function timingsField(
+  timings: RedactionTimings | undefined,
+): { timings: RedactionTimings } | Record<string, never> {
+  const safeTimings = normalizeTimings(timings);
+  return safeTimings ? { timings: safeTimings } : {};
+}
+
+function normalizeTimings(
+  timings: RedactionTimings | undefined,
+): RedactionTimings | undefined {
+  if (!timings) {
+    return undefined;
+  }
+
+  const next: RedactionTimings = {};
+  assignNonNegativeNumber(next, "durationMs", timings.durationMs);
+  assignNonNegativeNumber(
+    next,
+    "detectorDurationMs",
+    timings.detectorDurationMs,
+  );
+  assignNonNegativeNumber(next, "detectorRuns", timings.detectorRuns);
+
+  return Object.keys(next).length > 0 ? next : undefined;
+}
+
+function assignNonNegativeNumber<K extends keyof RedactionTimings>(
+  target: RedactionTimings,
+  key: K,
+  value: RedactionTimings[K] | undefined,
+) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return;
+  }
+
+  target[key] = value;
 }

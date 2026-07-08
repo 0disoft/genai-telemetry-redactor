@@ -32,6 +32,10 @@ instead of being coerced into `{}`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
+- Shared reference behavior: reuse the first redacted clone for repeated
+  references to the same object, without re-running descendant redaction or
+  double-counting descendant detections. Circular references still fail closed
+  with `circular_reference`.
 
 The JSON-like traversal applies aggregate defaults to avoid turning redaction into
 a denial-of-service amplifier:
@@ -49,6 +53,10 @@ applies `maxDetectors` before each key or value detector pass.
 Per-detector duration has no default timeout because existing synchronous
 detectors cannot be preempted safely. When configured, async detectors receive an
 abort signal and deadline and timeout with `detector_timeout`.
+
+Redaction reports may include `timings` with numeric operation duration,
+detector duration, and detector run count. These metrics are safe summaries only
+and must not include object paths, detector IDs, matched values, or raw content.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.

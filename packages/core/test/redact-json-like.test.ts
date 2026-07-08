@@ -104,6 +104,46 @@ describe("redactJsonLike", () => {
     expect(result.report.totalRedactions).toBe(1);
   });
 
+  it("reuses shared object references without double-counting redactions", async () => {
+    const shared = {
+      email: "user@example.invalid",
+    };
+    const result = await redactJsonLike(
+      {
+        first: shared,
+        second: shared,
+      },
+      {
+        limits: {
+          maxDetectorRuns: 16,
+        },
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.first).toBe(result.value.second);
+    expect(result.value).toEqual({
+      first: {
+        email: "[REDACTED:email]",
+      },
+      second: {
+        email: "[REDACTED:email]",
+      },
+    });
+    expect(result.report.totalRedactions).toBe(1);
+    expect(result.report.timings).toEqual(
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        detectorRuns: 16,
+      }),
+    );
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("fails closed when object depth exceeds limits", async () => {
     const result = await redactJsonLike(
       {

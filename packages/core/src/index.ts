@@ -8,6 +8,7 @@ export type {
   RedactionReason,
   RedactionReport,
   RedactionResult,
+  RedactionTimings,
   RedactionWarning,
   RedactionWarningCode,
   RegexDetectorOptions,

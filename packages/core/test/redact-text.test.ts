@@ -34,6 +34,13 @@ describe("redactText", () => {
       api_key: 1,
       url: 1,
     });
+    expect(result.report.timings).toEqual(
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        detectorDurationMs: expect.any(Number),
+        detectorRuns: 4,
+      }),
+    );
   });
 
   it("redacts dash-style GenAI provider keys", async () => {
