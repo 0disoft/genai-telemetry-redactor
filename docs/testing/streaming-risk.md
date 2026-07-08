@@ -4,9 +4,10 @@ Status: Active
 
 ## Contract
 
-Streaming content export is unsafe for the MVP because sensitive values can be
-split across chunk boundaries. Until streaming redaction has a tested buffering
-policy, streaming telemetry must be metadata-only.
+Streaming content export is unsafe by default because sensitive values can be
+split across chunk boundaries. OpenAI-compatible streaming telemetry remains
+metadata-only unless a caller explicitly uses a reviewed buffered redaction
+helper.
 
 ## Required Evidence Before Content Export
 
@@ -21,6 +22,14 @@ policy, streaming telemetry must be metadata-only.
 - Emit safe stream metadata only.
 - Emit `streaming_content_omitted` or equivalent warning.
 - Do not export raw chunks.
+
+## Explicit Buffered Prototype
+
+`createBufferedTextStreamRedactor` is provider-agnostic and final-flush only.
+`push(chunk)` omits content and reports `streaming_content_omitted`; `close()`
+redacts the full buffered text. Buffer overflow fails closed with
+`max_stream_buffer_length_exceeded` and detector failure returns no partial
+content.
 
 ## Review Blockers
 

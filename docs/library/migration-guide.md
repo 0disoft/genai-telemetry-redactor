@@ -31,6 +31,18 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.1.9
+
+`createBufferedTextStreamRedactor(options)` is now available from the root and
+`./core` exports. It is an explicit, provider-agnostic buffered streaming
+prototype: `push(chunk)` returns omitted-content metadata only, and `close()`
+redacts the complete buffered text before returning content.
+
+`RedactionLimits.maxStreamBufferLength` bounds buffered UTF-16 code units for
+this helper. Exceeding it fails closed with
+`max_stream_buffer_length_exceeded`. OpenAI-compatible streaming adapters remain
+metadata-only by default and continue to emit `streaming_content_omitted`.
+
 ## 0.1.8
 
 `RedactionLimits` now accepts `maxTotalDurationMs` to bound the whole redaction

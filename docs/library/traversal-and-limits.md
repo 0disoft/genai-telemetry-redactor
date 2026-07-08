@@ -31,6 +31,8 @@ instead of being coerced into `{}`.
   `maxDetectorDurationMs`.
 - Maximum total redaction operation duration: configurable through
   `maxTotalDurationMs`.
+- Maximum buffered stream length for explicit final-flush streaming redaction:
+  configurable through `maxStreamBufferLength`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
@@ -64,6 +66,10 @@ the earlier of the per-detector deadline and the remaining total-operation
 deadline. Synchronous detector or regex execution still cannot be interrupted
 mid-call, so the total budget is checked before dispatch, after control returns,
 and while moving between traversal steps.
+
+Buffered stream redaction defaults to `maxStreamBufferLength` of 65,536 UTF-16
+code units. Exceeding this limit fails closed with
+`max_stream_buffer_length_exceeded` before any buffered content is returned.
 
 Redaction reports may include `timings` with numeric operation duration,
 detector duration, and detector run count. These metrics are safe summaries only

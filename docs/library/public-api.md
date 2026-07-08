@@ -43,7 +43,10 @@ This repository type owns public API surface, package compatibility, semantic ve
 <!-- public-api-inventory:start -->
 ### Export `.`
 
+- `BufferedTextStreamChunk`
+- `BufferedTextStreamRedactor`
 - `BuiltInDetectorName`
+- `createBufferedTextStreamRedactor`
 - `createBuiltInDetectors`
 - `createRegexDetector`
 - `defaultReplacementToken`
@@ -89,7 +92,10 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 ### Export `./core`
 
+- `BufferedTextStreamChunk`
+- `BufferedTextStreamRedactor`
 - `BuiltInDetectorName`
+- `createBufferedTextStreamRedactor`
 - `createBuiltInDetectors`
 - `createRegexDetector`
 - `defaultReplacementToken`
@@ -146,6 +152,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 ## Implemented Core Surface
 
 - `redactText(input, options)`: async provider-agnostic text redaction.
+- `createBufferedTextStreamRedactor(options)`: explicit final-flush buffered
+  stream redactor. `push(chunk)` omits intermediate content, and `close()`
+  redacts the complete buffer before returning content.
 - `redactJsonLike(input, options)`: async JSON-like traversal that redacts string
   leaves while preserving safe plain-object and array shape. Non-plain objects
   and content-bearing object keys fail closed instead of being coerced or echoed
@@ -155,7 +164,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   detector count. JSON-like traversal additionally tracks cumulative detector
   executions with `maxDetectorRuns`, including object-key safety checks. Async
   detector duration can also be bounded with `maxDetectorDurationMs`, and the
-  whole operation can be bounded with `maxTotalDurationMs`.
+  whole operation can be bounded with `maxTotalDurationMs`. Explicit buffered
+  streaming can bound its buffered content with `maxStreamBufferLength`.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.

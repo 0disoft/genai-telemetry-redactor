@@ -61,6 +61,11 @@ traversal, including object-key safety checks. `maxTotalDurationMs` bounds the
 whole redaction operation and fails closed with `max_total_duration_exceeded`
 when the budget is exceeded.
 
+`createBufferedTextStreamRedactor` is an explicit final-flush streaming helper.
+It buffers string chunks, omits content from intermediate `push(chunk)` results,
+and returns redacted content only from `close()`. OpenAI-compatible streaming
+adapters remain metadata-only by default.
+
 Redaction reports may include numeric `timings` such as operation duration,
 detector duration, and detector run count. These metrics are safe summaries only:
 they do not include matched values, raw content, detector IDs, or field paths.
@@ -116,11 +121,12 @@ nested tool arguments, a small detector set, replacement-token policy, and safe
 OpenTelemetry GenAI metadata mapping.
 
 The current implementation starts with `packages/core`: async `redactText`,
-`redactJsonLike`, and `redactToolArguments`; built-in detectors for email,
-bearer token, API-key-like strings, and URLs; category-only replacement tokens;
-redaction reports; shape-preserving JSON-like traversal with shared-reference
-reuse; and fail-closed detector, traversal, circular-reference, overlap, and
-limit behavior.
+`redactJsonLike`, `redactToolArguments`, and
+`createBufferedTextStreamRedactor`; built-in detectors for email, bearer token,
+API-key-like strings, and URLs; category-only replacement tokens; redaction
+reports; shape-preserving JSON-like traversal with shared-reference reuse; and
+fail-closed detector, traversal, buffered-stream, circular-reference, overlap,
+and limit behavior.
 
 It also includes `packages/openai-compatible`: provider-SDK-free request and
 response shape helpers for `messages`, `prompt`, `input`, `choices`, completion

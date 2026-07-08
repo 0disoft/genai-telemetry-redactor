@@ -39,6 +39,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `examples/custom-detector.ts`: registers a caller-owned customer-id detector with
   `createRegexDetector` while keeping built-in detectors active, then verifies custom
   and built-in reason counts.
+- `examples/buffered-stream-redaction.ts`: uses the provider-agnostic buffered
+  stream redactor to handle fake sensitive text split across chunk boundaries
+  without returning intermediate content.
 - `examples/streaming-metadata-only.ts`: passes a fake streaming chunk to the
   OpenAI-compatible streaming helper and verifies only metadata plus
   `streaming_content_omitted` are returned.
