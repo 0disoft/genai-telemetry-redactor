@@ -61,11 +61,16 @@ This repository type owns public API, compatibility, examples, versioning, and c
   selected adapter.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
+- Adapter-specific options are not allowed to override core redaction policy.
+  For example, `openAICompatible` cannot disable built-in detectors; callers must
+  use `options.redaction` for detector policy.
 - `options.telemetry` passes safe metadata candidates to the OTel metadata mapper.
 - `options.onReport(report, telemetry)` receives redaction report and safe metadata
   only, not raw request or response payloads.
 - On any redaction failure, the helper returns `ok: false`, safe error details,
   metadata, report, and warnings without returning partially redacted payloads.
+- Unknown adapter names from untyped JavaScript callers return a safe failure
+  instead of `undefined`.
 
 ## Non-Ownership
 

@@ -52,6 +52,39 @@ describe("redactJsonLike", () => {
     });
   });
 
+  it("fails closed when an object key looks content-bearing", async () => {
+    const result = await redactToolArguments({
+      "user@example.invalid": true,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsafe_object_key");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "unsafe_object_key",
+        path: "$.{0}",
+      }),
+    );
+  });
+
+  it("fails closed for non-plain objects instead of changing them to empty objects", async () => {
+    const result = await redactJsonLike({
+      when: new Date("2026-07-08T00:00:00.000Z"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_json_like");
+  });
+
   it("fails closed on circular references", async () => {
     const input: Record<string, unknown> = {
       email: "user@example.invalid",
@@ -68,6 +101,7 @@ describe("redactJsonLike", () => {
     expect(result.error.code).toBe("circular_reference");
     expect(result.error.message).not.toContain("user@example.invalid");
     expect(result.report.status).toBe("failed");
+    expect(result.report.totalRedactions).toBe(1);
   });
 
   it("fails closed when object depth exceeds limits", async () => {

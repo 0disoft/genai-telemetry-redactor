@@ -2,6 +2,7 @@ import type {
   RedactionReport,
   RedactionResult,
   RedactionWarning,
+  SafeRedactionErrorCode,
 } from "../../core/src/index.js";
 import {
   redactOpenAICompatibleRequest,
@@ -17,9 +18,22 @@ import type {
 export async function withRedactedTelemetry(
   options: WithRedactedTelemetryOptions,
 ): Promise<WithRedactedTelemetryResult> {
+  if (!isRecord(options)) {
+    return sdkFailure(
+      "invalid_redaction_options",
+      "Telemetry redaction options must be an object.",
+    );
+  }
+
   switch (options.adapter) {
     case "openai-compatible":
       return withOpenAICompatibleRedactedTelemetry(options);
+    default:
+      return sdkFailure(
+        "unsupported_provider_shape",
+        "Unsupported telemetry redaction adapter.",
+        options,
+      );
   }
 }
 
@@ -28,7 +42,7 @@ async function withOpenAICompatibleRedactedTelemetry(
 ): Promise<WithRedactedTelemetryResult> {
   const adapterOptions = {
     ...options.redaction,
-    ...options.openAICompatible,
+    redactToolNames: options.openAICompatible?.redactToolNames === true,
   };
   const reports: RedactionReport[] = [];
 
@@ -109,6 +123,39 @@ function invokeReportCallback(
   telemetry: ReturnType<typeof mapRedactionReportToGenAIMetadata>,
 ) {
   options.onReport?.(report, telemetry);
+}
+
+function sdkFailure(
+  code: SafeRedactionErrorCode,
+  message: string,
+  options?: Partial<WithRedactedTelemetryOptions>,
+): WithRedactedTelemetryResult {
+  const warnings: RedactionWarning[] = [{ code }];
+  const report: RedactionReport = {
+    status: "failed",
+    totalRedactions: 0,
+    countsByReason: {},
+    warnings,
+  };
+  const telemetry = mapRedactionReportToGenAIMetadata(
+    report,
+    isRecord(options?.telemetry) ? options.telemetry : undefined,
+  );
+
+  return {
+    ok: false,
+    telemetry,
+    report,
+    warnings,
+    error: {
+      code,
+      message,
+    },
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function mergeReports(reports: readonly RedactionReport[]): RedactionReport {

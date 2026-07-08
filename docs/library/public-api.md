@@ -143,7 +143,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `redactText(input, options)`: async provider-agnostic text redaction.
 - `redactJsonLike(input, options)`: async JSON-like traversal that redacts string
-  leaves while preserving object and array shape.
+  leaves while preserving safe plain-object and array shape. Non-plain objects
+  and content-bearing object keys fail closed instead of being coerced or echoed
+  in warning paths.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.
@@ -151,6 +153,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   defaults detections to whole-match UTF-16 ranges and allows explicit submatch
   range mapping.
 - `defaultReplacementToken(reason)`: category-only replacement token policy.
+  Unsafe custom reason labels fall back to a generic custom category instead of
+  being echoed into redacted output.
 - Public types for detectors, detections, warnings, reports, safe errors, and
   redaction results.
 
@@ -187,6 +191,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   redaction step succeeds.
 - On failure, the helper returns safe metadata, report, warnings, and safe error
   details without returning partial payloads.
+- Unknown adapter names from untyped callers return a safe failure, and
+  adapter-specific option bags cannot override core detector policy.
 - The helper accepts optional report callbacks that receive reports and metadata
   only.
 

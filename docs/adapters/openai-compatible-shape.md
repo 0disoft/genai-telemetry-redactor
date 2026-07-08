@@ -45,7 +45,16 @@ content-bearing telemetry and emit a safe warning such as
 
 The implementation fails closed for non-object payloads, missing known request
 content fields, missing `choices` response arrays, malformed message arrays,
-malformed tool-call arrays, and unsupported content-bearing substructures.
+malformed tool-call arrays, unsupported content-bearing substructures, and
+fields outside the adapter's supported allowlist. Response choices must contain
+a supported `text` or `message` field; streaming-style `delta` chunks belong on
+`redactOpenAICompatibleStreamEvent` and are not exported by the non-streaming
+response helper.
+
+Allowlisted metadata fields are preserved only for the supported structural
+shape. Unknown top-level provider extensions such as `metadata`, `extra_body`,
+or unrecognized choice/message fields fail closed because they may carry prompt,
+completion, tool, or customer content.
 
 ## Review Blockers
 

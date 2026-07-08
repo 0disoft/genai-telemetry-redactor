@@ -199,9 +199,10 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.report.warnings).toContainEqual(
       expect.objectContaining({
         code: "unsupported_provider_shape",
-        path: "$",
+        path: "$.{0}",
       }),
     );
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
   it("fails closed for unsupported response shapes", async () => {
@@ -218,9 +219,10 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.report.warnings).toContainEqual(
       expect.objectContaining({
         code: "unsupported_provider_shape",
-        path: "$.choices",
+        path: "$.{0}",
       }),
     );
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
   it("fails closed for malformed message arrays that could carry raw content", async () => {
@@ -240,5 +242,60 @@ describe("OpenAI-compatible adapter", () => {
         path: "$.messages[0]",
       }),
     );
+  });
+
+  it("fails closed when response choices carry streaming delta content", async () => {
+    const result = await redactOpenAICompatibleResponse({
+      choices: [
+        {
+          delta: {
+            content: "user@example.invalid",
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_provider_shape");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "unsupported_provider_shape",
+        path: "$.choices[0].{0}",
+      }),
+    );
+  });
+
+  it("preserves prior redaction counts when a later provider shape fails", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      messages: [
+        {
+          role: "user",
+          content: "Contact user@example.invalid",
+        },
+        {
+          role: "user",
+          content: [
+            {
+              token_example_value: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsafe_object_key");
+    expect(result.report.totalRedactions).toBe(1);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result)).not.toContain("token_example_value");
   });
 });

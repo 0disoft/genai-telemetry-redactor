@@ -1,10 +1,11 @@
-import { createFailure, mergeReports } from "./report.js";
+import { mergeReports } from "./report.js";
 import { redactText } from "./redact-text.js";
 import type {
   RedactionOptions,
   RedactionReport,
   RedactionResult,
   RedactionWarning,
+  SafeRedactionError,
 } from "./types.js";
 
 const DEFAULT_MAX_OBJECT_DEPTH = 16;
@@ -93,19 +94,19 @@ async function visit(
 
   if (state.seen.has(value)) {
     state.warnings.push({ code: "circular_reference", path });
-    return createFailure(
+    return createTraversalFailure(
+      state,
       "circular_reference",
       "Circular reference encountered before content could be safely redacted.",
-      state.warnings,
     );
   }
 
   if (depth >= state.limits.maxObjectDepth) {
     state.warnings.push({ code: "max_object_depth_exceeded", path });
-    return createFailure(
+    return createTraversalFailure(
+      state,
       "max_object_depth_exceeded",
       "Object depth exceeded the configured redaction limit.",
-      state.warnings,
     );
   }
 
@@ -113,6 +114,15 @@ async function visit(
   try {
     if (Array.isArray(value)) {
       return await visitArray(value, path, depth, state);
+    }
+
+    if (!isPlainObject(value)) {
+      state.warnings.push({ code: "unsupported_json_like", path });
+      return createTraversalFailure(
+        state,
+        "unsupported_json_like",
+        "Only plain JSON-like objects can be safely traversed.",
+      );
     }
 
     return await visitObject(value as JsonLikeRecord, path, depth, state);
@@ -129,10 +139,10 @@ async function visitArray(
 ): Promise<RedactionResult<unknown[]>> {
   if (value.length > state.limits.maxArrayLength) {
     state.warnings.push({ code: "max_array_length_exceeded", path });
-    return createFailure(
+    return createTraversalFailure(
+      state,
       "max_array_length_exceeded",
       "Array length exceeded the configured redaction limit.",
-      state.warnings,
     );
   }
 
@@ -158,16 +168,39 @@ async function visitObject(
   const entries = Object.entries(value);
   if (entries.length > state.limits.maxObjectKeys) {
     state.warnings.push({ code: "max_object_keys_exceeded", path });
-    return createFailure(
+    return createTraversalFailure(
+      state,
       "max_object_keys_exceeded",
       "Object key count exceeded the configured redaction limit.",
-      state.warnings,
     );
   }
 
   const next: JsonLikeRecord = {};
-  for (const [key, item] of entries) {
-    const result = await visit(item, `${path}.${key}`, depth + 1, state);
+  for (const [index, [key, item]] of entries.entries()) {
+    const safeChildPath = `${path}.{${index}}`;
+    const keySafety = await redactText(key, state.options);
+    if (!keySafety.ok) {
+      state.warnings.push({ code: keySafety.error.code, path: safeChildPath });
+      return createTraversalFailure(
+        state,
+        keySafety.error.code,
+        keySafety.error.message,
+        keySafety.error.detectorId
+          ? { detectorId: keySafety.error.detectorId }
+          : {},
+      );
+    }
+
+    if (keySafety.report.totalRedactions > 0 || keySafety.value !== key) {
+      state.warnings.push({ code: "unsafe_object_key", path: safeChildPath });
+      return createTraversalFailure(
+        state,
+        "unsafe_object_key",
+        "Object keys that look content-bearing cannot be safely preserved.",
+      );
+    }
+
+    const result = await visit(item, safeChildPath, depth + 1, state);
     if (!result.ok) {
       return result;
     }
@@ -185,5 +218,38 @@ function unchanged<T>(value: T, state: TraversalState): RedactionResult<T> {
     value,
     report,
     warnings: report.warnings,
+  };
+}
+
+function isPlainObject(value: object): boolean {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function createTraversalFailure<T>(
+  state: TraversalState,
+  code: SafeRedactionError["code"],
+  message: string,
+  fields: Pick<SafeRedactionError, "detectorId"> = {},
+): RedactionResult<T> {
+  const report = mergeReports([
+    ...state.reports,
+    {
+      status: "failed",
+      totalRedactions: 0,
+      countsByReason: {},
+      warnings: state.warnings,
+    },
+  ]);
+
+  return {
+    ok: false,
+    report,
+    warnings: report.warnings,
+    error: {
+      code,
+      message,
+      ...fields,
+    },
   };
 }

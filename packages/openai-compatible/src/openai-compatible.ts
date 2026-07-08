@@ -20,6 +20,33 @@ type AdapterState = {
   warnings: RedactionWarning[];
 };
 
+const REQUEST_KEYS = new Set([
+  "messages",
+  "prompt",
+  "input",
+  "model",
+  "temperature",
+  "top_p",
+  "n",
+  "stream",
+  "max_tokens",
+  "max_completion_tokens",
+  "response_format",
+]);
+const RESPONSE_KEYS = new Set([
+  "id",
+  "object",
+  "created",
+  "model",
+  "choices",
+  "usage",
+  "system_fingerprint",
+]);
+const CHOICE_KEYS = new Set(["index", "text", "message", "finish_reason"]);
+const MESSAGE_KEYS = new Set(["role", "content", "tool_calls"]);
+const TOOL_CALL_KEYS = new Set(["id", "type", "function"]);
+const FUNCTION_KEYS = new Set(["name", "arguments"]);
+
 export async function redactOpenAICompatibleRequest<T>(
   input: T,
   options: OpenAICompatibleOptions = {},
@@ -28,6 +55,11 @@ export async function redactOpenAICompatibleRequest<T>(
 
   if (!isRecord(input)) {
     return unsupportedShape(state);
+  }
+
+  const keyResult = validateAllowedKeys(input, REQUEST_KEYS, state, "$");
+  if (!keyResult.ok) {
+    return keyResult;
   }
 
   const cloned = cloneRecord(input);
@@ -47,6 +79,11 @@ export async function redactOpenAICompatibleResponse<T>(
 
   if (!isRecord(input)) {
     return unsupportedShape(state);
+  }
+
+  const keyResult = validateAllowedKeys(input, RESPONSE_KEYS, state, "$");
+  if (!keyResult.ok) {
+    return keyResult;
   }
 
   const cloned = cloneRecord(input);
@@ -131,6 +168,20 @@ async function redactResponseRecord(
       return unsupportedShape(state, `$.choices[${index}]`);
     }
 
+    const keyResult = validateAllowedKeys(
+      choice,
+      CHOICE_KEYS,
+      state,
+      `$.choices[${index}]`,
+    );
+    if (!keyResult.ok) {
+      return keyResult;
+    }
+
+    if (!("text" in choice) && !("message" in choice)) {
+      return unsupportedShape(state, `$.choices[${index}]`);
+    }
+
     const clonedChoice = cloneRecord(choice);
 
     if ("text" in clonedChoice) {
@@ -189,6 +240,11 @@ async function redactMessage(
     return unsupportedShape(state, path);
   }
 
+  const keyResult = validateAllowedKeys(value, MESSAGE_KEYS, state, path);
+  if (!keyResult.ok) {
+    return keyResult;
+  }
+
   const message = cloneRecord(value);
 
   if ("content" in message) {
@@ -236,7 +292,7 @@ async function redactContent(
 
       const result = await redactJsonLike(part, state.options);
       if (!result.ok) {
-        return result;
+        return failureFromResult(result, state);
       }
       state.reports.push(result.report);
       parts.push(result.value);
@@ -251,7 +307,7 @@ async function redactContent(
   if (isRecord(value)) {
     const result = await redactJsonLike(value, state.options);
     if (!result.ok) {
-      return result;
+      return failureFromResult(result, state);
     }
     state.reports.push(result.report);
     return success(result.value, state);
@@ -275,12 +331,32 @@ async function redactToolCalls(
       return unsupportedShape(state, `${path}[${index}]`);
     }
 
+    const keyResult = validateAllowedKeys(
+      toolCall,
+      TOOL_CALL_KEYS,
+      state,
+      `${path}[${index}]`,
+    );
+    if (!keyResult.ok) {
+      return keyResult;
+    }
+
     const clonedToolCall = cloneRecord(toolCall);
     if ("function" in clonedToolCall && !isRecord(clonedToolCall.function)) {
       return unsupportedShape(state, `${path}[${index}].function`);
     }
 
     if (isRecord(clonedToolCall.function)) {
+      const functionKeyResult = validateAllowedKeys(
+        clonedToolCall.function,
+        FUNCTION_KEYS,
+        state,
+        `${path}[${index}].function`,
+      );
+      if (!functionKeyResult.ok) {
+        return functionKeyResult;
+      }
+
       const fn = cloneRecord(clonedToolCall.function);
 
       if (state.options.redactToolNames && typeof fn.name === "string") {
@@ -322,7 +398,7 @@ async function redactToolArgumentsValue(
       const parsed = JSON.parse(value) as unknown;
       const result = await redactToolArguments(parsed, state.options);
       if (!result.ok) {
-        return result;
+        return failureFromResult(result, state);
       }
       state.reports.push(result.report);
       return success(JSON.stringify(result.value), state);
@@ -337,7 +413,7 @@ async function redactToolArgumentsValue(
 
   const result = await redactToolArguments(value, state.options);
   if (!result.ok) {
-    return result;
+    return failureFromResult(result, state);
   }
   state.reports.push(result.report);
   return success(result.value, state);
@@ -354,7 +430,7 @@ async function redactInputField(
   if (Array.isArray(value) || isRecord(value)) {
     const result = await redactJsonLike(value, state.options);
     if (!result.ok) {
-      return result;
+      return failureFromResult(result, state);
     }
     state.reports.push(result.report);
     return success(result.value, state);
@@ -404,7 +480,7 @@ async function redactStringValue(
 
   const result = await redactText(value, state.options);
   if (!result.ok) {
-    return result;
+    return failureFromResult(result, state);
   }
 
   state.reports.push(result.report);
@@ -443,9 +519,9 @@ function unsupportedShape<T>(
 ): RedactionResult<T> {
   state.warnings.push({ code: "unsupported_provider_shape", path });
   return createFailure(
+    state,
     "unsupported_provider_shape",
     "Unsupported OpenAI-compatible shape; content-bearing fields were not exported.",
-    state.warnings,
   );
 }
 
@@ -458,24 +534,58 @@ function cloneRecord<T extends MutableRecord>(value: T): MutableRecord {
 }
 
 function createFailure<T>(
+  state: AdapterState,
   code: SafeRedactionError["code"],
   message: string,
-  warnings: RedactionWarning[],
 ): RedactionResult<T> {
-  return {
-    ok: false,
-    report: {
+  const report = mergeReports([
+    ...state.reports,
+    {
       status: "failed",
       totalRedactions: 0,
       countsByReason: {},
-      warnings,
+      warnings: state.warnings,
     },
-    warnings,
+  ]);
+
+  return {
+    ok: false,
+    report,
+    warnings: report.warnings,
     error: {
       code,
       message,
     },
   };
+}
+
+function failureFromResult<T>(
+  result: Extract<RedactionResult<T>, { ok: false }>,
+  state: AdapterState,
+): RedactionResult<never> {
+  const report = mergeReports([...state.reports, result.report]);
+  return {
+    ok: false,
+    report,
+    warnings: report.warnings,
+    error: result.error,
+  };
+}
+
+function validateAllowedKeys<T>(
+  record: MutableRecord,
+  allowedKeys: ReadonlySet<string>,
+  state: AdapterState,
+  path: string,
+): RedactionResult<T> {
+  const keys = Object.keys(record);
+  for (const [index, key] of keys.entries()) {
+    if (!allowedKeys.has(key)) {
+      return unsupportedShape(state, `${path}.{${index}}`);
+    }
+  }
+
+  return success(undefined as T, state);
 }
 
 function mergeReports(reports: readonly RedactionReport[]): RedactionReport {

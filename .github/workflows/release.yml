@@ -37,9 +37,14 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.7.0 --activate
 
-      - name: Use current npm CLI
+      - name: Check release tag version
         run: |
-          npm install --global npm@latest
+          version="$(node --print "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          expected_tag="v${version}"
+          if [ "${GITHUB_REF_NAME}" != "${expected_tag}" ]; then
+            echo "release tag ${GITHUB_REF_NAME} does not match package version ${expected_tag}" >&2
+            exit 1
+          fi
           npm --version
 
       - name: Install dependencies

@@ -4,8 +4,11 @@ Status: Product-shaping
 
 ## Contract
 
-Traversal must redact nested JSON-like data without creating a denial-of-service
-path or leaking raw tool arguments.
+Traversal must redact nested plain JSON-like data without creating a
+denial-of-service path or leaking raw tool arguments. Supported values are
+primitives, arrays, plain objects, and `null`; provider SDK instances, `Date`,
+`Map`, `Set`, `URL`, class instances, and other non-plain objects fail closed
+instead of being coerced into `{}`.
 
 ## Implemented Limits
 
@@ -14,6 +17,8 @@ path or leaking raw tool arguments.
 - Maximum key count: configurable through `maxObjectKeys`.
 - Maximum array length: configurable through `maxArrayLength`.
 - Circular reference behavior: fail closed with `circular_reference`.
+- Non-plain object behavior: fail closed with `unsupported_json_like`.
+- Content-bearing object key behavior: fail closed with `unsafe_object_key`.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.
@@ -21,8 +26,8 @@ tool argument objects or strings for text redaction.
 ## Safety Rules
 
 - Preserve object shape when safe so callers can debug redaction location.
-- Do not export full field paths in telemetry by default; paths can reveal
-  business domain information.
+- Do not export raw object keys or full field paths in warnings or telemetry by
+  default; paths can reveal business domain information or user-provided values.
 - If traversal limits are exceeded, fail closed for content export and emit safe
   warnings.
 

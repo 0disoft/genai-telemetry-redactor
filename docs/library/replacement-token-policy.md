@@ -17,6 +17,11 @@ Use category-only tokens such as:
 - `[REDACTED:url]`
 - `[REDACTED:custom:<reason>]`
 
+Custom reason labels are normalized to safe category labels before replacement.
+If a caller bypasses type checks and passes an unsafe custom reason directly to
+the default replacement policy, the default token falls back to `[REDACTED:custom]`
+instead of echoing the unsafe reason.
+
 ## Forbidden Defaults
 
 - Original value length.
@@ -24,6 +29,7 @@ Use category-only tokens such as:
 - Hashes or stable fingerprints.
 - Provider credential fragments.
 - Customer identifiers or business-domain paths.
+- Detector reason strings derived from matched text.
 
 ## Review Blockers
 

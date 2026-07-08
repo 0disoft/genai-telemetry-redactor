@@ -16,6 +16,8 @@ package name is `genai-telemetry-redactor`.
 - Use npm trusted publishing with provenance from CI for normal releases.
 - Configure the npm trusted publisher to match the GitHub owner, repository,
   and workflow filename that owns release publishing.
+- Require the release tag to match `v${package.json.version}` before install,
+  validation, or publish steps run.
 - Treat long-lived npm tokens as bootstrap or emergency recovery tools only;
   they must not be required by the release workflow or committed to repository
   files.
@@ -36,6 +38,7 @@ is useful health evidence, but it does not prove tokenless publishing.
 
 - A release requires long-lived npm tokens without a documented reason.
 - Package exports drift from public API docs.
+- The release tag and package version do not match.
 - Release artifacts include raw GenAI content or live-looking secrets.
 - Semver and migration notes omit detector default, replacement-token, or mapper
   changes.

@@ -101,4 +101,41 @@ describe("withRedactedTelemetry", () => {
     expect(seen[0]).not.toContain("user@example.invalid");
     expect(seen[0]).toContain("genai_redactor.redaction.total_count");
   });
+
+  it("fails closed for unknown adapter names from JavaScript callers", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "bad-adapter",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+    } as never);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_provider_shape");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("does not let adapter-specific options override core detector policy", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+      openAICompatible: {
+        builtInDetectors: false,
+      } as never,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
+    expect(result.value.report.totalRedactions).toBe(1);
+  });
 });

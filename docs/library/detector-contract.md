@@ -19,12 +19,18 @@ not proof of complete PII or DLP coverage.
   Omitted overlaps are reported with `overlapping_detection`.
 - Built-in MVP categories are email, bearer token, API-key-like string, and URL.
 - Custom detectors must be isolated so thrown errors cannot leak raw input.
+- Custom detector reason codes must be safe category labels. Built-in reasons
+  are fixed, and custom reasons must use a bounded `custom:<label>` form that
+  does not include matched values, customer identifiers, URLs, tokens, or other
+  raw input.
 - Detector failures must block content export rather than letting partially
   redacted content pass.
 - `createRegexDetector(options)` is the preferred helper for regex-backed custom
   detectors. It clones caller regexes into global, non-sticky scanners, uses
   whole-match UTF-16 ranges by default, supports explicit submatch range mapping,
-  and ignores zero-length matches to avoid scanner loops.
+  ignores zero-length matches to avoid scanner loops, and creates a fresh scanner
+  per detection call so shared regular-expression state cannot leak between
+  reentrant calls.
 
 ## Safety Requirements
 

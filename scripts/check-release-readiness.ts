@@ -142,6 +142,21 @@ async function checkTrustedPublishingWorkflow() {
   if (/(NPM_TOKEN|NODE_AUTH_TOKEN|_authToken)/.test(workflow)) {
     blockers.push("release workflow must not rely on long-lived npm tokens");
   }
+
+  if (/npm\s+install\s+--global\s+npm@latest/.test(workflow)) {
+    blockers.push(
+      "release workflow must not install npm@latest before publish",
+    );
+  }
+
+  if (
+    !workflow.includes("GITHUB_REF_NAME") ||
+    !workflow.includes("v${version}")
+  ) {
+    blockers.push(
+      "release workflow must verify tag name matches package.json version",
+    );
+  }
 }
 
 function isSemverVersion(value: string) {

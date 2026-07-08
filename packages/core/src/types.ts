@@ -48,12 +48,18 @@ export type RedactionOptions = {
 export type RedactionWarningCode =
   | "detector_failed"
   | "invalid_detection_range"
+  | "invalid_redaction_input"
+  | "invalid_redaction_options"
+  | "invalid_redaction_reason"
   | "overlapping_detection"
+  | "replacement_failed"
   | "max_string_length_exceeded"
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
   | "circular_reference"
+  | "unsafe_object_key"
+  | "unsupported_json_like"
   | "unsupported_provider_shape"
   | "streaming_content_omitted"
   | "malformed_tool_arguments";
@@ -75,11 +81,17 @@ export type RedactionReport = {
 export type SafeRedactionErrorCode =
   | "detector_failed"
   | "invalid_detection_range"
+  | "invalid_redaction_input"
+  | "invalid_redaction_options"
+  | "invalid_redaction_reason"
+  | "replacement_failed"
   | "max_string_length_exceeded"
   | "max_object_depth_exceeded"
   | "max_object_keys_exceeded"
   | "max_array_length_exceeded"
   | "circular_reference"
+  | "unsafe_object_key"
+  | "unsupported_json_like"
   | "unsupported_provider_shape";
 
 export type SafeRedactionError = {

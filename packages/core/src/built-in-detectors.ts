@@ -10,7 +10,7 @@ const EMAIL_PATTERN =
   /\b[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b/g;
 const URL_PATTERN = /\bhttps?:\/\/[^\s"'<>]+/g;
 const API_KEY_PATTERN =
-  /\b(?:sk|pk|api|key|token)_(?:test_)?[A-Za-z0-9][A-Za-z0-9_-]{5,}\b/g;
+  /\b(?:(?:sk|pk|api|key|token)_(?:test_)?[A-Za-z0-9][A-Za-z0-9_-]{5,}|sk-(?:proj-)?[A-Za-z0-9][A-Za-z0-9_-]{11,})\b/g;
 const BEARER_PATTERN = /\b[Bb]earer\s+([A-Za-z0-9._~+/=-]{6,})/g;
 
 const DEFAULT_BUILT_INS: readonly BuiltInDetectorName[] = [
@@ -62,19 +62,19 @@ export function createBuiltInDetectors(
           reason: "url",
           pattern: URL_PATTERN,
         });
+      default:
+        throw new TypeError("Unknown built-in detector name.");
     }
   });
 }
 
 export function createRegexDetector(options: RegexDetectorOptions): Detector {
-  const pattern = toGlobalPattern(options.pattern);
-
   return {
     id: options.id,
     reasons: [options.reason],
     detect(input) {
       const matches: Detection[] = [];
-      pattern.lastIndex = 0;
+      const pattern = toGlobalPattern(options.pattern);
 
       for (
         let match = pattern.exec(input);

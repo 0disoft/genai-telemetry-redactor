@@ -36,6 +36,20 @@ describe("redactText", () => {
     });
   });
 
+  it("redacts dash-style GenAI provider keys", async () => {
+    const dashKey = ["sk", "proj", "examplevalue123456"].join("-");
+    const result = await redactText(`Plain key ${dashKey} appeared.`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).toBe("Plain key [REDACTED:api_key] appeared.");
+    expect(JSON.stringify(result)).not.toContain(dashKey);
+    expect(result.report.countsByReason.api_key).toBe(1);
+  });
+
   it("supports custom detectors without preserving original values", async () => {
     const detector: Detector = {
       id: "custom:account",
@@ -303,6 +317,51 @@ describe("redactText", () => {
     expect(result.error.message).not.toContain("user@example.invalid");
     expect(result.report.status).toBe("failed");
     expect(result.report.totalRedactions).toBe(0);
+  });
+
+  it("fails closed when replacement generation throws", async () => {
+    const result = await redactText("Sensitive user@example.invalid", {
+      replacement() {
+        throw new Error("replacement policy failure");
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("replacement_failed");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when a detector emits an unsafe custom reason", async () => {
+    const result = await redactText("Sensitive user@example.invalid", {
+      builtInDetectors: false,
+      detectors: [
+        {
+          id: "custom:unsafe",
+          reasons: ["custom:user@example.invalid"],
+          detect(input) {
+            return [
+              {
+                reason: "custom:user@example.invalid",
+                start: 10,
+                end: input.length,
+              },
+            ];
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_reason");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
   it("fails closed when a detector returns an invalid range", async () => {
