@@ -319,6 +319,75 @@ describe("redactText", () => {
     expect(result.report.totalRedactions).toBe(0);
   });
 
+  it("fails closed when an async detector exceeds its timeout", async () => {
+    const detector: Detector = {
+      id: "custom:slow",
+      reasons: ["custom:slow"],
+      detect() {
+        return new Promise(() => undefined);
+      },
+    };
+
+    const result = await redactText("Sensitive user@example.invalid", {
+      builtInDetectors: false,
+      detectors: [detector],
+      limits: {
+        maxDetectorDurationMs: 1,
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("detector_timeout");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("passes abort signals and detector deadlines to custom detectors", async () => {
+    let sawSignal = false;
+    let sawDeadline = false;
+    const detector: Detector = {
+      id: "custom:context",
+      reasons: ["custom:context"],
+      detect(_input, context) {
+        sawSignal = context.signal instanceof AbortSignal;
+        sawDeadline = typeof context.deadlineEpochMs === "number";
+        return [];
+      },
+    };
+
+    const result = await redactText("safe", {
+      builtInDetectors: false,
+      detectors: [detector],
+      limits: {
+        maxDetectorDurationMs: 1_000,
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(sawSignal).toBe(true);
+    expect(sawDeadline).toBe(true);
+  });
+
+  it("fails closed when caller aborts redaction", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const result = await redactText("Sensitive user@example.invalid", {
+      signal: controller.signal,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("redaction_aborted");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("fails closed when replacement generation throws", async () => {
     const result = await redactText("Sensitive user@example.invalid", {
       replacement() {

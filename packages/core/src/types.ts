@@ -11,6 +11,8 @@ export type Detection = {
 export type DetectionContext = {
   detectorId: string;
   inputLength: number;
+  signal: AbortSignal;
+  deadlineEpochMs?: number;
 };
 
 export type Detector = {
@@ -40,6 +42,7 @@ export type RedactionLimits = {
   maxTotalNodes?: number;
   maxTotalDetections?: number;
   maxDetectorRuns?: number;
+  maxDetectorDurationMs?: number;
 };
 
 export type RedactionOptions = {
@@ -47,10 +50,12 @@ export type RedactionOptions = {
   detectors?: readonly Detector[];
   limits?: RedactionLimits;
   replacement?: ReplacementTokenPolicy;
+  signal?: AbortSignal;
 };
 
 export type RedactionWarningCode =
   | "detector_failed"
+  | "detector_timeout"
   | "invalid_detection_range"
   | "invalid_redaction_input"
   | "invalid_redaction_options"
@@ -65,6 +70,7 @@ export type RedactionWarningCode =
   | "max_total_nodes_exceeded"
   | "max_total_detections_exceeded"
   | "max_detector_runs_exceeded"
+  | "redaction_aborted"
   | "circular_reference"
   | "unsafe_object_key"
   | "unsupported_json_like"
@@ -88,6 +94,7 @@ export type RedactionReport = {
 
 export type SafeRedactionErrorCode =
   | "detector_failed"
+  | "detector_timeout"
   | "invalid_detection_range"
   | "invalid_redaction_input"
   | "invalid_redaction_options"
@@ -101,6 +108,7 @@ export type SafeRedactionErrorCode =
   | "max_total_nodes_exceeded"
   | "max_total_detections_exceeded"
   | "max_detector_runs_exceeded"
+  | "redaction_aborted"
   | "circular_reference"
   | "unsafe_object_key"
   | "unsupported_json_like"

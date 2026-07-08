@@ -40,6 +40,15 @@ export async function redactText(
   const maxStringLength =
     options.limits?.maxStringLength ?? DEFAULT_MAX_STRING_LENGTH;
 
+  if (options.signal?.aborted) {
+    warnings.push({ code: "redaction_aborted" });
+    return createFailure(
+      "redaction_aborted",
+      "Redaction was aborted before content could be safely redacted.",
+      warnings,
+    );
+  }
+
   if (input.length > maxStringLength) {
     warnings.push({ code: "max_string_length_exceeded" });
     return createFailure(
@@ -72,24 +81,24 @@ export async function redactText(
 
   for (const detector of detectors) {
     let detectorDetections: Detection[];
+    const detectorControl = createDetectorControl(options);
 
     try {
-      detectorDetections = await Promise.resolve(
-        detector.detect(input, {
-          detectorId: detector.id,
-          inputLength: input.length,
-        }),
-      );
-    } catch {
-      warnings.push({ code: "detector_failed", detectorId: detector.id });
+      detectorDetections = await runDetector(detector, input, detectorControl);
+    } catch (error) {
+      const failureCode =
+        error instanceof DetectorRunError ? error.code : "detector_failed";
+      warnings.push({ code: failureCode, detectorId: detector.id });
       return createFailure(
-        "detector_failed",
-        "A detector failed before content could be safely redacted.",
+        failureCode,
+        detectorFailureMessage(failureCode),
         warnings,
         {
           detectorId: detector.id,
         },
       );
+    } finally {
+      detectorControl.dispose();
     }
 
     for (const detection of detectorDetections) {
@@ -167,6 +176,116 @@ export async function redactText(
     report,
     warnings,
   };
+}
+
+type DetectorControl = {
+  signal: AbortSignal;
+  deadlineEpochMs?: number;
+  timeoutMs?: number;
+  dispose(): void;
+  failureCode(): "detector_timeout" | "redaction_aborted";
+};
+
+class DetectorRunError extends Error {
+  constructor(readonly code: "detector_timeout" | "redaction_aborted") {
+    super(code);
+  }
+}
+
+function createDetectorControl(options: RedactionOptions): DetectorControl {
+  const timeoutMs = options.limits?.maxDetectorDurationMs;
+  const parentSignal = options.signal;
+  const controller = new AbortController();
+  let timedOut = false;
+
+  const abortFromParent = () => {
+    controller.abort();
+  };
+  if (parentSignal) {
+    if (parentSignal.aborted) {
+      controller.abort();
+    } else {
+      parentSignal.addEventListener("abort", abortFromParent, { once: true });
+    }
+  }
+
+  const normalizedTimeoutMs =
+    timeoutMs === undefined ? undefined : Math.max(0, timeoutMs);
+  const timer =
+    normalizedTimeoutMs === undefined
+      ? undefined
+      : setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+        }, normalizedTimeoutMs);
+
+  const control: DetectorControl = {
+    signal: controller.signal,
+    dispose() {
+      if (timer) {
+        clearTimeout(timer);
+      }
+
+      parentSignal?.removeEventListener("abort", abortFromParent);
+    },
+    failureCode() {
+      return timedOut ? "detector_timeout" : "redaction_aborted";
+    },
+  };
+
+  if (normalizedTimeoutMs !== undefined) {
+    control.timeoutMs = normalizedTimeoutMs;
+    control.deadlineEpochMs = Date.now() + normalizedTimeoutMs;
+  }
+
+  return control;
+}
+
+async function runDetector(
+  detector: Detector,
+  input: string,
+  control: DetectorControl,
+): Promise<Detection[]> {
+  if (control.signal.aborted) {
+    throw new DetectorRunError(control.failureCode());
+  }
+
+  const detectPromise = Promise.resolve(
+    detector.detect(input, {
+      detectorId: detector.id,
+      inputLength: input.length,
+      signal: control.signal,
+      ...(control.deadlineEpochMs === undefined
+        ? {}
+        : { deadlineEpochMs: control.deadlineEpochMs }),
+    }),
+  );
+
+  return Promise.race([
+    detectPromise,
+    new Promise<never>((_, reject) => {
+      control.signal.addEventListener(
+        "abort",
+        () => {
+          reject(new DetectorRunError(control.failureCode()));
+        },
+        { once: true },
+      );
+    }),
+  ]);
+}
+
+function detectorFailureMessage(
+  code: "detector_failed" | "detector_timeout" | "redaction_aborted",
+): string {
+  switch (code) {
+    case "detector_timeout":
+      return "A detector timed out before content could be safely redacted.";
+    case "redaction_aborted":
+      return "Redaction was aborted before content could be safely redacted.";
+    case "detector_failed":
+      return "A detector failed before content could be safely redacted.";
+  }
 }
 
 function resolveDetectors(

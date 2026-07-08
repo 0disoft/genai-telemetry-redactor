@@ -24,6 +24,8 @@ instead of being coerced into `{}`.
   `maxTotalDetections`.
 - Maximum detector execution count per operation: configurable through
   `maxDetectorRuns`.
+- Maximum per-detector duration for async detectors: configurable through
+  `maxDetectorDurationMs`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
@@ -35,6 +37,10 @@ a denial-of-service amplifier:
 - `maxTotalNodes`: 10,000 visited nodes.
 - `maxTotalDetections`: 10,000 selected detections.
 - `maxDetectorRuns`: 50,000 detector executions.
+
+Per-detector duration has no default timeout because existing synchronous
+detectors cannot be preempted safely. When configured, async detectors receive an
+abort signal and deadline and timeout with `detector_timeout`.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.

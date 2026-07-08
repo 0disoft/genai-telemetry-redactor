@@ -148,7 +148,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   in warning paths.
 - `RedactionLimits`: per-value and aggregate operation budgets for string length,
   object depth, object keys, array length, node count, redaction count, and
-  detector executions.
+  detector executions. Async detector duration can also be bounded with
+  `maxDetectorDurationMs`.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.

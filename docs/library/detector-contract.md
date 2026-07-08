@@ -14,6 +14,9 @@ not proof of complete PII or DLP coverage.
   `String.length`, `RegExpExecArray.index`, and `String.prototype.slice`.
 - Detection ranges are half-open `[start, end)` ranges. Both boundaries must be
   integer UTF-16 boundaries and must not split a surrogate pair.
+- Detector context includes an `AbortSignal` and, when a detector timeout is
+  configured, a `deadlineEpochMs` timestamp. Custom async detectors should stop
+  promptly when the signal is aborted.
 - Overlapping detections are resolved deterministically: lower `start` wins, and
   the longest detection wins when multiple detections share the same `start`.
   Omitted overlaps are reported with `overlapping_detection`.
@@ -25,6 +28,8 @@ not proof of complete PII or DLP coverage.
   raw input.
 - Detector failures must block content export rather than letting partially
   redacted content pass.
+- Detector timeouts and caller cancellation must block content export and return
+  safe failure codes without echoing detector exception text or input content.
 - `createRegexDetector(options)` is the preferred helper for regex-backed custom
   detectors. It clones caller regexes into global, non-sticky scanners, uses
   whole-match UTF-16 ranges by default, supports explicit submatch range mapping,
