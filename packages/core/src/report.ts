@@ -12,6 +12,13 @@ export type ReportDelta = {
   warnings: RedactionWarning[];
 };
 
+export type RedactionReportAccumulator = {
+  add(report: RedactionReport): void;
+  addWarnings(warnings: readonly RedactionWarning[]): void;
+  markFailed(): void;
+  snapshot(): RedactionReport;
+};
+
 export function createEmptyReport(
   warnings: RedactionWarning[] = [],
 ): RedactionReport {
@@ -73,28 +80,50 @@ export function createRedactionReport(
 export function mergeReports(
   reports: readonly RedactionReport[],
 ): RedactionReport {
+  const accumulator = createRedactionReportAccumulator();
+  for (const report of reports) {
+    accumulator.add(report);
+  }
+
+  return accumulator.snapshot();
+}
+
+export function createRedactionReportAccumulator(): RedactionReportAccumulator {
   const countsByReason: Record<string, number> = {};
   const warnings: RedactionWarning[] = [];
   let totalRedactions = 0;
   let failed = false;
 
-  for (const report of reports) {
-    if (report.status === "failed") {
-      failed = true;
-    }
-
-    totalRedactions += report.totalRedactions;
-    warnings.push(...report.warnings);
-
-    for (const [reason, count] of Object.entries(report.countsByReason)) {
-      countsByReason[reason] = (countsByReason[reason] ?? 0) + count;
-    }
-  }
-
   return {
-    status: failed ? "failed" : totalRedactions > 0 ? "redacted" : "unchanged",
-    totalRedactions,
-    countsByReason,
-    warnings,
+    add(report) {
+      if (report.status === "failed") {
+        failed = true;
+      }
+
+      totalRedactions += report.totalRedactions;
+      warnings.push(...report.warnings);
+
+      for (const [reason, count] of Object.entries(report.countsByReason)) {
+        countsByReason[reason] = (countsByReason[reason] ?? 0) + count;
+      }
+    },
+    addWarnings(nextWarnings) {
+      warnings.push(...nextWarnings);
+    },
+    markFailed() {
+      failed = true;
+    },
+    snapshot() {
+      return {
+        status: failed
+          ? "failed"
+          : totalRedactions > 0
+            ? "redacted"
+            : "unchanged",
+        totalRedactions,
+        countsByReason: { ...countsByReason },
+        warnings: [...warnings],
+      };
+    },
   };
 }

@@ -1,8 +1,10 @@
-import { mergeReports } from "./report.js";
+import {
+  createRedactionReportAccumulator,
+  type RedactionReportAccumulator,
+} from "./report.js";
 import { redactText } from "./redact-text.js";
 import type {
   RedactionOptions,
-  RedactionReport,
   RedactionResult,
   RedactionWarning,
   SafeRedactionError,
@@ -21,7 +23,7 @@ type JsonLikeRecord = Record<string, unknown>;
 type TraversalState = {
   options: RedactionOptions;
   warnings: RedactionWarning[];
-  reports: RedactionReport[];
+  reportAccumulator: RedactionReportAccumulator;
   seen: WeakSet<object>;
   limits: Required<
     Pick<
@@ -49,7 +51,7 @@ export async function redactJsonLike<T>(
   const state: TraversalState = {
     options,
     warnings,
-    reports: [],
+    reportAccumulator: createRedactionReportAccumulator(),
     seen: new WeakSet<object>(),
     limits: {
       maxObjectDepth:
@@ -76,7 +78,7 @@ export async function redactJsonLike<T>(
     return value;
   }
 
-  const report = mergeReports(state.reports);
+  const report = state.reportAccumulator.snapshot();
   return {
     ok: true,
     value: value.value as T,
@@ -140,7 +142,7 @@ async function visit(
 
     state.totalDetections += result.report.totalRedactions;
     if (state.totalDetections > state.limits.maxTotalDetections) {
-      state.reports.push(result.report);
+      state.reportAccumulator.add(result.report);
       state.warnings.push({ code: "max_total_detections_exceeded", path });
       return createTraversalFailure(
         state,
@@ -149,7 +151,7 @@ async function visit(
       );
     }
 
-    state.reports.push(result.report);
+    state.reportAccumulator.add(result.report);
     return {
       ok: true,
       value: result.value,
@@ -290,7 +292,7 @@ async function visitObject(
 }
 
 function unchanged<T>(value: T, state: TraversalState): RedactionResult<T> {
-  const report = mergeReports(state.reports);
+  const report = state.reportAccumulator.snapshot();
   return {
     ok: true,
     value,
@@ -310,15 +312,9 @@ function createTraversalFailure<T>(
   message: string,
   fields: Pick<SafeRedactionError, "detectorId"> = {},
 ): RedactionResult<T> {
-  const report = mergeReports([
-    ...state.reports,
-    {
-      status: "failed",
-      totalRedactions: 0,
-      countsByReason: {},
-      warnings: state.warnings,
-    },
-  ]);
+  state.reportAccumulator.addWarnings(state.warnings);
+  state.reportAccumulator.markFailed();
+  const report = state.reportAccumulator.snapshot();
 
   return {
     ok: false,

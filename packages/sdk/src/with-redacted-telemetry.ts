@@ -4,6 +4,7 @@ import type {
   RedactionWarning,
   SafeRedactionErrorCode,
 } from "../../core/src/index.js";
+import { mergeReports } from "../../core/src/report.js";
 import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
@@ -200,31 +201,4 @@ function sdkFailure(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function mergeReports(reports: readonly RedactionReport[]): RedactionReport {
-  const countsByReason: Record<string, number> = {};
-  const warnings: RedactionWarning[] = [];
-  let totalRedactions = 0;
-  let failed = false;
-
-  for (const report of reports) {
-    if (report.status === "failed") {
-      failed = true;
-    }
-
-    totalRedactions += report.totalRedactions;
-    warnings.push(...report.warnings);
-
-    for (const [reason, count] of Object.entries(report.countsByReason)) {
-      countsByReason[reason] = (countsByReason[reason] ?? 0) + count;
-    }
-  }
-
-  return {
-    status: failed ? "failed" : totalRedactions > 0 ? "redacted" : "unchanged",
-    totalRedactions,
-    countsByReason,
-    warnings,
-  };
 }

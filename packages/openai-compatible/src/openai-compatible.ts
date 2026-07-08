@@ -7,6 +7,10 @@ import {
   type SafeRedactionError,
   type RedactionWarning,
 } from "../../core/src/index.js";
+import {
+  createRedactionReportAccumulator,
+  type RedactionReportAccumulator,
+} from "../../core/src/report.js";
 import type {
   OpenAICompatibleOptions,
   OpenAICompatibleStreamRedactionMetadata,
@@ -16,7 +20,7 @@ type MutableRecord = Record<string, unknown>;
 
 type AdapterState = {
   options: OpenAICompatibleOptions;
-  reports: RedactionReport[];
+  reportAccumulator: RedactionReportAccumulator;
   warnings: RedactionWarning[];
 };
 
@@ -294,7 +298,7 @@ async function redactContent(
       if (!result.ok) {
         return failureFromResult(result, state);
       }
-      state.reports.push(result.report);
+      state.reportAccumulator.add(result.report);
       parts.push(result.value);
     }
     return success(parts, state);
@@ -309,7 +313,7 @@ async function redactContent(
     if (!result.ok) {
       return failureFromResult(result, state);
     }
-    state.reports.push(result.report);
+    state.reportAccumulator.add(result.report);
     return success(result.value, state);
   }
 
@@ -400,7 +404,7 @@ async function redactToolArgumentsValue(
       if (!result.ok) {
         return failureFromResult(result, state);
       }
-      state.reports.push(result.report);
+      state.reportAccumulator.add(result.report);
       return success(JSON.stringify(result.value), state);
     } catch (error) {
       if (error instanceof SyntaxError) {
@@ -415,7 +419,7 @@ async function redactToolArgumentsValue(
   if (!result.ok) {
     return failureFromResult(result, state);
   }
-  state.reports.push(result.report);
+  state.reportAccumulator.add(result.report);
   return success(result.value, state);
 }
 
@@ -432,7 +436,7 @@ async function redactInputField(
     if (!result.ok) {
       return failureFromResult(result, state);
     }
-    state.reports.push(result.report);
+    state.reportAccumulator.add(result.report);
     return success(result.value, state);
   }
 
@@ -483,28 +487,20 @@ async function redactStringValue(
     return failureFromResult(result, state);
   }
 
-  state.reports.push(result.report);
+  state.reportAccumulator.add(result.report);
   return success(result.value, state);
 }
 
 function createAdapterState(options: OpenAICompatibleOptions): AdapterState {
   return {
     options,
-    reports: [],
+    reportAccumulator: createRedactionReportAccumulator(),
     warnings: [],
   };
 }
 
 function success<T>(value: T, state: AdapterState): RedactionResult<T> {
-  const report = mergeReports([
-    ...state.reports,
-    {
-      status: "unchanged",
-      totalRedactions: 0,
-      countsByReason: {},
-      warnings: state.warnings,
-    },
-  ]);
+  const report = snapshotAdapterReport(state);
   return {
     ok: true,
     value,
@@ -538,15 +534,8 @@ function createFailure<T>(
   code: SafeRedactionError["code"],
   message: string,
 ): RedactionResult<T> {
-  const report = mergeReports([
-    ...state.reports,
-    {
-      status: "failed",
-      totalRedactions: 0,
-      countsByReason: {},
-      warnings: state.warnings,
-    },
-  ]);
+  state.reportAccumulator.markFailed();
+  const report = snapshotAdapterReport(state);
 
   return {
     ok: false,
@@ -559,11 +548,20 @@ function createFailure<T>(
   };
 }
 
+function snapshotAdapterReport(state: AdapterState): RedactionReport {
+  const report = state.reportAccumulator.snapshot();
+  return {
+    ...report,
+    warnings: [...report.warnings, ...state.warnings],
+  };
+}
+
 function failureFromResult<T>(
   result: Extract<RedactionResult<T>, { ok: false }>,
   state: AdapterState,
 ): RedactionResult<never> {
-  const report = mergeReports([...state.reports, result.report]);
+  state.reportAccumulator.add(result.report);
+  const report = snapshotAdapterReport(state);
   return {
     ok: false,
     report,
@@ -586,31 +584,4 @@ function validateAllowedKeys<T>(
   }
 
   return success(undefined as T, state);
-}
-
-function mergeReports(reports: readonly RedactionReport[]): RedactionReport {
-  const countsByReason: Record<string, number> = {};
-  const warnings: RedactionWarning[] = [];
-  let totalRedactions = 0;
-  let failed = false;
-
-  for (const report of reports) {
-    if (report.status === "failed") {
-      failed = true;
-    }
-
-    totalRedactions += report.totalRedactions;
-    warnings.push(...report.warnings);
-
-    for (const [reason, count] of Object.entries(report.countsByReason)) {
-      countsByReason[reason] = (countsByReason[reason] ?? 0) + count;
-    }
-  }
-
-  return {
-    status: failed ? "failed" : totalRedactions > 0 ? "redacted" : "unchanged",
-    totalRedactions,
-    countsByReason,
-    warnings,
-  };
 }
