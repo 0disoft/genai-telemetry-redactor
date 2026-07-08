@@ -169,7 +169,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   redaction results.
 - `RedactionReport.timings`: safe numeric redaction metrics for operation
   duration, detector duration, and detector run count. Timings never include raw
-  content, field paths, detector IDs, or matched values.
+  content, field paths, detector IDs, matched values, custom reason labels, or
+  per-detector timing series.
 
 ## Implemented OpenAI-Compatible Adapter Surface
 

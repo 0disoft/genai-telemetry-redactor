@@ -22,6 +22,7 @@ LLM prompt, completion, and tool argument content before telemetry export.
 - 0010: License and dependency policy.
 - 0011: Public release and npm provenance.
 - 0012: Remove hosted API and DB placeholders.
+- 0013: Detector timing breakdown policy.
 - 0000: Template for future decisions.
 
 ## Source of Truth
