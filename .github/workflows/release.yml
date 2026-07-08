@@ -37,6 +37,11 @@ jobs:
           corepack enable
           corepack prepare pnpm@11.7.0 --activate
 
+      - name: Use pinned npm CLI
+        run: |
+          npm install --global npm@11.18.0
+          npm --version
+
       - name: Check release tag version
         run: |
           version="$(node --print "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
@@ -45,7 +50,6 @@ jobs:
             echo "release tag ${GITHUB_REF_NAME} does not match package version ${expected_tag}" >&2
             exit 1
           fi
-          npm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

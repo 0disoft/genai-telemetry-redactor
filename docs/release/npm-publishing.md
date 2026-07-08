@@ -18,6 +18,8 @@ package name is `genai-telemetry-redactor`.
   and workflow filename that owns release publishing.
 - Require the release tag to match `v${package.json.version}` before install,
   validation, or publish steps run.
+- Pin the npm CLI used for publish instead of installing `npm@latest`; trusted
+  publishing behavior can differ across npm major/minor releases.
 - Treat long-lived npm tokens as bootstrap or emergency recovery tools only;
   they must not be required by the release workflow or committed to repository
   files.

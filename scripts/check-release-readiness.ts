@@ -27,6 +27,7 @@ const REQUIRED_PACKAGE_NAME = "genai-telemetry-redactor";
 const REQUIRED_LICENSE = "Apache-2.0";
 const REQUIRED_PACKAGE_MANAGER = "pnpm@11.7.0";
 const REQUIRED_NODE_RANGE = ">=22.14.0";
+const REQUIRED_NPM_CLI = "npm@11.18.0";
 
 const blockers: string[] = [];
 const warnings: string[] = [];
@@ -146,6 +147,12 @@ async function checkTrustedPublishingWorkflow() {
   if (/npm\s+install\s+--global\s+npm@latest/.test(workflow)) {
     blockers.push(
       "release workflow must not install npm@latest before publish",
+    );
+  }
+
+  if (!workflow.includes(`npm install --global ${REQUIRED_NPM_CLI}`)) {
+    blockers.push(
+      `release workflow must pin npm publish CLI to ${REQUIRED_NPM_CLI}`,
     );
   }
 
