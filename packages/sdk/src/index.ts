@@ -1,6 +1,7 @@
 export type {
   RedactedTelemetryAdapter,
   RedactedTelemetryReportCallback,
+  RedactedTelemetryReportContext,
   WithRedactedTelemetryFailure,
   WithRedactedTelemetryOptions,
   WithRedactedTelemetryResult,

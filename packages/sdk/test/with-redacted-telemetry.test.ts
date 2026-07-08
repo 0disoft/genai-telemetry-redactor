@@ -102,6 +102,72 @@ describe("withRedactedTelemetry", () => {
     expect(seen[0]).toContain("genai_redactor.redaction.total_count");
   });
 
+  it("passes safe idempotency context to report callbacks and results", async () => {
+    const contexts: unknown[] = [];
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+      reportContext: {
+        operationId: "chat:op_123",
+        attemptId: "attempt-1",
+        idempotencyKey: "job_123",
+      },
+      onReport(_report, _telemetry, context) {
+        contexts.push(context);
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(contexts).toEqual([
+      {
+        operationId: "chat:op_123",
+        attemptId: "attempt-1",
+        idempotencyKey: "job_123",
+        droppedContextKeys: [],
+      },
+    ]);
+    expect(result.value.reportContext).toEqual(contexts[0]);
+  });
+
+  it("drops unsafe idempotency context values without leaking them", async () => {
+    const contexts: unknown[] = [];
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+      reportContext: {
+        operationId: "user@example.invalid",
+        attemptId: "attempt-1",
+        idempotencyKey: "https://example.invalid/private",
+      },
+      onReport(_report, _telemetry, context) {
+        contexts.push(context);
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.reportContext).toEqual({
+      attemptId: "attempt-1",
+      droppedContextKeys: ["operationId", "idempotencyKey"],
+    });
+    expect(contexts).toEqual([result.value.reportContext]);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result)).not.toContain(
+      "https://example.invalid/private",
+    );
+  });
+
   it("fails closed for unknown adapter names from JavaScript callers", async () => {
     const result = await withRedactedTelemetry({
       adapter: "bad-adapter",

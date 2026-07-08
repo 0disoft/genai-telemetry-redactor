@@ -43,6 +43,7 @@ This repository type owns public API, compatibility, examples, versioning, and c
 
 - `RedactedTelemetryAdapter`
 - `RedactedTelemetryReportCallback`
+- `RedactedTelemetryReportContext`
 - `withRedactedTelemetry`
 - `WithRedactedTelemetryFailure`
 - `WithRedactedTelemetryOptions`
@@ -65,8 +66,13 @@ This repository type owns public API, compatibility, examples, versioning, and c
   For example, `openAICompatible` cannot disable built-in detectors; callers must
   use `options.redaction` for detector policy.
 - `options.telemetry` passes safe metadata candidates to the OTel metadata mapper.
+- `options.reportContext` accepts caller-owned `operationId`, `attemptId`, and
+  `idempotencyKey` values for retry-safe report callback writes. These values are
+  treated as labels, not content; unsafe values are dropped and listed by key.
 - `options.onReport(report, telemetry)` receives redaction report and safe metadata
-  only, not raw request or response payloads.
+  only, not raw request or response payloads. The callback also receives safe
+  report context so external metrics, logs, or audit writes can deduplicate
+  retries without reading payload content.
 - On any redaction failure, the helper returns `ok: false`, safe error details,
   metadata, report, and warnings without returning partially redacted payloads.
 - Unknown adapter names from untyped JavaScript callers return a safe failure

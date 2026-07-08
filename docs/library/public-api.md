@@ -61,6 +61,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `OtelGenAITokenUsage`
 - `RedactedTelemetryAdapter`
 - `RedactedTelemetryReportCallback`
+- `RedactedTelemetryReportContext`
 - `RedactionLimits`
 - `RedactionOptions`
 - `RedactionReason`
@@ -131,6 +132,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `RedactedTelemetryAdapter`
 - `RedactedTelemetryReportCallback`
+- `RedactedTelemetryReportContext`
 - `withRedactedTelemetry`
 - `WithRedactedTelemetryFailure`
 - `WithRedactedTelemetryOptions`
