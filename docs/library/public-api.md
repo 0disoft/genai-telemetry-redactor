@@ -48,6 +48,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `BuiltInDetectorName`
 - `createBufferedTextStreamRedactor`
 - `createBuiltInDetectors`
+- `createRedactionProfile`
 - `createRegexDetector`
 - `defaultReplacementToken`
 - `Detection`
@@ -66,7 +67,12 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactedTelemetryReportCallback`
 - `RedactedTelemetryReportContext`
 - `RedactionLimits`
+- `RedactionOperationOptions`
 - `RedactionOptions`
+- `RedactionProfile`
+- `RedactionProfileConfig`
+- `RedactionProfileCreationResult`
+- `RedactionProfileExecutionOptions`
 - `RedactionReason`
 - `RedactionReport`
 - `RedactionResult`
@@ -97,13 +103,19 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `BuiltInDetectorName`
 - `createBufferedTextStreamRedactor`
 - `createBuiltInDetectors`
+- `createRedactionProfile`
 - `createRegexDetector`
 - `defaultReplacementToken`
 - `Detection`
 - `DetectionContext`
 - `Detector`
 - `RedactionLimits`
+- `RedactionOperationOptions`
 - `RedactionOptions`
+- `RedactionProfile`
+- `RedactionProfileConfig`
+- `RedactionProfileCreationResult`
+- `RedactionProfileExecutionOptions`
 - `RedactionReason`
 - `RedactionReport`
 - `RedactionResult`
@@ -152,6 +164,13 @@ This repository type owns public API surface, package compatibility, semantic ve
 ## Implemented Core Surface
 
 - `redactText(input, options)`: async provider-agnostic text redaction.
+- `createRedactionProfile(config)`: validates and snapshots one reusable core
+  detector, limit, and replacement policy. Creation returns a discriminated
+  result and fails with `invalid_redaction_profile` for unsafe static
+  composition.
+- `RedactionOperationOptions`: existing `RedactionOptions` or the mutually
+  exclusive profile-backed `{ profile, signal? }` shape accepted by core
+  redaction operations.
 - `createBufferedTextStreamRedactor(options)`: explicit final-flush buffered
   stream redactor. `push(chunk)` omits intermediate content, and `close()`
   redacts the complete buffer before returning content.

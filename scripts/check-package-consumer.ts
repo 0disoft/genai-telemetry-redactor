@@ -117,14 +117,20 @@ async function writeConsumerProject(consumerRoot: string, tarballPath: string) {
 
   await writeFile(
     path.join(consumerRoot, "consumer-types.ts"),
-    `import { redactText } from "${PACKAGE_NAME}";
-import { redactText as redactCore, type RedactionResult } from "${PACKAGE_NAME}/core";
+    `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
+import { redactText as redactCore, type RedactionProfileCreationResult, type RedactionResult } from "${PACKAGE_NAME}/core";
 import { redactOpenAICompatibleRequest } from "${PACKAGE_NAME}/openai-compatible";
 import { mapRedactionReportToGenAIMetadata } from "${PACKAGE_NAME}/otel";
 import { withRedactedTelemetry, type WithRedactedTelemetryResult } from "${PACKAGE_NAME}/sdk";
 
 const rootResult: RedactionResult<string> = await redactText("hello@example.com");
 const coreResult: RedactionResult<string> = await redactCore("Bearer abc.def.ghi");
+const profileResult: RedactionProfileCreationResult = createRedactionProfile({
+  builtInDetectors: ["email"],
+});
+if (profileResult.ok) {
+  await redactText("profile@example.com", { profile: profileResult.value });
+}
 const requestResult = await redactOpenAICompatibleRequest({
   messages: [{ role: "user", content: "hello@example.com" }],
 });
@@ -149,7 +155,7 @@ void sdkResult;
 
   await writeFile(
     path.join(consumerRoot, "consumer-runtime.mjs"),
-    `import { redactText } from "${PACKAGE_NAME}";
+    `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
 import { redactText as redactCore } from "${PACKAGE_NAME}/core";
 import { redactOpenAICompatibleRequest } from "${PACKAGE_NAME}/openai-compatible";
 import { mapRedactionReportToGenAIMetadata } from "${PACKAGE_NAME}/otel";
@@ -157,6 +163,13 @@ import { withRedactedTelemetry } from "${PACKAGE_NAME}/sdk";
 
 const rootResult = await redactText("hello@example.com");
 const coreResult = await redactCore("Bearer abc.def.ghi");
+const profileResult = createRedactionProfile({ builtInDetectors: ["email"] });
+if (!profileResult.ok) {
+  throw new Error("consumer profile creation failed");
+}
+const profileRedaction = await redactText("profile@example.com", {
+  profile: profileResult.value,
+});
 const requestResult = await redactOpenAICompatibleRequest({
   messages: [{ role: "user", content: "hello@example.com" }],
 });
@@ -165,7 +178,7 @@ const sdkResult = await withRedactedTelemetry({
   request: { messages: [{ role: "user", content: "hello@example.com" }] },
 });
 
-if (!rootResult.ok || !coreResult.ok || !requestResult.ok || !sdkResult.ok) {
+if (!rootResult.ok || !coreResult.ok || !profileRedaction.ok || !requestResult.ok || !sdkResult.ok) {
   throw new Error("consumer import smoke failed");
 }
 

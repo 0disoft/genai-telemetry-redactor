@@ -1,7 +1,10 @@
 import { createEmptyReport, createFailure } from "./report.js";
+import {
+  resolveRedactionOperationOptions,
+  type RedactionOperationOptions,
+} from "./redaction-profile.js";
 import { redactText } from "./redact-text.js";
 import type {
-  RedactionOptions,
   RedactionResult,
   RedactionWarning,
   SafeRedactionError,
@@ -21,8 +24,14 @@ export type BufferedTextStreamRedactor = {
 };
 
 export function createBufferedTextStreamRedactor(
-  options: RedactionOptions = {},
+  operationOptions: RedactionOperationOptions = {},
 ): BufferedTextStreamRedactor {
+  const optionsResult = resolveRedactionOperationOptions(operationOptions);
+  if (!optionsResult.ok) {
+    return failedStreamRedactor(optionsResult.error);
+  }
+
+  const options = optionsResult.value;
   const maxStreamBufferLength =
     options.limits?.maxStreamBufferLength ?? DEFAULT_MAX_STREAM_BUFFER_LENGTH;
   const normalizedMaxStreamBufferLength = Math.max(0, maxStreamBufferLength);
@@ -84,6 +93,21 @@ export function createBufferedTextStreamRedactor(
       const input = buffer;
       buffer = "";
       return redactText(input, options);
+    },
+  };
+}
+
+function failedStreamRedactor(
+  error: SafeRedactionError,
+): BufferedTextStreamRedactor {
+  const warnings: RedactionWarning[] = [{ code: error.code }];
+  const failure = createFailure<never>(error.code, error.message, warnings);
+  return {
+    push() {
+      return failure;
+    },
+    async close() {
+      return failure;
     },
   };
 }

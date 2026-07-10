@@ -79,6 +79,20 @@ Custom regex detectors should follow
 timeouts are guardrails, but synchronous JavaScript regex evaluation cannot be
 preempted once a backtracking-heavy pattern is running.
 
+## Reusable Redaction Profiles
+
+`createRedactionProfile(config)` validates and snapshots one reusable core
+policy. A successful profile can be passed to `redactText`, `redactJsonLike`,
+`redactToolArguments`, and `createBufferedTextStreamRedactor` as
+`{ profile, signal? }`. Profile-backed operations reject per-call detector,
+limit, or replacement overrides.
+
+Profile creation fails safely with `invalid_redaction_profile` for an empty
+effective detector set, duplicate detector IDs, invalid limits, or a
+`maxDetectors` value below the configured detector count. Profiles preserve the
+existing fail-closed overlap policy; they do not add detector priority or
+automatically disable built-ins when custom detectors are present.
+
 ## Source Files
 
 - AGENTS.md: agent working rules

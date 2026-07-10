@@ -39,6 +39,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `examples/custom-detector.ts`: registers a caller-owned customer-id detector with
   `createRegexDetector` while keeping built-in detectors active, then verifies custom
   and built-in reason counts.
+- `examples/reusable-redaction-profile.ts`: creates a validated custom-only core
+  profile and reuses it across independent text redaction operations without
+  per-call policy overrides.
 - `examples/buffered-stream-redaction.ts`: uses the provider-agnostic buffered
   stream redactor to handle fake sensitive text split across chunk boundaries
   without returning intermediate content.

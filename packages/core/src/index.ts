@@ -26,5 +26,13 @@ export {
   type BufferedTextStreamChunk,
   type BufferedTextStreamRedactor,
 } from "./buffered-stream-redactor.js";
+export {
+  createRedactionProfile,
+  type RedactionOperationOptions,
+  type RedactionProfile,
+  type RedactionProfileConfig,
+  type RedactionProfileCreationResult,
+  type RedactionProfileExecutionOptions,
+} from "./redaction-profile.js";
 export { redactJsonLike, redactToolArguments } from "./redact-json-like.js";
 export { defaultReplacementToken, redactText } from "./redact-text.js";

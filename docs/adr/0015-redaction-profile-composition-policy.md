@@ -19,8 +19,8 @@ leave an unreviewed suffix unredacted.
 
 ## Decision
 
-Add a future core API named `createRedactionProfile(config)` that creates an
-opaque, immutable `RedactionProfile` policy snapshot.
+Add a core API named `createRedactionProfile(config)` that creates an opaque,
+immutable `RedactionProfile` policy snapshot.
 
 Profile creation returns a dedicated discriminated result equivalent to
 `{ ok: true, value: RedactionProfile }` or
@@ -40,9 +40,9 @@ The profile does not own caller cancellation. Each redaction operation keeps its
 own optional `AbortSignal` so reusing one profile cannot leak cancellation state
 between concurrent operations.
 
-Existing redaction functions will remain backward compatible with
-`RedactionOptions`. A later minor release may additionally accept a
-profile-discriminated execution shape equivalent to `{ profile, signal }`.
+Existing redaction functions remain backward compatible with
+`RedactionOptions` and additionally accept the profile-discriminated execution
+shape `{ profile, signal? }`.
 Profile-backed calls must not accept detector, limit, or replacement overrides
 in the same operation. Adapter-specific shape options may coexist only when they
 cannot replace the profile's core redaction policy.
@@ -71,9 +71,9 @@ Profiles do not change overlap semantics:
 - a caller that owns a wider field-level detector set must explicitly create a
   custom-only profile instead of combining it with overlapping built-ins.
 
-The first implementation remains provider-agnostic and belongs to the core
-package. OpenAI-compatible and SDK integration may consume the opaque profile in
-a later compatible change, but the profile must not import provider SDKs,
+The implementation remains provider-agnostic and belongs to the core package.
+OpenAI-compatible and SDK integration may consume the opaque profile in a later
+compatible change, but the profile must not import provider SDKs,
 OpenTelemetry writers, credentials, exporters, or storage clients.
 
 ## Consequences

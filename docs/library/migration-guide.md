@@ -31,6 +31,23 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.0
+
+`createRedactionProfile(config)` adds an immutable, reusable core policy for
+detector selection, limits, and replacement behavior. Profile creation returns a
+discriminated result and fails with `invalid_redaction_profile` when static
+composition is unsafe.
+
+Existing `RedactionOptions` calls remain compatible. Core callers may opt in by
+passing `{ profile, signal? }` to `redactText`, `redactJsonLike`,
+`redactToolArguments`, or `createBufferedTextStreamRedactor`. A profile-backed
+operation cannot also override detectors, limits, or replacement behavior.
+
+Profiles do not resolve partial detector overlaps. Callers with wider
+field-level custom detectors should create a custom-only profile with
+`builtInDetectors: false` instead of combining those detectors with overlapping
+built-ins.
+
 ## 0.1.9
 
 `createBufferedTextStreamRedactor(options)` is now available from the root and

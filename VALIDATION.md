@@ -44,8 +44,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - release-readiness: npm publish blocker check for package metadata, required
   release files, publishing policy, and trusted publishing workflow readiness.
 - docs: live-looking secret guard for documentation surfaces.
-- smoke: focused core text, JSON-like redaction, OpenAI-compatible adapter, OTel
-  metadata mapper, and SDK wrapper smoke tests.
+- smoke: focused core text, JSON-like redaction, reusable profile, OpenAI-compatible
+  adapter, OTel metadata mapper, and SDK wrapper smoke tests.
 - check: format, typecheck, test, contract, and docs.
 
 ## Hygiene Validation

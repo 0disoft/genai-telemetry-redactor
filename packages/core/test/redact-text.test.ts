@@ -567,10 +567,12 @@ describe("redactText", () => {
   });
 
   it("aborts async detectors when total operation duration is exceeded", async () => {
+    let detectorStarted = false;
     const detector: Detector = {
       id: "custom:slow-total",
       reasons: ["custom:slow_total"],
       detect() {
+        detectorStarted = true;
         return new Promise(() => undefined);
       },
     };
@@ -579,7 +581,7 @@ describe("redactText", () => {
       builtInDetectors: false,
       detectors: [detector],
       limits: {
-        maxTotalDurationMs: 1,
+        maxTotalDurationMs: 50,
       },
     });
 
@@ -589,6 +591,7 @@ describe("redactText", () => {
     }
 
     expect(result.error.code).toBe("max_total_duration_exceeded");
+    expect(detectorStarted).toBe(true);
     expect(result.error.detectorId).toBe("custom:slow-total");
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });

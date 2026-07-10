@@ -44,6 +44,24 @@ not proof of complete PII or DLP coverage.
   size and async detector duration, but it cannot preempt a synchronous
   JavaScript regex while the engine is evaluating a backtracking-heavy pattern.
 
+## Reusable Profiles
+
+`createRedactionProfile(config)` snapshots built-in selection, custom detector
+references, limits, and replacement policy for reuse across core redaction
+operations. Profile creation rejects an empty effective detector set, duplicate
+detector IDs, invalid limits, and a `maxDetectors` value below the configured
+detector count with `invalid_redaction_profile`.
+
+Profile-backed operations accept only the profile and an optional operation-local
+`AbortSignal`. They do not accept per-call detector, limit, or replacement
+overrides. Profiles preserve existing overlap behavior and do not introduce
+detector priority, first-match-wins, or automatic built-in suppression.
+
+The profile snapshots detector arrays but retains references to caller-owned
+detector objects. Callers must treat detector implementations and replacement
+functions as stable after profile creation; the library does not claim deep
+immutability for arbitrary function state.
+
 ## Safety Requirements
 
 - Avoid catastrophic backtracking on untrusted text.
@@ -56,3 +74,6 @@ not proof of complete PII or DLP coverage.
 - A detector emits original values in errors, warnings, reports, or telemetry.
 - A detector default changes without fixture evidence and migration notes.
 - A detector claim is described as complete sensitive-data discovery.
+- A profile-backed operation silently accepts a per-call policy override.
+- Profile documentation claims that detector priority makes partial overlaps
+  safe.

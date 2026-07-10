@@ -1,40 +1,51 @@
-import { createBuiltInDetectors } from "./built-in-detectors.js";
+import {
+  isSafeReason,
+  resolveDetectors,
+  safeReplacementReason,
+  safeWarningReasonFields,
+} from "./detector-policy.js";
+import {
+  resolveRedactionOperationOptions,
+  type RedactionOperationOptions,
+} from "./redaction-profile.js";
 import { createFailure, createRedactionReport } from "./report.js";
 import type {
-  BuiltInDetectorName,
   Detection,
   Detector,
   RedactionOptions,
-  RedactionReason,
   RedactionResult,
   RedactionWarning,
   ReplacementTokenPolicy,
 } from "./types.js";
 
 const DEFAULT_MAX_STRING_LENGTH = 128_000;
-const BUILT_IN_REASONS = new Set<RedactionReason>([
-  "email",
-  "bearer_token",
-  "api_key",
-  "url",
-]);
-const SAFE_CUSTOM_REASON_PATTERN = /^custom:[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
 
 export const defaultReplacementToken: ReplacementTokenPolicy = (reason) =>
   `[REDACTED:${safeReplacementReason(reason)}]`;
 
 export async function redactText(
   input: string,
-  options: RedactionOptions = {},
+  operationOptions: RedactionOperationOptions = {},
 ): Promise<RedactionResult<string>> {
   const startedAtMs = Date.now();
+  const warnings: RedactionWarning[] = [];
+  const optionsResult = resolveRedactionOperationOptions(operationOptions);
+  if (!optionsResult.ok) {
+    warnings.push({ code: optionsResult.error.code });
+    return createFailure(
+      optionsResult.error.code,
+      optionsResult.error.message,
+      warnings,
+    );
+  }
+
+  const options = optionsResult.value;
   const totalDeadlineEpochMs = totalDeadlineEpochMsFromOptions(
     startedAtMs,
     options,
   );
   let detectorRuns = 0;
   let detectorDurationMs = 0;
-  const warnings: RedactionWarning[] = [];
   if (typeof input !== "string") {
     warnings.push({ code: "invalid_redaction_input" });
     return createFailure(
@@ -89,9 +100,22 @@ export async function redactText(
     );
   }
 
-  const detectorResult = resolveDetectors(options, warnings);
+  const detectorResult = resolveDetectors(options);
   if (!detectorResult.ok) {
-    return detectorResult;
+    warnings.push({
+      code: detectorResult.error.code,
+      ...(detectorResult.error.detectorId === undefined
+        ? {}
+        : { detectorId: detectorResult.error.detectorId }),
+    });
+    return createFailure(
+      detectorResult.error.code,
+      detectorResult.error.message,
+      warnings,
+      detectorResult.error.detectorId === undefined
+        ? {}
+        : { detectorId: detectorResult.error.detectorId },
+    );
   }
 
   const detectors = detectorResult.value;
@@ -414,86 +438,6 @@ function detectorFailureMessage(
   }
 }
 
-function resolveDetectors(
-  options: RedactionOptions,
-  warnings: RedactionWarning[],
-): RedactionResult<Detector[]> {
-  if (options === null || typeof options !== "object") {
-    warnings.push({ code: "invalid_redaction_options" });
-    return createFailure(
-      "invalid_redaction_options",
-      "Redaction options must be an object.",
-      warnings,
-    );
-  }
-
-  const builtInNames: readonly BuiltInDetectorName[] =
-    options.builtInDetectors === false
-      ? []
-      : (options.builtInDetectors ?? [
-          "email",
-          "bearer_token",
-          "api_key",
-          "url",
-        ]);
-
-  for (const name of builtInNames) {
-    if (!isBuiltInDetectorName(name)) {
-      warnings.push({ code: "invalid_redaction_options" });
-      return createFailure(
-        "invalid_redaction_options",
-        "Redaction options included an unknown built-in detector.",
-        warnings,
-      );
-    }
-  }
-
-  const customDetectors = options.detectors ?? [];
-  if (!Array.isArray(customDetectors)) {
-    warnings.push({ code: "invalid_redaction_options" });
-    return createFailure(
-      "invalid_redaction_options",
-      "Custom detectors must be provided as an array.",
-      warnings,
-    );
-  }
-
-  for (const detector of customDetectors) {
-    if (!isDetector(detector)) {
-      warnings.push({ code: "invalid_redaction_options" });
-      return createFailure(
-        "invalid_redaction_options",
-        "Redaction options included an invalid detector.",
-        warnings,
-      );
-    }
-
-    for (const reason of detector.reasons) {
-      if (!isSafeReason(reason)) {
-        warnings.push({
-          code: "invalid_redaction_reason",
-          detectorId: detector.id,
-        });
-        return createFailure(
-          "invalid_redaction_reason",
-          "A detector declared an unsafe redaction reason.",
-          warnings,
-          {
-            detectorId: detector.id,
-          },
-        );
-      }
-    }
-  }
-
-  return {
-    ok: true,
-    value: [...createBuiltInDetectors(builtInNames), ...customDetectors],
-    report: createRedactionReport([], warnings),
-    warnings,
-  };
-}
-
 function isValidDetection(input: string, detection: Detection): boolean {
   return (
     Number.isInteger(detection.start) &&
@@ -672,48 +616,4 @@ function totalDurationFailure<T>(
     {},
     timingMetrics(startedAtMs, detectorDurationMs, detectorRuns),
   );
-}
-
-function isBuiltInDetectorName(value: unknown): value is BuiltInDetectorName {
-  return (
-    value === "email" ||
-    value === "bearer_token" ||
-    value === "api_key" ||
-    value === "url"
-  );
-}
-
-function isDetector(value: unknown): value is Detector {
-  if (value === null || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<Detector>;
-  return (
-    typeof candidate.id === "string" &&
-    Array.isArray(candidate.reasons) &&
-    typeof candidate.detect === "function"
-  );
-}
-
-function isSafeReason(value: unknown): value is RedactionReason {
-  return (
-    typeof value === "string" &&
-    (BUILT_IN_REASONS.has(value as RedactionReason) ||
-      SAFE_CUSTOM_REASON_PATTERN.test(value))
-  );
-}
-
-function safeReplacementReason(reason: RedactionReason): string {
-  if (BUILT_IN_REASONS.has(reason)) {
-    return reason;
-  }
-
-  return SAFE_CUSTOM_REASON_PATTERN.test(reason) ? reason : "custom";
-}
-
-function safeWarningReasonFields(
-  reason: RedactionReason,
-): Pick<RedactionWarning, "reason"> | Record<string, never> {
-  return isSafeReason(reason) ? { reason } : {};
 }

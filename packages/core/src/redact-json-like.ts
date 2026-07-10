@@ -1,7 +1,12 @@
 import {
+  createFailure,
   createRedactionReportAccumulator,
   type RedactionReportAccumulator,
 } from "./report.js";
+import {
+  resolveRedactionOperationOptions,
+  type RedactionOperationOptions,
+} from "./redaction-profile.js";
 import { redactText } from "./redact-text.js";
 import type {
   RedactionOptions,
@@ -49,9 +54,20 @@ type TraversalState = {
 
 export async function redactJsonLike<T>(
   input: T,
-  options: RedactionOptions = {},
+  operationOptions: RedactionOperationOptions = {},
 ): Promise<RedactionResult<T>> {
   const warnings: RedactionWarning[] = [];
+  const optionsResult = resolveRedactionOperationOptions(operationOptions);
+  if (!optionsResult.ok) {
+    warnings.push({ code: optionsResult.error.code });
+    return createFailure(
+      optionsResult.error.code,
+      optionsResult.error.message,
+      warnings,
+    );
+  }
+
+  const options = optionsResult.value;
   const startedAtMs = Date.now();
   const state: TraversalState = {
     options,
@@ -98,7 +114,7 @@ export async function redactJsonLike<T>(
 
 export function redactToolArguments(
   input: unknown,
-  options: RedactionOptions = {},
+  options: RedactionOperationOptions = {},
 ): Promise<RedactionResult<unknown>> {
   return redactJsonLike(input, options);
 }
