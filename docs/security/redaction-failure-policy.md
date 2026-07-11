@@ -9,6 +9,8 @@ Safe metadata may still be emitted when it does not include raw content.
 
 ## Failure Cases
 
+- Operation policy contains unknown keys, malformed limits, a non-function
+  replacement policy, or an invalid abort signal.
 - Detector throws or times out.
 - Custom detector returns invalid ranges.
 - Traversal hits depth, key, array, or string limits.
@@ -20,6 +22,8 @@ Safe metadata may still be emitted when it does not include raw content.
 ## Required Behavior
 
 - Omit content-bearing telemetry.
+- Return `invalid_redaction_options` for malformed operation policy instead of
+  ignoring it or silently applying default policy.
 - Return or emit safe warning/error codes.
 - Do not echo original exception messages when they may include raw input.
 - Preserve enough metadata for diagnosis without raw content.

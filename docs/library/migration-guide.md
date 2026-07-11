@@ -53,6 +53,12 @@ OpenAI-compatible request and response helpers and the SDK
 applications create one validated policy and reuse it across core, adapter, and
 SDK boundaries without rebuilding detector arrays for each call.
 
+Inline operation options are now validated as a closed shape. JavaScript callers
+with unknown option keys, malformed limits, invalid abort signals, or non-function
+replacement policies receive `invalid_redaction_options` instead of having those
+values silently ignored. TypeScript callers already matching `RedactionOptions`
+need no change.
+
 ## 0.1.9
 
 `createBufferedTextStreamRedactor(options)` is now available from the root and

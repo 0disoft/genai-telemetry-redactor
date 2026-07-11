@@ -173,6 +173,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionOperationOptions`: existing `RedactionOptions` or the mutually
   exclusive profile-backed `{ profile, signal? }` shape accepted by core
   redaction operations.
+- Inline operation options reject unknown keys, malformed limits, non-function
+  replacement policies, and invalid abort signals with
+  `invalid_redaction_options` instead of silently falling back to defaults.
 - `createBufferedTextStreamRedactor(options)`: explicit final-flush buffered
   stream redactor. `push(chunk)` omits intermediate content, and `close()`
   redacts the complete buffer before returning content.

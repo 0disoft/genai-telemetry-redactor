@@ -3,6 +3,47 @@ import type { Detector } from "../src/index.js";
 import { createRegexDetector, redactText } from "../src/index.js";
 
 describe("redactText", () => {
+  it.each([
+    { unknownPolicy: true },
+    { limits: "not-limits" },
+    { replacement: "not-a-function" },
+    { signal: { aborted: false } },
+  ])("fails closed for malformed operation options %#", async (options) => {
+    const result = await redactText(
+      "Contact user@example.invalid",
+      options as never,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when inline options throw during inspection", async () => {
+    const options = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error("synthetic options trap");
+        },
+      },
+    );
+
+    const result = await redactText("Contact user@example.invalid", options);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("redacts email, api-key-like, bearer token, and URL values", async () => {
     const tokenHeader = ["Bearer", "token_example_value"].join(" ");
     const input = [

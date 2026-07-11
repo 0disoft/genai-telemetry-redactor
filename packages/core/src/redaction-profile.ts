@@ -13,6 +13,13 @@ const PROFILE_CONFIG_KEYS = new Set([
   "replacement",
 ]);
 const PROFILE_EXECUTION_KEYS = new Set(["profile", "signal"]);
+const REDACTION_OPTION_KEYS = new Set([
+  "builtInDetectors",
+  "detectors",
+  "limits",
+  "replacement",
+  "signal",
+]);
 const LIMIT_KEYS = new Set<keyof RedactionLimits>([
   "maxStringLength",
   "maxTotalStringLength",
@@ -127,6 +134,16 @@ function resolveRedactionOperationOptionsInternal(
   }
 
   if (!Object.hasOwn(input, "profile")) {
+    if (
+      hasUnknownKeys(input, REDACTION_OPTION_KEYS) ||
+      !isValidLimits(input.limits) ||
+      (input.replacement !== undefined &&
+        typeof input.replacement !== "function") ||
+      !isAbortSignalOrUndefined(input.signal)
+    ) {
+      return invalidOperationOptions();
+    }
+
     return { ok: true, value: input as RedactionOptions };
   }
 
