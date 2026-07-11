@@ -144,7 +144,10 @@ function resolveRedactionOperationOptionsInternal(
       return invalidOperationOptions();
     }
 
-    return { ok: true, value: input as RedactionOptions };
+    return {
+      ok: true,
+      value: snapshotOptions(input as RedactionOptions),
+    };
   }
 
   if (
@@ -164,7 +167,7 @@ function resolveRedactionOperationOptionsInternal(
   };
 }
 
-function snapshotOptions(config: RedactionProfileConfig): RedactionOptions {
+function snapshotOptions(config: RedactionOptions): RedactionOptions {
   const builtInDetectors =
     config.builtInDetectors === false
       ? false
@@ -187,6 +190,7 @@ function snapshotOptions(config: RedactionProfileConfig): RedactionOptions {
     ...(config.replacement === undefined
       ? {}
       : { replacement: config.replacement }),
+    ...(config.signal === undefined ? {} : { signal: config.signal }),
   });
 }
 

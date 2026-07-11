@@ -71,6 +71,28 @@ describe("redactText", () => {
     );
   });
 
+  it("snapshots inline option collections for one operation", async () => {
+    const limits = { maxDetectors: 1 };
+    const operation = redactText(
+      "Contact user@example.invalid with token_example_value",
+      {
+        builtInDetectors: ["email"],
+        limits,
+      },
+    );
+    limits.maxDetectors = 0;
+
+    const result = await operation;
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).not.toContain("user@example.invalid");
+    expect(result.value).toContain("token_example_value");
+  });
+
   it("redacts email, api-key-like, bearer token, and URL values", async () => {
     const tokenHeader = ["Bearer", "token_example_value"].join(" ");
     const input = [

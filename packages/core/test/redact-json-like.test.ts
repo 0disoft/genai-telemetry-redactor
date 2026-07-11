@@ -3,6 +3,27 @@ import type { Detector } from "../src/index.js";
 import { redactJsonLike, redactToolArguments } from "../src/index.js";
 
 describe("redactJsonLike", () => {
+  it("fails closed when JSON-like shape inspection throws", async () => {
+    const input = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error("synthetic JSON-like trap");
+        },
+      },
+    );
+
+    const result = await redactJsonLike(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_json_like");
+    expect(JSON.stringify(result)).not.toContain("synthetic JSON-like trap");
+  });
+
   it("redacts nested string leaves while preserving object shape", async () => {
     const input = {
       user: {

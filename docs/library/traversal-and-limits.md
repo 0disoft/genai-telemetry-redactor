@@ -35,6 +35,8 @@ instead of being coerced into `{}`.
   configurable through `maxStreamBufferLength`.
 - Circular reference behavior: fail closed with `circular_reference`.
 - Non-plain object behavior: fail closed with `unsupported_json_like`.
+- Getter, proxy, or iterator failures during JSON-like inspection: fail closed
+  with `unsupported_json_like` without propagating original exception text.
 - Content-bearing object key behavior: fail closed with `unsafe_object_key`.
 - Shared reference behavior: reuse the first redacted clone for repeated
   references to the same object, without re-running descendant redaction or
@@ -74,6 +76,10 @@ code units. Exceeding this limit fails closed with
 Redaction reports may include `timings` with numeric operation duration,
 detector duration, and detector run count. These metrics are safe summaries only
 and must not include object paths, detector IDs, matched values, or raw content.
+
+Inline operation options snapshot detector arrays, built-in selection, limits,
+replacement policy, and abort signal at operation start. Mutating the caller's
+option collections after dispatch does not change an in-flight operation.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.

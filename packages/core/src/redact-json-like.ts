@@ -98,18 +98,30 @@ export async function redactJsonLike<T>(
     detectorRuns: 0,
   };
 
-  const value = await visit(input, "$", 0, state);
-  if (!value.ok) {
-    return value;
-  }
+  try {
+    const value = await visit(input, "$", 0, state);
+    if (!value.ok) {
+      return value;
+    }
 
-  const report = withTraversalTiming(state.reportAccumulator.snapshot(), state);
-  return {
-    ok: true,
-    value: value.value as T,
-    report,
-    warnings: report.warnings,
-  };
+    const report = withTraversalTiming(
+      state.reportAccumulator.snapshot(),
+      state,
+    );
+    return {
+      ok: true,
+      value: value.value as T,
+      report,
+      warnings: report.warnings,
+    };
+  } catch {
+    state.warnings.push({ code: "unsupported_json_like", path: "$" });
+    return createTraversalFailure(
+      state,
+      "unsupported_json_like",
+      "JSON-like input could not be safely inspected.",
+    );
+  }
 }
 
 export function redactToolArguments(
