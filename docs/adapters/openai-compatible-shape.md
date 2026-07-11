@@ -25,6 +25,10 @@ gateway behavior.
 - `redactOpenAICompatibleRequest` redacts `messages[].content`, `prompt`, and
   `input`. String content is handled by core text redaction; structured input and
   multimodal content parts are handled by JSON-like traversal.
+- Structured request `response_format` values and response `usage` values also
+  pass through JSON-like traversal because schema descriptions and provider
+  extensions can carry content. Present non-object values fail closed as an
+  unsupported provider shape.
 - `redactOpenAICompatibleResponse` redacts `choices[].text`,
   `choices[].message.content`, `choices[].message.tool_calls`, and nested
   `function.arguments`.

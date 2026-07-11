@@ -146,6 +146,67 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.report.totalRedactions).toBe(4);
   });
 
+  it("redacts structured response-format metadata", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      prompt: "safe prompt",
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "contact",
+          description:
+            "Send results to user@example.invalid via https://example.invalid/result",
+        },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const output = JSON.stringify(result.value);
+    expect(output).not.toContain("user@example.invalid");
+    expect(output).not.toContain("https://example.invalid/result");
+    expect(result.report.totalRedactions).toBe(2);
+  });
+
+  it("redacts structured response usage extensions", async () => {
+    const result = await redactOpenAICompatibleResponse({
+      choices: [{ text: "safe completion" }],
+      usage: {
+        total_tokens: 2,
+        provider_note: "Contact user@example.invalid with token_example_value",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const output = JSON.stringify(result.value);
+    expect(output).not.toContain("user@example.invalid");
+    expect(output).not.toContain("token_example_value");
+    expect(result.report.totalRedactions).toBe(2);
+  });
+
+  it.each([
+    ["response_format", { prompt: "safe", response_format: "json" }],
+    ["usage", { choices: [{ text: "safe" }], usage: "two tokens" }],
+  ])("fails closed for malformed %s metadata", async (field, input) => {
+    const result =
+      field === "response_format"
+        ? await redactOpenAICompatibleRequest(input)
+        : await redactOpenAICompatibleResponse(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_provider_shape");
+  });
+
   it("redacts malformed tool argument strings as text and warns", async () => {
     const result = await redactOpenAICompatibleResponse({
       choices: [

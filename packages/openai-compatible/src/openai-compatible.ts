@@ -173,6 +173,18 @@ async function redactRequestRecord(
     record.input = result.value;
   }
 
+  if ("response_format" in record) {
+    const result = await redactStructuredMetadata(
+      record.response_format,
+      state,
+      "$.response_format",
+    );
+    if (!result.ok) {
+      return result;
+    }
+    record.response_format = result.value;
+  }
+
   return success(record, state);
 }
 
@@ -230,7 +242,38 @@ async function redactResponseRecord(
   }
 
   record.choices = choices;
+
+  if ("usage" in record) {
+    const result = await redactStructuredMetadata(
+      record.usage,
+      state,
+      "$.usage",
+    );
+    if (!result.ok) {
+      return result;
+    }
+    record.usage = result.value;
+  }
+
   return success(record, state);
+}
+
+async function redactStructuredMetadata(
+  value: unknown,
+  state: AdapterState,
+  path: string,
+): Promise<RedactionResult<unknown>> {
+  if (!isRecord(value)) {
+    return unsupportedShape(state, path);
+  }
+
+  const result = await redactJsonLike(value, state.redaction);
+  if (!result.ok) {
+    return failureFromResult(result, state);
+  }
+
+  state.reportAccumulator.add(result.report);
+  return success(result.value, state);
 }
 
 async function redactMessages(
