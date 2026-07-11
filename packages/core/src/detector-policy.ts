@@ -27,6 +27,16 @@ export type DetectorResolution =
 export function resolveDetectors(
   options: RedactionOptions,
 ): DetectorResolution {
+  try {
+    return resolveDetectorsInternal(options);
+  } catch {
+    return invalidOptions("Redaction options included an invalid detector.");
+  }
+}
+
+function resolveDetectorsInternal(
+  options: RedactionOptions,
+): DetectorResolution {
   const builtInSelection = options.builtInDetectors;
   if (
     builtInSelection !== undefined &&

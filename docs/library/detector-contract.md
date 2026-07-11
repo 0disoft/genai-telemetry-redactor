@@ -25,6 +25,9 @@ not proof of complete PII or DLP coverage.
 - Built-in MVP categories are email, bearer or HTTP auth token, API-key-like
   strings including common cloud and source-control token shapes, and URL.
 - Custom detectors must be isolated so thrown errors cannot leak raw input.
+- Detector metadata inspection is isolated as well. A detector object, reason
+  collection, or detector array that throws during validation fails closed with
+  `invalid_redaction_options` without propagating the original exception.
 - Custom detector reason codes must be safe category labels. Built-in reasons
   are fixed, and custom reasons must use a bounded `custom:<label>` form that
   does not include matched values, customer identifiers, URLs, tokens, or other

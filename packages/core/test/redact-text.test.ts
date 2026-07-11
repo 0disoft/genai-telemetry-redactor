@@ -44,6 +44,33 @@ describe("redactText", () => {
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
+  it("fails closed when detector metadata inspection throws", async () => {
+    const detector = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error("synthetic detector metadata trap");
+        },
+      },
+    );
+
+    const result = await redactText("Contact user@example.invalid", {
+      builtInDetectors: false,
+      detectors: [detector as never],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result)).not.toContain(
+      "synthetic detector metadata trap",
+    );
+  });
+
   it("redacts email, api-key-like, bearer token, and URL values", async () => {
     const tokenHeader = ["Bearer", "token_example_value"].join(" ");
     const input = [
