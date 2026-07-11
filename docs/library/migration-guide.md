@@ -31,6 +31,31 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.1
+
+OpenAI-compatible request and response helpers and the SDK
+`withRedactedTelemetry` wrapper now accept profile-backed operations. This lets
+applications create one validated policy and reuse it across core, adapter, and
+SDK boundaries without rebuilding detector arrays for each call.
+
+Inline operation options are now validated as a closed shape. JavaScript callers
+with unknown option keys, malformed limits, invalid abort signals, or non-function
+replacement policies receive `invalid_redaction_options` instead of having those
+values silently ignored. TypeScript callers already matching `RedactionOptions`
+need no change.
+
+Core, adapter, SDK, and OpenTelemetry mapping boundaries now convert getter,
+proxy, iterator, and detector-metadata inspection failures into safe results
+without propagating original exception text. Profiles also snapshot detector
+IDs, reasons, and function references, so replacing those properties after
+profile creation no longer changes the validated policy.
+
+OpenAI-compatible `response_format` and `usage` objects now pass through
+JSON-like redaction instead of being copied as trusted metadata. Present
+non-object values fail closed as unsupported shapes. The OpenTelemetry mapper
+also allowlists report status and warning codes; unknown runtime values are
+dropped rather than copied to telemetry attributes.
+
 ## 0.2.0
 
 `createRedactionProfile(config)` adds an immutable, reusable core policy for
@@ -47,17 +72,6 @@ Profiles do not resolve partial detector overlaps. Callers with wider
 field-level custom detectors should create a custom-only profile with
 `builtInDetectors: false` instead of combining those detectors with overlapping
 built-ins.
-
-OpenAI-compatible request and response helpers and the SDK
-`withRedactedTelemetry` wrapper also accept profile-backed operations. This lets
-applications create one validated policy and reuse it across core, adapter, and
-SDK boundaries without rebuilding detector arrays for each call.
-
-Inline operation options are now validated as a closed shape. JavaScript callers
-with unknown option keys, malformed limits, invalid abort signals, or non-function
-replacement policies receive `invalid_redaction_options` instead of having those
-values silently ignored. TypeScript callers already matching `RedactionOptions`
-need no change.
 
 ## 0.1.9
 
