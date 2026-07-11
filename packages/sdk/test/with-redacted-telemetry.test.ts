@@ -1,7 +1,35 @@
 import { describe, expect, it } from "vitest";
+import { createRedactionProfile } from "../../core/src/index.js";
 import { withRedactedTelemetry } from "../src/index.js";
 
 describe("withRedactedTelemetry", () => {
+  it("reuses a redaction profile through the SDK wrapper", async () => {
+    const creation = createRedactionProfile({
+      builtInDetectors: ["email"],
+    });
+    expect(creation.ok).toBe(true);
+    if (!creation.ok) {
+      return;
+    }
+
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid with token_example_value",
+      },
+      redaction: { profile: creation.value },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
+    expect(JSON.stringify(result.value)).toContain("token_example_value");
+    expect(result.value.report.totalRedactions).toBe(1);
+  });
+
   it("redacts OpenAI-compatible request and response and returns safe telemetry", async () => {
     const result = await withRedactedTelemetry({
       adapter: "openai-compatible",

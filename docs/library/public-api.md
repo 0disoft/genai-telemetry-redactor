@@ -56,6 +56,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `Detector`
 - `mapRedactionReportToGenAIMetadata`
 - `OpenAICompatibleOptions`
+- `OpenAICompatibleRedactionOptions`
 - `OpenAICompatibleStreamRedactionMetadata`
 - `OtelAttributeValue`
 - `OtelGenAIAttributeMap`
@@ -133,6 +134,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 ### Export `./openai-compatible`
 
 - `OpenAICompatibleOptions`
+- `OpenAICompatibleRedactionOptions`
 - `OpenAICompatibleStreamRedactionMetadata`
 - `redactOpenAICompatibleRequest`
 - `redactOpenAICompatibleResponse`
@@ -213,6 +215,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `OpenAICompatibleOptions`: core redaction options plus explicit
   `redactToolNames` opt-in for tool names when caller policy treats names as
   content-bearing.
+- `OpenAICompatibleRedactionOptions`: inline core options or the reusable
+  profile-backed operation shape accepted by adapter request and response
+  helpers.
 
 ## Implemented OpenTelemetry Metadata Surface
 

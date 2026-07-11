@@ -1,5 +1,5 @@
 import type {
-  RedactionOptions,
+  RedactionOperationOptions,
   RedactionReport,
   RedactionResult,
   RedactionWarning,
@@ -30,7 +30,7 @@ export type WithRedactedTelemetryOptions = {
   adapter: RedactedTelemetryAdapter;
   request: unknown;
   response?: unknown;
-  redaction?: RedactionOptions;
+  redaction?: RedactionOperationOptions;
   openAICompatible?: Pick<OpenAICompatibleOptions, "redactToolNames">;
   telemetry?: OtelGenAIMetadataOptions;
   reportContext?: {

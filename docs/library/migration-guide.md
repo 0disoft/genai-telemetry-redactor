@@ -48,6 +48,11 @@ field-level custom detectors should create a custom-only profile with
 `builtInDetectors: false` instead of combining those detectors with overlapping
 built-ins.
 
+OpenAI-compatible request and response helpers and the SDK
+`withRedactedTelemetry` wrapper also accept profile-backed operations. This lets
+applications create one validated policy and reuse it across core, adapter, and
+SDK boundaries without rebuilding detector arrays for each call.
+
 ## 0.1.9
 
 `createBufferedTextStreamRedactor(options)` is now available from the root and

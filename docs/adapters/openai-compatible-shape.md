@@ -34,6 +34,10 @@ gateway behavior.
   `malformed_tool_arguments`.
 - Tool names are treated as metadata by default. Callers must opt in with
   `redactToolNames` when their policy treats tool names as content-bearing.
+- Request and response helpers accept either inline core redaction options or a
+  reusable `{ profile, signal? }` operation. Adapter-only options such as
+  `redactToolNames` are separated before the core operation runs and cannot
+  override profile policy.
 - `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
   metadata with `streaming_content_omitted`.
 

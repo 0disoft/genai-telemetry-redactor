@@ -119,7 +119,7 @@ async function writeConsumerProject(consumerRoot: string, tarballPath: string) {
     path.join(consumerRoot, "consumer-types.ts"),
     `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
 import { redactText as redactCore, type RedactionProfileCreationResult, type RedactionResult } from "${PACKAGE_NAME}/core";
-import { redactOpenAICompatibleRequest } from "${PACKAGE_NAME}/openai-compatible";
+import { redactOpenAICompatibleRequest, type OpenAICompatibleRedactionOptions } from "${PACKAGE_NAME}/openai-compatible";
 import { mapRedactionReportToGenAIMetadata } from "${PACKAGE_NAME}/otel";
 import { withRedactedTelemetry, type WithRedactedTelemetryResult } from "${PACKAGE_NAME}/sdk";
 
@@ -130,6 +130,18 @@ const profileResult: RedactionProfileCreationResult = createRedactionProfile({
 });
 if (profileResult.ok) {
   await redactText("profile@example.com", { profile: profileResult.value });
+  const profileOperation: OpenAICompatibleRedactionOptions = {
+    profile: profileResult.value,
+  };
+  await redactOpenAICompatibleRequest(
+    { prompt: "adapter-profile@example.com" },
+    profileOperation,
+  );
+  await withRedactedTelemetry({
+    adapter: "openai-compatible",
+    request: { prompt: "sdk-profile@example.com" },
+    redaction: profileOperation,
+  });
 }
 const requestResult = await redactOpenAICompatibleRequest({
   messages: [{ role: "user", content: "hello@example.com" }],
@@ -170,12 +182,14 @@ if (!profileResult.ok) {
 const profileRedaction = await redactText("profile@example.com", {
   profile: profileResult.value,
 });
-const requestResult = await redactOpenAICompatibleRequest({
-  messages: [{ role: "user", content: "hello@example.com" }],
-});
+const requestResult = await redactOpenAICompatibleRequest(
+  { messages: [{ role: "user", content: "hello@example.com" }] },
+  { profile: profileResult.value },
+);
 const sdkResult = await withRedactedTelemetry({
   adapter: "openai-compatible",
   request: { messages: [{ role: "user", content: "hello@example.com" }] },
+  redaction: { profile: profileResult.value },
 });
 
 if (!rootResult.ok || !coreResult.ok || !profileRedaction.ok || !requestResult.ok || !sdkResult.ok) {

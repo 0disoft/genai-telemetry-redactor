@@ -42,6 +42,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `examples/reusable-redaction-profile.ts`: creates a validated custom-only core
   profile and reuses it across independent text redaction operations without
   per-call policy overrides.
+- `examples/sdk-reusable-redaction-profile.ts`: passes one validated built-in
+  detector profile through `withRedactedTelemetry` and verifies the SDK returns
+  only redacted payloads and safe telemetry metadata.
 - `examples/buffered-stream-redaction.ts`: uses the provider-agnostic buffered
   stream redactor to handle fake sensitive text split across chunk boundaries
   without returning intermediate content.

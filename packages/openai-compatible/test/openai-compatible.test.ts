@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createRedactionProfile } from "../../core/src/index.js";
 import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
@@ -6,6 +7,32 @@ import {
 } from "../src/index.js";
 
 describe("OpenAI-compatible adapter", () => {
+  it("accepts a reusable redaction profile", async () => {
+    const creation = createRedactionProfile({
+      builtInDetectors: ["email"],
+    });
+    expect(creation.ok).toBe(true);
+    if (!creation.ok) {
+      return;
+    }
+
+    const result = await redactOpenAICompatibleRequest(
+      {
+        prompt: "Contact user@example.invalid with token_example_value",
+      },
+      { profile: creation.value },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.prompt).not.toContain("user@example.invalid");
+    expect(result.value.prompt).toContain("token_example_value");
+    expect(result.report.totalRedactions).toBe(1);
+  });
+
   it("redacts request message content and prompt strings", async () => {
     const result = await redactOpenAICompatibleRequest({
       model: "model_example",

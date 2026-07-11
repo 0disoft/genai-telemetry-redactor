@@ -58,8 +58,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
   OpenAI-compatible request and optional response payloads.
 - `options.adapter` currently accepts `"openai-compatible"` only. New provider
   wrappers must remain explicit adapter selections.
-- `options.redaction` passes core detector and replacement configuration to the
-  selected adapter.
+- `options.redaction` accepts inline core detector and replacement configuration
+  or a reusable `{ profile, signal? }` operation and passes it to the selected
+  adapter.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
 - Adapter-specific options are not allowed to override core redaction policy.

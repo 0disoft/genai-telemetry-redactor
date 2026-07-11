@@ -1,5 +1,6 @@
 export type {
   OpenAICompatibleOptions,
+  OpenAICompatibleRedactionOptions,
   OpenAICompatibleStreamRedactionMetadata,
 } from "./types.js";
 

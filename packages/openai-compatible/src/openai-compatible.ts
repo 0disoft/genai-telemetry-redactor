@@ -2,6 +2,7 @@ import {
   redactJsonLike,
   redactText,
   redactToolArguments,
+  type RedactionOperationOptions,
   type RedactionReport,
   type RedactionResult,
   type SafeRedactionError,
@@ -19,7 +20,8 @@ import type {
 type MutableRecord = Record<string, unknown>;
 
 type AdapterState = {
-  options: OpenAICompatibleOptions;
+  redaction: RedactionOperationOptions;
+  redactToolNames: boolean;
   reportAccumulator: RedactionReportAccumulator;
   warnings: RedactionWarning[];
 };
@@ -294,7 +296,7 @@ async function redactContent(
         return unsupportedShape(state, `${path}[${index}]`);
       }
 
-      const result = await redactJsonLike(part, state.options);
+      const result = await redactJsonLike(part, state.redaction);
       if (!result.ok) {
         return failureFromResult(result, state);
       }
@@ -309,7 +311,7 @@ async function redactContent(
   }
 
   if (isRecord(value)) {
-    const result = await redactJsonLike(value, state.options);
+    const result = await redactJsonLike(value, state.redaction);
     if (!result.ok) {
       return failureFromResult(result, state);
     }
@@ -363,7 +365,7 @@ async function redactToolCalls(
 
       const fn = cloneRecord(clonedToolCall.function);
 
-      if (state.options.redactToolNames && typeof fn.name === "string") {
+      if (state.redactToolNames && typeof fn.name === "string") {
         const result = await redactStringValue(fn.name, state);
         if (!result.ok) {
           return result;
@@ -400,7 +402,7 @@ async function redactToolArgumentsValue(
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value) as unknown;
-      const result = await redactToolArguments(parsed, state.options);
+      const result = await redactToolArguments(parsed, state.redaction);
       if (!result.ok) {
         return failureFromResult(result, state);
       }
@@ -415,7 +417,7 @@ async function redactToolArgumentsValue(
     }
   }
 
-  const result = await redactToolArguments(value, state.options);
+  const result = await redactToolArguments(value, state.redaction);
   if (!result.ok) {
     return failureFromResult(result, state);
   }
@@ -432,7 +434,7 @@ async function redactInputField(
   }
 
   if (Array.isArray(value) || isRecord(value)) {
-    const result = await redactJsonLike(value, state.options);
+    const result = await redactJsonLike(value, state.redaction);
     if (!result.ok) {
       return failureFromResult(result, state);
     }
@@ -482,7 +484,7 @@ async function redactStringValue(
     return success(value, state);
   }
 
-  const result = await redactText(value, state.options);
+  const result = await redactText(value, state.redaction);
   if (!result.ok) {
     return failureFromResult(result, state);
   }
@@ -492,8 +494,10 @@ async function redactStringValue(
 }
 
 function createAdapterState(options: OpenAICompatibleOptions): AdapterState {
+  const { redactToolNames = false, ...redaction } = options;
   return {
-    options,
+    redaction,
+    redactToolNames,
     reportAccumulator: createRedactionReportAccumulator(),
     warnings: [],
   };

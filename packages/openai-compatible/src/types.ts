@@ -1,8 +1,18 @@
-import type { RedactionOptions } from "../../core/src/index.js";
+import type {
+  RedactionOperationOptions,
+  RedactionOptions,
+  RedactionProfileExecutionOptions,
+} from "../../core/src/index.js";
 
-export type OpenAICompatibleOptions = RedactionOptions & {
+type OpenAICompatibleAdapterOptions = {
   redactToolNames?: boolean;
 };
+
+export type OpenAICompatibleOptions =
+  | (RedactionOptions & OpenAICompatibleAdapterOptions)
+  | (RedactionProfileExecutionOptions & OpenAICompatibleAdapterOptions);
+
+export type OpenAICompatibleRedactionOptions = RedactionOperationOptions;
 
 export type OpenAICompatibleStreamRedactionMetadata = {
   contentOmitted: true;
