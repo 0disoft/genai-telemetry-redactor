@@ -41,6 +41,9 @@ customer identifiers.
 - Detector-level timing breakdowns are not exported. Aggregate detector duration
   and detector run count are the default telemetry boundary.
 - Warning `path` and `detectorId` fields are not exported by default.
+- Redaction status and warning codes use closed allowlists at the mapper
+  boundary. Unknown runtime values are dropped rather than copied into telemetry
+  attributes.
 - The mapper records `opentelemetry-semconv-genai-main` and `development` as
   semconv metadata. This is not a stability claim.
 - If report or metadata option inspection throws, the mapper returns a minimal

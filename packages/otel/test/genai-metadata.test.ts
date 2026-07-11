@@ -224,4 +224,25 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     expect(output).not.toContain("$.messages[0].content");
     expect(output).not.toContain("$.unknown");
   });
+
+  it("drops unknown report status and warning codes from untyped callers", () => {
+    const result = mapRedactionReportToGenAIMetadata({
+      status: "user@example.invalid",
+      totalRedactions: 0,
+      countsByReason: {},
+      warnings: [{ code: "https://example.invalid/private" }],
+    } as never);
+
+    const output = JSON.stringify(result);
+    expect(output).not.toContain("user@example.invalid");
+    expect(output).not.toContain("https://example.invalid/private");
+    expect(result.attributes).toMatchObject({
+      "genai_redactor.redaction.status": "failed",
+      "genai_redactor.redaction.metadata_dropped_count": 2,
+    });
+    expect(result.droppedMetadataKeys).toEqual([
+      "report.status",
+      "report.warnings",
+    ]);
+  });
 });

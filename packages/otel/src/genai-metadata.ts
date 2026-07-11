@@ -16,6 +16,36 @@ const BUILT_IN_REASON_KEYS = new Set([
   "api_key",
   "url",
 ]);
+const SAFE_WARNING_CODES = new Set([
+  "detector_failed",
+  "detector_timeout",
+  "invalid_detection_range",
+  "invalid_redaction_input",
+  "invalid_redaction_options",
+  "invalid_redaction_profile",
+  "invalid_redaction_reason",
+  "overlapping_detection",
+  "replacement_failed",
+  "max_string_length_exceeded",
+  "max_total_string_length_exceeded",
+  "max_object_depth_exceeded",
+  "max_object_keys_exceeded",
+  "max_array_length_exceeded",
+  "max_total_nodes_exceeded",
+  "max_total_detections_exceeded",
+  "max_detectors_exceeded",
+  "max_detector_runs_exceeded",
+  "max_total_duration_exceeded",
+  "max_stream_buffer_length_exceeded",
+  "redaction_aborted",
+  "circular_reference",
+  "unsafe_object_key",
+  "unsupported_json_like",
+  "unsupported_provider_shape",
+  "streaming_content_omitted",
+  "report_callback_failed",
+  "malformed_tool_arguments",
+]);
 
 export function mapRedactionReportToGenAIMetadata(
   report: RedactionReport,
@@ -32,6 +62,11 @@ function mapRedactionReportToGenAIMetadataInternal(
   report: RedactionReport,
   options: OtelGenAIMetadataOptions,
 ): OtelGenAIMetadata {
+  const droppedMetadataKeys: string[] = [];
+  const redactionStatus = safeRedactionStatus(
+    report.status,
+    droppedMetadataKeys,
+  );
   const attributes: OtelGenAIAttributeMap = {
     "genai_redactor.otel.genai.semconv.label": safeLabelOrDefault(
       options.conventionLabel,
@@ -40,13 +75,11 @@ function mapRedactionReportToGenAIMetadataInternal(
     "genai_redactor.otel.genai.semconv.status": GENAI_SEMCONV_STATUS,
     "genai_redactor.otel.genai.semconv.source": GENAI_SEMCONV_SOURCE,
     "genai_redactor.content_capture.enabled": false,
-    "genai_redactor.redaction.status": report.status,
+    "genai_redactor.redaction.status": redactionStatus,
     "genai_redactor.redaction.total_count": nonNegativeInteger(
       report.totalRedactions,
     ),
   };
-  const droppedMetadataKeys: string[] = [];
-
   assignSafeLabel(
     attributes,
     droppedMetadataKeys,
@@ -142,7 +175,7 @@ function mapRedactionReportToGenAIMetadataInternal(
     attributes[`genai_redactor.redaction.reason_count.${reason}`] = count;
   }
 
-  const warningCodes = uniqueSortedWarningCodes(report);
+  const warningCodes = uniqueSortedWarningCodes(report, droppedMetadataKeys);
   if (warningCodes.length > 0) {
     attributes["genai_redactor.redaction.warning_codes"] = warningCodes;
   }
@@ -242,8 +275,40 @@ function safeReasonCounts(countsByReason: Record<string, number>) {
   return counts;
 }
 
-function uniqueSortedWarningCodes(report: RedactionReport) {
-  return Array.from(
-    new Set(report.warnings.map((warning) => warning.code)),
-  ).sort();
+function safeRedactionStatus(
+  value: unknown,
+  droppedMetadataKeys: string[],
+): RedactionReport["status"] {
+  if (value === "unchanged" || value === "redacted" || value === "failed") {
+    return value;
+  }
+
+  droppedMetadataKeys.push("report.status");
+  return "failed";
+}
+
+function uniqueSortedWarningCodes(
+  report: RedactionReport,
+  droppedMetadataKeys: string[],
+) {
+  const safeCodes: string[] = [];
+  let dropped = false;
+
+  for (const warning of report.warnings) {
+    if (
+      warning !== null &&
+      typeof warning === "object" &&
+      SAFE_WARNING_CODES.has(warning.code)
+    ) {
+      safeCodes.push(warning.code);
+    } else {
+      dropped = true;
+    }
+  }
+
+  if (dropped) {
+    droppedMetadataKeys.push("report.warnings");
+  }
+
+  return Array.from(new Set(safeCodes)).sort();
 }
