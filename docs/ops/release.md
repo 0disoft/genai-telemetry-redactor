@@ -23,13 +23,13 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 
 ## Published Release Evidence
 
-- `v0.1.9` was published on 2026-07-09.
-- npm package version: `genai-telemetry-redactor@0.1.9`.
+- `v0.2.0` was published on 2026-07-11.
+- npm package version: `genai-telemetry-redactor@0.2.0`.
 - npm integrity:
-  `sha512-qCLYiAOaC2+yqgdQG8OEQLglZQvkjlkwzJcUiM7LYTFGamnkZW/6lsO4puSe6NVOOS1wGLSQ2Lqy0Qc97zG6TQ==`.
-- GitHub release: https://github.com/0disoft/genai-telemetry-redactor/releases/tag/v0.1.9.
-- Release workflow: GitHub Actions `Release` run `28980788887` completed successfully for tag
-  `v0.1.9`.
+  `sha512-UdKRgle+4GUcnB9rB3Uvf4RbRpAsN7AAa8TIAgOh9HhV/pDWJK4wAUH15DHL43zyHxA7IpoKF7/VFPfiIF/6fw==`.
+- GitHub release: https://github.com/0disoft/genai-telemetry-redactor/releases/tag/v0.2.0.
+- Release workflow: GitHub Actions `Release` run `29143977897` completed successfully for tag
+  `v0.2.0`.
 
 ## Stop Conditions
 
