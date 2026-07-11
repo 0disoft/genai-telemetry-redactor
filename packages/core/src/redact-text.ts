@@ -27,6 +27,19 @@ export async function redactText(
   input: string,
   operationOptions: RedactionOperationOptions = {},
 ): Promise<RedactionResult<string>> {
+  const result = await redactTextInternal(input, operationOptions);
+  result.report.timings = {
+    ...result.report.timings,
+    nodesVisited: 1,
+    stringCodeUnits: typeof input === "string" ? input.length : 0,
+  };
+  return result;
+}
+
+async function redactTextInternal(
+  input: string,
+  operationOptions: RedactionOperationOptions,
+): Promise<RedactionResult<string>> {
   const startedAtMs = Date.now();
   const warnings: RedactionWarning[] = [];
   const optionsResult = resolveRedactionOperationOptions(operationOptions);

@@ -102,6 +102,35 @@ describe("OpenAI-compatible adapter", () => {
     expect(detectorRuns).toBe(1);
   });
 
+  it.each([
+    ["maxTotalNodes", { maxTotalNodes: 1 }, "max_total_nodes_exceeded"],
+    [
+      "maxTotalStringLength",
+      { maxTotalStringLength: 10 },
+      "max_total_string_length_exceeded",
+    ],
+  ] as const)(
+    "shares one %s budget across request fields",
+    async (_name, limits, expectedCode) => {
+      const result = await redactOpenAICompatibleRequest(
+        {
+          messages: [
+            { role: "user", content: "123456" },
+            { role: "user", content: "abcdef" },
+          ],
+        },
+        { builtInDetectors: false, limits },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+
+      expect(result.error.code).toBe(expectedCode);
+    },
+  );
+
   it("accepts a reusable redaction profile", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],

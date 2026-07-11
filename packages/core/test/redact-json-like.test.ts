@@ -160,6 +160,8 @@ describe("redactJsonLike", () => {
       expect.objectContaining({
         durationMs: expect.any(Number),
         detectorRuns: 16,
+        nodesVisited: 4,
+        stringCodeUnits: 20,
       }),
     );
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");

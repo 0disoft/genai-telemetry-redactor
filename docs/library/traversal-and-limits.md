@@ -74,8 +74,9 @@ code units. Exceeding this limit fails closed with
 `max_stream_buffer_length_exceeded` before any buffered content is returned.
 
 Redaction reports may include `timings` with numeric operation duration,
-detector duration, and detector run count. These metrics are safe summaries only
-and must not include object paths, detector IDs, matched values, or raw content.
+detector duration, detector run count, visited node count, and processed UTF-16
+string code-unit count. These metrics are safe summaries only and must not
+include object paths, detector IDs, matched values, or raw content.
 
 Inline operation options snapshot detector arrays, built-in selection, limits,
 replacement policy, and abort signal at operation start. Mutating the caller's

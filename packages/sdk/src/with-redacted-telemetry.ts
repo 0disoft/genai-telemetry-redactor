@@ -28,12 +28,18 @@ const REPORT_CONTEXT_KEYS = [
 ] as const;
 const DEFAULT_MAX_TOTAL_DETECTIONS = 10_000;
 const DEFAULT_MAX_DETECTOR_RUNS = 50_000;
+const DEFAULT_MAX_TOTAL_NODES = 10_000;
+const DEFAULT_MAX_TOTAL_STRING_LENGTH = 1_000_000;
 
 type SdkRedactionBudget = {
   maxTotalDetections: number;
   maxDetectorRuns: number;
+  maxTotalNodes: number;
+  maxTotalStringLength: number;
   totalDetections: number;
   detectorRuns: number;
+  totalNodes: number;
+  totalStringLength: number;
 };
 
 export async function withRedactedTelemetry(
@@ -86,8 +92,13 @@ async function withOpenAICompatibleRedactedTelemetry(
       redaction.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS,
     maxDetectorRuns:
       redaction.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS,
+    maxTotalNodes: redaction.limits?.maxTotalNodes ?? DEFAULT_MAX_TOTAL_NODES,
+    maxTotalStringLength:
+      redaction.limits?.maxTotalStringLength ?? DEFAULT_MAX_TOTAL_STRING_LENGTH,
     totalDetections: 0,
     detectorRuns: 0,
+    totalNodes: 0,
+    totalStringLength: 0,
   };
   const reports: RedactionReport[] = [];
 
@@ -187,6 +198,11 @@ function adapterOptionsForCurrentBudget(
         0,
         budget.maxDetectorRuns - budget.detectorRuns,
       ),
+      maxTotalNodes: Math.max(0, budget.maxTotalNodes - budget.totalNodes),
+      maxTotalStringLength: Math.max(
+        0,
+        budget.maxTotalStringLength - budget.totalStringLength,
+      ),
       ...(totalDeadlineEpochMs === undefined
         ? {}
         : {
@@ -200,6 +216,8 @@ function adapterOptionsForCurrentBudget(
 function recordSdkBudget(budget: SdkRedactionBudget, report: RedactionReport) {
   budget.totalDetections += report.totalRedactions;
   budget.detectorRuns += report.timings?.detectorRuns ?? 0;
+  budget.totalNodes += report.timings?.nodesVisited ?? 0;
+  budget.totalStringLength += report.timings?.stringCodeUnits ?? 0;
 }
 
 function failureFromRedaction<T>(

@@ -79,6 +79,8 @@ export type RedactionTimings = {
   durationMs?: number;
   detectorDurationMs?: number;
   detectorRuns?: number;
+  nodesVisited?: number;
+  stringCodeUnits?: number;
 };
 
 export type SafeRedactionErrorCode =

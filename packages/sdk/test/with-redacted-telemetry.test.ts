@@ -88,6 +88,25 @@ describe("withRedactedTelemetry", () => {
     expect(JSON.stringify(result)).not.toContain("cust_1234");
   });
 
+  it("shares total string length across request and response", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: { prompt: "123456" },
+      response: { choices: [{ text: "abcdef" }] },
+      redaction: {
+        builtInDetectors: false,
+        limits: { maxTotalStringLength: 10 },
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_string_length_exceeded");
+  });
+
   it("reuses a redaction profile through the SDK wrapper", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],

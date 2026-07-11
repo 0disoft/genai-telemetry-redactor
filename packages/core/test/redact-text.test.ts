@@ -129,6 +129,8 @@ describe("redactText", () => {
         durationMs: expect.any(Number),
         detectorDurationMs: expect.any(Number),
         detectorRuns: 4,
+        nodesVisited: 1,
+        stringCodeUnits: input.length,
       }),
     );
   });

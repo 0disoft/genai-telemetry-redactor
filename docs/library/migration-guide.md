@@ -65,6 +65,10 @@ budget for each nested core redaction.
 and SDK scope. A later field or response cannot reuse detection or detector-run
 budget already consumed by earlier content.
 
+Core reports now include safe `nodesVisited` and `stringCodeUnits` counters under
+`timings`. Adapters use these counters to make `maxTotalNodes` and
+`maxTotalStringLength` cumulative across fields and SDK request/response pairs.
+
 ## 0.2.0
 
 `createRedactionProfile(config)` adds an immutable, reusable core policy for

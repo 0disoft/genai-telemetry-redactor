@@ -102,6 +102,8 @@ export function createRedactionReportAccumulator(): RedactionReportAccumulator {
   let durationMs = 0;
   let detectorDurationMs = 0;
   let detectorRuns = 0;
+  let nodesVisited = 0;
+  let stringCodeUnits = 0;
   let hasTimings = false;
   let totalRedactions = 0;
   let failed = false;
@@ -119,6 +121,8 @@ export function createRedactionReportAccumulator(): RedactionReportAccumulator {
         durationMs += report.timings.durationMs ?? 0;
         detectorDurationMs += report.timings.detectorDurationMs ?? 0;
         detectorRuns += report.timings.detectorRuns ?? 0;
+        nodesVisited += report.timings.nodesVisited ?? 0;
+        stringCodeUnits += report.timings.stringCodeUnits ?? 0;
       }
 
       for (const [reason, count] of Object.entries(report.countsByReason)) {
@@ -147,6 +151,8 @@ export function createRedactionReportAccumulator(): RedactionReportAccumulator {
                 durationMs,
                 detectorDurationMs,
                 detectorRuns,
+                nodesVisited,
+                stringCodeUnits,
               }
             : undefined,
         ),
@@ -177,6 +183,8 @@ function normalizeTimings(
     timings.detectorDurationMs,
   );
   assignNonNegativeNumber(next, "detectorRuns", timings.detectorRuns);
+  assignNonNegativeNumber(next, "nodesVisited", timings.nodesVisited);
+  assignNonNegativeNumber(next, "stringCodeUnits", timings.stringCodeUnits);
 
   return Object.keys(next).length > 0 ? next : undefined;
 }

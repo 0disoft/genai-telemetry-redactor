@@ -435,6 +435,8 @@ function withTraversalTiming(
       ...report.timings,
       durationMs: Date.now() - state.startedAtMs,
       detectorRuns: state.detectorRuns,
+      nodesVisited: state.totalNodes,
+      stringCodeUnits: state.totalStringLength,
     },
   };
 }

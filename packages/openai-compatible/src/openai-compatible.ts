@@ -26,8 +26,12 @@ type AdapterState = {
   totalDeadlineEpochMs: number | undefined;
   maxTotalDetections: number;
   maxDetectorRuns: number;
+  maxTotalNodes: number;
+  maxTotalStringLength: number;
   totalDetections: number;
   detectorRuns: number;
+  totalNodes: number;
+  totalStringLength: number;
   detectorCount: number;
   redactToolNames: boolean;
   reportAccumulator: RedactionReportAccumulator;
@@ -36,6 +40,8 @@ type AdapterState = {
 
 const DEFAULT_MAX_TOTAL_DETECTIONS = 10_000;
 const DEFAULT_MAX_DETECTOR_RUNS = 50_000;
+const DEFAULT_MAX_TOTAL_NODES = 10_000;
+const DEFAULT_MAX_TOTAL_STRING_LENGTH = 1_000_000;
 
 const REQUEST_KEYS = new Set([
   "messages",
@@ -569,6 +575,24 @@ async function redactStringValue(
     return success(value, state);
   }
 
+  if (state.totalNodes + 1 > state.maxTotalNodes) {
+    state.warnings.push({ code: "max_total_nodes_exceeded" });
+    return createFailure(
+      state,
+      "max_total_nodes_exceeded",
+      "Node count exceeded the configured redaction limit.",
+    );
+  }
+
+  if (state.totalStringLength + value.length > state.maxTotalStringLength) {
+    state.warnings.push({ code: "max_total_string_length_exceeded" });
+    return createFailure(
+      state,
+      "max_total_string_length_exceeded",
+      "Total string length exceeded the configured redaction limit.",
+    );
+  }
+
   if (state.detectorRuns + state.detectorCount > state.maxDetectorRuns) {
     state.warnings.push({ code: "max_detector_runs_exceeded" });
     return createFailure(
@@ -613,6 +637,10 @@ function createAdapterState(
       redaction.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS;
     const maxDetectorRuns =
       redaction.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS;
+    const maxTotalNodes =
+      redaction.limits?.maxTotalNodes ?? DEFAULT_MAX_TOTAL_NODES;
+    const maxTotalStringLength =
+      redaction.limits?.maxTotalStringLength ?? DEFAULT_MAX_TOTAL_STRING_LENGTH;
 
     return {
       ok: true,
@@ -621,8 +649,12 @@ function createAdapterState(
         totalDeadlineEpochMs,
         maxTotalDetections,
         maxDetectorRuns,
+        maxTotalNodes,
+        maxTotalStringLength,
         totalDetections: 0,
         detectorRuns: 0,
+        totalNodes: 0,
+        totalStringLength: 0,
         detectorCount: detectorCount(redaction),
         redactToolNames,
         reportAccumulator: createRedactionReportAccumulator(),
@@ -640,8 +672,12 @@ function invalidAdapterOptions<T>(): RedactionResult<T> {
     totalDeadlineEpochMs: undefined,
     maxTotalDetections: DEFAULT_MAX_TOTAL_DETECTIONS,
     maxDetectorRuns: DEFAULT_MAX_DETECTOR_RUNS,
+    maxTotalNodes: DEFAULT_MAX_TOTAL_NODES,
+    maxTotalStringLength: DEFAULT_MAX_TOTAL_STRING_LENGTH,
     totalDetections: 0,
     detectorRuns: 0,
+    totalNodes: 0,
+    totalStringLength: 0,
     detectorCount: 4,
     redactToolNames: false,
     reportAccumulator: createRedactionReportAccumulator(),
@@ -671,6 +707,11 @@ function redactionForCurrentBudget(state: AdapterState): RedactionOptions {
         state.maxTotalDetections - state.totalDetections,
       ),
       maxDetectorRuns: Math.max(0, state.maxDetectorRuns - state.detectorRuns),
+      maxTotalNodes: Math.max(0, state.maxTotalNodes - state.totalNodes),
+      maxTotalStringLength: Math.max(
+        0,
+        state.maxTotalStringLength - state.totalStringLength,
+      ),
       ...(state.totalDeadlineEpochMs === undefined
         ? {}
         : {
@@ -686,6 +727,8 @@ function redactionForCurrentBudget(state: AdapterState): RedactionOptions {
 function recordCoreReport(state: AdapterState, report: RedactionReport) {
   state.totalDetections += report.totalRedactions;
   state.detectorRuns += report.timings?.detectorRuns ?? 0;
+  state.totalNodes += report.timings?.nodesVisited ?? 0;
+  state.totalStringLength += report.timings?.stringCodeUnits ?? 0;
   state.reportAccumulator.add(report);
 }
 

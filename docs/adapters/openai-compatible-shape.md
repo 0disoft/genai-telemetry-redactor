@@ -48,6 +48,8 @@ gateway behavior.
 - `maxTotalDetections` and `maxDetectorRuns` are likewise cumulative across
   content-bearing fields. A text field is not dispatched when its detector count
   would exceed the remaining run budget.
+- `maxTotalNodes` and `maxTotalStringLength` also use the safe numeric resource
+  usage reported by core, so later fields receive only their remaining budget.
 - `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
   metadata with `streaming_content_omitted`.
 

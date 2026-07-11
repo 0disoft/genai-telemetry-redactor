@@ -66,6 +66,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
   only the duration left after request processing.
 - `maxTotalDetections` and `maxDetectorRuns` also span request and response
   together; successful request usage is deducted before response redaction.
+- `maxTotalNodes` and `maxTotalStringLength` follow the same request/response
+  scope using safe numeric usage counters from core reports.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
 - Adapter-specific options are not allowed to override core redaction policy.
