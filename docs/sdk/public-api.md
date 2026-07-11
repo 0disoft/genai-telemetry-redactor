@@ -61,6 +61,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `options.redaction` accepts inline core detector and replacement configuration
   or a reusable `{ profile, signal? }` operation and passes it to the selected
   adapter.
+- `options.redaction.limits.maxTotalDurationMs` spans the complete SDK operation,
+  including both request and optional response redaction. The response receives
+  only the duration left after request processing.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
 - Adapter-specific options are not allowed to override core redaction policy.

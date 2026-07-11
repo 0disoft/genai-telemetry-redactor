@@ -3,11 +3,13 @@ import {
   redactText,
   redactToolArguments,
   type RedactionOperationOptions,
+  type RedactionOptions,
   type RedactionReport,
   type RedactionResult,
   type SafeRedactionError,
   type RedactionWarning,
 } from "../../core/src/index.js";
+import { resolveRedactionOperationOptions } from "../../core/src/redaction-profile.js";
 import {
   createRedactionReportAccumulator,
   type RedactionReportAccumulator,
@@ -20,7 +22,8 @@ import type {
 type MutableRecord = Record<string, unknown>;
 
 type AdapterState = {
-  redaction: RedactionOperationOptions;
+  redaction: RedactionOptions;
+  totalDeadlineEpochMs: number | undefined;
   redactToolNames: boolean;
   reportAccumulator: RedactionReportAccumulator;
   warnings: RedactionWarning[];
@@ -267,7 +270,7 @@ async function redactStructuredMetadata(
     return unsupportedShape(state, path);
   }
 
-  const result = await redactJsonLike(value, state.redaction);
+  const result = await redactJsonLike(value, redactionForCurrentBudget(state));
   if (!result.ok) {
     return failureFromResult(result, state);
   }
@@ -355,7 +358,10 @@ async function redactContent(
         return unsupportedShape(state, `${path}[${index}]`);
       }
 
-      const result = await redactJsonLike(part, state.redaction);
+      const result = await redactJsonLike(
+        part,
+        redactionForCurrentBudget(state),
+      );
       if (!result.ok) {
         return failureFromResult(result, state);
       }
@@ -370,7 +376,10 @@ async function redactContent(
   }
 
   if (isRecord(value)) {
-    const result = await redactJsonLike(value, state.redaction);
+    const result = await redactJsonLike(
+      value,
+      redactionForCurrentBudget(state),
+    );
     if (!result.ok) {
       return failureFromResult(result, state);
     }
@@ -461,7 +470,10 @@ async function redactToolArgumentsValue(
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value) as unknown;
-      const result = await redactToolArguments(parsed, state.redaction);
+      const result = await redactToolArguments(
+        parsed,
+        redactionForCurrentBudget(state),
+      );
       if (!result.ok) {
         return failureFromResult(result, state);
       }
@@ -476,7 +488,10 @@ async function redactToolArgumentsValue(
     }
   }
 
-  const result = await redactToolArguments(value, state.redaction);
+  const result = await redactToolArguments(
+    value,
+    redactionForCurrentBudget(state),
+  );
   if (!result.ok) {
     return failureFromResult(result, state);
   }
@@ -493,7 +508,10 @@ async function redactInputField(
   }
 
   if (Array.isArray(value) || isRecord(value)) {
-    const result = await redactJsonLike(value, state.redaction);
+    const result = await redactJsonLike(
+      value,
+      redactionForCurrentBudget(state),
+    );
     if (!result.ok) {
       return failureFromResult(result, state);
     }
@@ -543,7 +561,7 @@ async function redactStringValue(
     return success(value, state);
   }
 
-  const result = await redactText(value, state.redaction);
+  const result = await redactText(value, redactionForCurrentBudget(state));
   if (!result.ok) {
     return failureFromResult(result, state);
   }
@@ -562,15 +580,24 @@ function createAdapterState(
       return { ok: false, failure: invalidAdapterOptions() };
     }
 
-    const { redactToolNames = false, ...redaction } = options;
+    const { redactToolNames = false, ...operationOptions } = options;
     if (typeof redactToolNames !== "boolean") {
       return { ok: false, failure: invalidAdapterOptions() };
     }
+
+    const redactionResult = resolveRedactionOperationOptions(operationOptions);
+    if (!redactionResult.ok) {
+      return { ok: false, failure: invalidAdapterOptions() };
+    }
+
+    const redaction = redactionResult.value;
+    const totalDeadlineEpochMs = totalDeadlineFromOptions(redaction);
 
     return {
       ok: true,
       value: {
         redaction,
+        totalDeadlineEpochMs,
         redactToolNames,
         reportAccumulator: createRedactionReportAccumulator(),
         warnings: [],
@@ -584,6 +611,7 @@ function createAdapterState(
 function invalidAdapterOptions<T>(): RedactionResult<T> {
   const state: AdapterState = {
     redaction: {},
+    totalDeadlineEpochMs: undefined,
     redactToolNames: false,
     reportAccumulator: createRedactionReportAccumulator(),
     warnings: [{ code: "invalid_redaction_options" }],
@@ -593,6 +621,27 @@ function invalidAdapterOptions<T>(): RedactionResult<T> {
     "invalid_redaction_options",
     "OpenAI-compatible redaction options are invalid.",
   );
+}
+
+function totalDeadlineFromOptions(options: RedactionOptions) {
+  const maxTotalDurationMs = options.limits?.maxTotalDurationMs;
+  return maxTotalDurationMs === undefined
+    ? undefined
+    : Date.now() + Math.max(0, maxTotalDurationMs);
+}
+
+function redactionForCurrentBudget(state: AdapterState): RedactionOptions {
+  if (state.totalDeadlineEpochMs === undefined) {
+    return state.redaction;
+  }
+
+  return {
+    ...state.redaction,
+    limits: {
+      ...state.redaction.limits,
+      maxTotalDurationMs: Math.max(0, state.totalDeadlineEpochMs - Date.now()),
+    },
+  };
 }
 
 function success<T>(value: T, state: AdapterState): RedactionResult<T> {

@@ -42,6 +42,9 @@ gateway behavior.
   reusable `{ profile, signal? }` operation. Adapter-only options such as
   `redactToolNames` are separated before the core operation runs and cannot
   override profile policy.
+- `maxTotalDurationMs` is one deadline for the complete adapter request or
+  response operation. Each content-bearing field receives only the remaining
+  duration; traversing another field does not reset the configured budget.
 - `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
   metadata with `streaming_content_omitted`.
 

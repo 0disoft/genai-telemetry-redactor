@@ -1,4 +1,5 @@
 import type {
+  RedactionOptions,
   RedactionReport,
   RedactionResult,
   RedactionWarningCode,
@@ -6,6 +7,7 @@ import type {
   SafeRedactionErrorCode,
 } from "../../core/src/index.js";
 import { mergeReports } from "../../core/src/report.js";
+import { resolveRedactionOperationOptions } from "../../core/src/redaction-profile.js";
 import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
@@ -58,15 +60,27 @@ async function withOpenAICompatibleRedactedTelemetry(
   options: WithRedactedTelemetryOptions,
 ): Promise<WithRedactedTelemetryResult> {
   const reportContext = sanitizeReportContext(options.reportContext);
-  const adapterOptions = {
-    ...options.redaction,
-    redactToolNames: options.openAICompatible?.redactToolNames === true,
-  };
+  const redactionResult = resolveRedactionOperationOptions(
+    options.redaction ?? {},
+  );
+  if (!redactionResult.ok) {
+    return sdkFailure(
+      redactionResult.error.code,
+      redactionResult.error.message,
+      options,
+    );
+  }
+  const redaction = redactionResult.value;
+  const totalDeadlineEpochMs = totalDeadlineFromOptions(redaction);
   const reports: RedactionReport[] = [];
 
   const request = await redactOpenAICompatibleRequest(
     options.request,
-    adapterOptions,
+    adapterOptionsForCurrentBudget(
+      redaction,
+      totalDeadlineEpochMs,
+      options.openAICompatible?.redactToolNames === true,
+    ),
   );
   if (!request.ok) {
     return failureFromRedaction(request, options, reports);
@@ -77,7 +91,11 @@ async function withOpenAICompatibleRedactedTelemetry(
   if ("response" in options) {
     const response = await redactOpenAICompatibleResponse(
       options.response,
-      adapterOptions,
+      adapterOptionsForCurrentBudget(
+        redaction,
+        totalDeadlineEpochMs,
+        options.openAICompatible?.redactToolNames === true,
+      ),
     );
     if (!response.ok) {
       return failureFromRedaction(response, options, reports);
@@ -121,6 +139,32 @@ async function withOpenAICompatibleRedactedTelemetry(
     report: finalReport,
     reportContext,
     warnings: finalReport.warnings,
+  };
+}
+
+function totalDeadlineFromOptions(options: RedactionOptions) {
+  const maxTotalDurationMs = options.limits?.maxTotalDurationMs;
+  return maxTotalDurationMs === undefined
+    ? undefined
+    : Date.now() + Math.max(0, maxTotalDurationMs);
+}
+
+function adapterOptionsForCurrentBudget(
+  redaction: RedactionOptions,
+  totalDeadlineEpochMs: number | undefined,
+  redactToolNames: boolean,
+) {
+  if (totalDeadlineEpochMs === undefined) {
+    return { ...redaction, redactToolNames };
+  }
+
+  return {
+    ...redaction,
+    limits: {
+      ...redaction.limits,
+      maxTotalDurationMs: Math.max(0, totalDeadlineEpochMs - Date.now()),
+    },
+    redactToolNames,
   };
 }
 

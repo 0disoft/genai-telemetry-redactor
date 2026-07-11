@@ -1,8 +1,50 @@
-import { describe, expect, it } from "vitest";
-import { createRedactionProfile } from "../../core/src/index.js";
+import { describe, expect, it, vi } from "vitest";
+import { createRedactionProfile, type Detector } from "../../core/src/index.js";
 import { withRedactedTelemetry } from "../src/index.js";
 
 describe("withRedactedTelemetry", () => {
+  it("shares one total-duration deadline across request and response", async () => {
+    let now = 2_000;
+    let detectorRuns = 0;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const detector: Detector = {
+      id: "test:sdk-deadline",
+      reasons: ["custom:deadline"],
+      detect() {
+        now += detectorRuns === 0 ? 6 : 5;
+        detectorRuns += 1;
+        return [];
+      },
+    };
+
+    try {
+      const result = await withRedactedTelemetry({
+        adapter: "openai-compatible",
+        request: { prompt: "safe request" },
+        response: { choices: [{ text: "safe response" }] },
+        redaction: {
+          builtInDetectors: false,
+          detectors: [detector],
+          limits: { maxTotalDurationMs: 10 },
+        },
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+
+      expect(result.error.code).toBe("max_total_duration_exceeded");
+      expect(result.telemetry.attributes).toMatchObject({
+        "genai_redactor.redaction.status": "failed",
+        "genai_redactor.content_capture.enabled": false,
+      });
+      expect(detectorRuns).toBe(2);
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
   it("reuses a redaction profile through the SDK wrapper", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],

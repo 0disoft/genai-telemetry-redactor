@@ -56,6 +56,11 @@ non-object values fail closed as unsupported shapes. The OpenTelemetry mapper
 also allowlists report status and warning codes; unknown runtime values are
 dropped rather than copied to telemetry attributes.
 
+`maxTotalDurationMs` now uses one deadline across every field in an
+OpenAI-compatible request or response and across both halves of an SDK
+request/response operation. Earlier adapter calls effectively restarted this
+budget for each nested core redaction.
+
 ## 0.2.0
 
 `createRedactionProfile(config)` adds an immutable, reusable core policy for

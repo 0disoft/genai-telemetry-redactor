@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { createRedactionProfile } from "../../core/src/index.js";
+import { describe, expect, it, vi } from "vitest";
+import { createRedactionProfile, type Detector } from "../../core/src/index.js";
 import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
@@ -7,6 +7,47 @@ import {
 } from "../src/index.js";
 
 describe("OpenAI-compatible adapter", () => {
+  it("shares one total-duration deadline across request fields", async () => {
+    let now = 1_000;
+    let detectorRuns = 0;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const detector: Detector = {
+      id: "test:adapter-deadline",
+      reasons: ["custom:deadline"],
+      detect() {
+        now += detectorRuns === 0 ? 6 : 5;
+        detectorRuns += 1;
+        return [];
+      },
+    };
+
+    try {
+      const result = await redactOpenAICompatibleRequest(
+        {
+          messages: [
+            { role: "user", content: "first safe field" },
+            { role: "user", content: "second safe field" },
+          ],
+        },
+        {
+          builtInDetectors: false,
+          detectors: [detector],
+          limits: { maxTotalDurationMs: 10 },
+        },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+
+      expect(result.error.code).toBe("max_total_duration_exceeded");
+      expect(detectorRuns).toBe(2);
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
   it("accepts a reusable redaction profile", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Detector } from "../src/index.js";
 import { createRegexDetector, redactText } from "../src/index.js";
 
@@ -654,6 +654,36 @@ describe("redactText", () => {
 
     expect(result.error.code).toBe("max_total_duration_exceeded");
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("checks total duration after a synchronous detector returns", async () => {
+    let now = 1_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const detector: Detector = {
+      id: "test:sync-total-timeout",
+      reasons: ["custom:timeout"],
+      detect() {
+        now += 11;
+        return [];
+      },
+    };
+
+    try {
+      const result = await redactText("safe input", {
+        builtInDetectors: false,
+        detectors: [detector],
+        limits: { maxTotalDurationMs: 10 },
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+
+      expect(result.error.code).toBe("max_total_duration_exceeded");
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it("aborts async detectors when total operation duration is exceeded", async () => {

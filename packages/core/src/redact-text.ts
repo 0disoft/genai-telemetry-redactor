@@ -179,6 +179,15 @@ export async function redactText(
       detectorControl.dispose();
     }
 
+    if (isTotalDurationExceeded(totalDeadlineEpochMs)) {
+      return totalDurationFailure(
+        warnings,
+        startedAtMs,
+        detectorDurationMs,
+        detectorRuns,
+      );
+    }
+
     for (const detection of detectorDetections) {
       if (!isValidDetection(input, detection)) {
         warnings.push({
