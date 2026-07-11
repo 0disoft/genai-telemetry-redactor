@@ -1,4 +1,5 @@
 import type { RedactionReport } from "../../core/src/index.js";
+import { REDACTION_WARNING_CODES } from "../../core/src/warning-codes.js";
 import type {
   OtelGenAIAttributeMap,
   OtelGenAIMetadata,
@@ -16,36 +17,7 @@ const BUILT_IN_REASON_KEYS = new Set([
   "api_key",
   "url",
 ]);
-const SAFE_WARNING_CODES = new Set([
-  "detector_failed",
-  "detector_timeout",
-  "invalid_detection_range",
-  "invalid_redaction_input",
-  "invalid_redaction_options",
-  "invalid_redaction_profile",
-  "invalid_redaction_reason",
-  "overlapping_detection",
-  "replacement_failed",
-  "max_string_length_exceeded",
-  "max_total_string_length_exceeded",
-  "max_object_depth_exceeded",
-  "max_object_keys_exceeded",
-  "max_array_length_exceeded",
-  "max_total_nodes_exceeded",
-  "max_total_detections_exceeded",
-  "max_detectors_exceeded",
-  "max_detector_runs_exceeded",
-  "max_total_duration_exceeded",
-  "max_stream_buffer_length_exceeded",
-  "redaction_aborted",
-  "circular_reference",
-  "unsafe_object_key",
-  "unsupported_json_like",
-  "unsupported_provider_shape",
-  "streaming_content_omitted",
-  "report_callback_failed",
-  "malformed_tool_arguments",
-]);
+const SAFE_WARNING_CODES = new Set<string>(REDACTION_WARNING_CODES);
 
 export function mapRedactionReportToGenAIMetadata(
   report: RedactionReport,

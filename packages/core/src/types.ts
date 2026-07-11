@@ -1,3 +1,7 @@
+import type { RedactionWarningCode } from "./warning-codes.js";
+
+export type { RedactionWarningCode } from "./warning-codes.js";
+
 export type BuiltInDetectorName = "email" | "bearer_token" | "api_key" | "url";
 
 export type RedactionReason = BuiltInDetectorName | `custom:${string}`;
@@ -55,36 +59,6 @@ export type RedactionOptions = {
   replacement?: ReplacementTokenPolicy;
   signal?: AbortSignal;
 };
-
-export type RedactionWarningCode =
-  | "detector_failed"
-  | "detector_timeout"
-  | "invalid_detection_range"
-  | "invalid_redaction_input"
-  | "invalid_redaction_options"
-  | "invalid_redaction_profile"
-  | "invalid_redaction_reason"
-  | "overlapping_detection"
-  | "replacement_failed"
-  | "max_string_length_exceeded"
-  | "max_total_string_length_exceeded"
-  | "max_object_depth_exceeded"
-  | "max_object_keys_exceeded"
-  | "max_array_length_exceeded"
-  | "max_total_nodes_exceeded"
-  | "max_total_detections_exceeded"
-  | "max_detectors_exceeded"
-  | "max_detector_runs_exceeded"
-  | "max_total_duration_exceeded"
-  | "max_stream_buffer_length_exceeded"
-  | "redaction_aborted"
-  | "circular_reference"
-  | "unsafe_object_key"
-  | "unsupported_json_like"
-  | "unsupported_provider_shape"
-  | "streaming_content_omitted"
-  | "report_callback_failed"
-  | "malformed_tool_arguments";
 
 export type RedactionWarning = {
   code: RedactionWarningCode;
