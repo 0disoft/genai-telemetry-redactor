@@ -85,6 +85,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
   metadata, report, and warnings without returning partially redacted payloads.
 - Unknown adapter names from untyped JavaScript callers return a safe failure
   instead of `undefined`.
+- SDK option inspection failures from getters or proxies return
+  `invalid_redaction_options` with metadata-only failure telemetry instead of
+  rejecting with the original exception.
 
 ## Non-Ownership
 

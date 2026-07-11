@@ -28,22 +28,29 @@ const REPORT_CONTEXT_KEYS = [
 export async function withRedactedTelemetry(
   options: WithRedactedTelemetryOptions,
 ): Promise<WithRedactedTelemetryResult> {
-  if (!isRecord(options)) {
+  try {
+    if (!isRecord(options)) {
+      return sdkFailure(
+        "invalid_redaction_options",
+        "Telemetry redaction options must be an object.",
+      );
+    }
+
+    switch (options.adapter) {
+      case "openai-compatible":
+        return withOpenAICompatibleRedactedTelemetry(options);
+      default:
+        return sdkFailure(
+          "unsupported_provider_shape",
+          "Unsupported telemetry redaction adapter.",
+          options,
+        );
+    }
+  } catch {
     return sdkFailure(
       "invalid_redaction_options",
-      "Telemetry redaction options must be an object.",
+      "Telemetry redaction options could not be safely inspected.",
     );
-  }
-
-  switch (options.adapter) {
-    case "openai-compatible":
-      return withOpenAICompatibleRedactedTelemetry(options);
-    default:
-      return sdkFailure(
-        "unsupported_provider_shape",
-        "Unsupported telemetry redaction adapter.",
-        options,
-      );
   }
 }
 

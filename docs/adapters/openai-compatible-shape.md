@@ -47,6 +47,11 @@ Unknown or unsupported shapes must not be assumed safe. The adapter should omit
 content-bearing telemetry and emit a safe warning such as
 `unsupported_provider_shape`.
 
+Shape inspection failures from getters, proxies, or non-plain provider objects
+also fail closed without propagating the original exception. Malformed adapter
+options return `invalid_redaction_options` without inspecting or returning the
+provider payload.
+
 The implementation fails closed for non-object payloads, missing known request
 content fields, missing `choices` response arrays, malformed message arrays,
 malformed tool-call arrays, unsupported content-bearing substructures, and

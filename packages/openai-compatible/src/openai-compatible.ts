@@ -57,48 +57,64 @@ export async function redactOpenAICompatibleRequest<T>(
   input: T,
   options: OpenAICompatibleOptions = {},
 ): Promise<RedactionResult<T>> {
-  const state = createAdapterState(options);
+  const stateResult = createAdapterState(options);
+  if (!stateResult.ok) {
+    return stateResult.failure;
+  }
+  const state = stateResult.value;
 
-  if (!isRecord(input)) {
+  try {
+    if (!isRecord(input)) {
+      return unsupportedShape(state);
+    }
+
+    const keyResult = validateAllowedKeys(input, REQUEST_KEYS, state, "$");
+    if (!keyResult.ok) {
+      return keyResult;
+    }
+
+    const cloned = cloneRecord(input);
+    const redactResult = await redactRequestRecord(cloned, state);
+    if (!redactResult.ok) {
+      return redactResult;
+    }
+
+    return success(cloned as T, state);
+  } catch {
     return unsupportedShape(state);
   }
-
-  const keyResult = validateAllowedKeys(input, REQUEST_KEYS, state, "$");
-  if (!keyResult.ok) {
-    return keyResult;
-  }
-
-  const cloned = cloneRecord(input);
-  const redactResult = await redactRequestRecord(cloned, state);
-  if (!redactResult.ok) {
-    return redactResult;
-  }
-
-  return success(cloned as T, state);
 }
 
 export async function redactOpenAICompatibleResponse<T>(
   input: T,
   options: OpenAICompatibleOptions = {},
 ): Promise<RedactionResult<T>> {
-  const state = createAdapterState(options);
+  const stateResult = createAdapterState(options);
+  if (!stateResult.ok) {
+    return stateResult.failure;
+  }
+  const state = stateResult.value;
 
-  if (!isRecord(input)) {
+  try {
+    if (!isRecord(input)) {
+      return unsupportedShape(state);
+    }
+
+    const keyResult = validateAllowedKeys(input, RESPONSE_KEYS, state, "$");
+    if (!keyResult.ok) {
+      return keyResult;
+    }
+
+    const cloned = cloneRecord(input);
+    const redactResult = await redactResponseRecord(cloned, state);
+    if (!redactResult.ok) {
+      return redactResult;
+    }
+
+    return success(cloned as T, state);
+  } catch {
     return unsupportedShape(state);
   }
-
-  const keyResult = validateAllowedKeys(input, RESPONSE_KEYS, state, "$");
-  if (!keyResult.ok) {
-    return keyResult;
-  }
-
-  const cloned = cloneRecord(input);
-  const redactResult = await redactResponseRecord(cloned, state);
-  if (!redactResult.ok) {
-    return redactResult;
-  }
-
-  return success(cloned as T, state);
 }
 
 export function redactOpenAICompatibleStreamEvent<T>(
@@ -493,14 +509,47 @@ async function redactStringValue(
   return success(result.value, state);
 }
 
-function createAdapterState(options: OpenAICompatibleOptions): AdapterState {
-  const { redactToolNames = false, ...redaction } = options;
-  return {
-    redaction,
-    redactToolNames,
+function createAdapterState(
+  options: OpenAICompatibleOptions,
+):
+  | { ok: true; value: AdapterState }
+  | { ok: false; failure: RedactionResult<never> } {
+  try {
+    if (!isRecord(options)) {
+      return { ok: false, failure: invalidAdapterOptions() };
+    }
+
+    const { redactToolNames = false, ...redaction } = options;
+    if (typeof redactToolNames !== "boolean") {
+      return { ok: false, failure: invalidAdapterOptions() };
+    }
+
+    return {
+      ok: true,
+      value: {
+        redaction,
+        redactToolNames,
+        reportAccumulator: createRedactionReportAccumulator(),
+        warnings: [],
+      },
+    };
+  } catch {
+    return { ok: false, failure: invalidAdapterOptions() };
+  }
+}
+
+function invalidAdapterOptions<T>(): RedactionResult<T> {
+  const state: AdapterState = {
+    redaction: {},
+    redactToolNames: false,
     reportAccumulator: createRedactionReportAccumulator(),
-    warnings: [],
+    warnings: [{ code: "invalid_redaction_options" }],
   };
+  return createFailure(
+    state,
+    "invalid_redaction_options",
+    "OpenAI-compatible redaction options are invalid.",
+  );
 }
 
 function success<T>(value: T, state: AdapterState): RedactionResult<T> {

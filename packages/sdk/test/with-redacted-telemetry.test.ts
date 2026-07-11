@@ -240,6 +240,33 @@ describe("withRedactedTelemetry", () => {
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 
+  it("fails closed when SDK option inspection throws", async () => {
+    const options = new Proxy(
+      {},
+      {
+        get(_target, property) {
+          if (property === "adapter") {
+            throw new Error("synthetic SDK options trap");
+          }
+          return undefined;
+        },
+      },
+    );
+
+    const result = await withRedactedTelemetry(options as never);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(result.telemetry.attributes).toMatchObject({
+      "genai_redactor.redaction.status": "failed",
+      "genai_redactor.content_capture.enabled": false,
+    });
+  });
+
   it("does not let adapter-specific options override core detector policy", async () => {
     const result = await withRedactedTelemetry({
       adapter: "openai-compatible",

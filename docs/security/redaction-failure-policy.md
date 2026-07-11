@@ -16,6 +16,7 @@ Safe metadata may still be emitted when it does not include raw content.
 - Traversal hits depth, key, array, or string limits.
 - Serialization fails.
 - Provider shape is unsupported.
+- Provider shape or adapter option inspection throws.
 - Streaming chunk redaction is not proven.
 - OTel mapping fails after redaction begins.
 

@@ -212,6 +212,65 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.error.message).not.toContain("user@example.invalid");
   });
 
+  it("fails closed when request shape inspection throws", async () => {
+    const input = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error("synthetic request trap");
+        },
+      },
+    );
+
+    const result = await redactOpenAICompatibleRequest(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("unsupported_provider_shape");
+  });
+
+  it("fails closed when adapter option inspection throws", async () => {
+    const options = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error("synthetic adapter options trap");
+        },
+      },
+    );
+
+    const result = await redactOpenAICompatibleRequest(
+      { prompt: "Contact user@example.invalid" },
+      options,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed for invalid adapter-only options", async () => {
+    const result = await redactOpenAICompatibleRequest(
+      { prompt: "Contact user@example.invalid" },
+      { redactToolNames: "yes" } as never,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("invalid_redaction_options");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("fails closed for unsupported request shapes without known content fields", async () => {
     const result = await redactOpenAICompatibleRequest({
       unknown_content: "user@example.invalid",
