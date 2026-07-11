@@ -43,6 +43,9 @@ customer identifiers.
 - Warning `path` and `detectorId` fields are not exported by default.
 - The mapper records `opentelemetry-semconv-genai-main` and `development` as
   semconv metadata. This is not a stability claim.
+- If report or metadata option inspection throws, the mapper returns a minimal
+  metadata-only failure with content capture disabled and records `mapperInput`
+  as dropped. Original exception text and caller input are not propagated.
 
 ## Review Blockers
 

@@ -1,8 +1,47 @@
 import { describe, expect, it } from "vitest";
 import type { RedactionReport } from "../../core/src/index.js";
 import { mapRedactionReportToGenAIMetadata } from "../src/index.js";
+import type { OtelGenAIMetadataOptions } from "../src/index.js";
 
 describe("mapRedactionReportToGenAIMetadata", () => {
+  it.each(["report", "options"] as const)(
+    "returns metadata-only failure when %s inspection throws",
+    (target) => {
+      const safeReport: RedactionReport = {
+        status: "unchanged",
+        totalRedactions: 0,
+        countsByReason: {},
+        warnings: [],
+      };
+      const hostile = new Proxy(
+        {},
+        {
+          get() {
+            throw new Error("synthetic mapper trap");
+          },
+        },
+      );
+
+      const result = mapRedactionReportToGenAIMetadata(
+        target === "report" ? (hostile as RedactionReport) : safeReport,
+        target === "options"
+          ? (hostile as OtelGenAIMetadataOptions)
+          : undefined,
+      );
+
+      expect(result).toEqual({
+        attributes: expect.objectContaining({
+          "genai_redactor.content_capture.enabled": false,
+          "genai_redactor.redaction.status": "failed",
+          "genai_redactor.redaction.total_count": 0,
+          "genai_redactor.redaction.metadata_dropped_count": 1,
+        }),
+        droppedMetadataKeys: ["mapperInput"],
+      });
+      expect(JSON.stringify(result)).not.toContain("synthetic mapper trap");
+    },
+  );
+
   it("maps safe redaction report fields and metadata into attributes", () => {
     const result = mapRedactionReportToGenAIMetadata(
       {

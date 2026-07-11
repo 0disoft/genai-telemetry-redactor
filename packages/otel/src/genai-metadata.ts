@@ -21,6 +21,17 @@ export function mapRedactionReportToGenAIMetadata(
   report: RedactionReport,
   options: OtelGenAIMetadataOptions = {},
 ): OtelGenAIMetadata {
+  try {
+    return mapRedactionReportToGenAIMetadataInternal(report, options);
+  } catch {
+    return failedMapperMetadata();
+  }
+}
+
+function mapRedactionReportToGenAIMetadataInternal(
+  report: RedactionReport,
+  options: OtelGenAIMetadataOptions,
+): OtelGenAIMetadata {
   const attributes: OtelGenAIAttributeMap = {
     "genai_redactor.otel.genai.semconv.label": safeLabelOrDefault(
       options.conventionLabel,
@@ -144,6 +155,21 @@ export function mapRedactionReportToGenAIMetadata(
   return {
     attributes,
     droppedMetadataKeys,
+  };
+}
+
+function failedMapperMetadata(): OtelGenAIMetadata {
+  return {
+    attributes: {
+      "genai_redactor.otel.genai.semconv.label": DEFAULT_CONVENTION_LABEL,
+      "genai_redactor.otel.genai.semconv.status": GENAI_SEMCONV_STATUS,
+      "genai_redactor.otel.genai.semconv.source": GENAI_SEMCONV_SOURCE,
+      "genai_redactor.content_capture.enabled": false,
+      "genai_redactor.redaction.status": "failed",
+      "genai_redactor.redaction.total_count": 0,
+      "genai_redactor.redaction.metadata_dropped_count": 1,
+    },
+    droppedMetadataKeys: ["mapperInput"],
   };
 }
 
