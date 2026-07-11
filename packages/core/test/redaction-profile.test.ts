@@ -43,6 +43,51 @@ describe("createRedactionProfile", () => {
     expect(result.report.totalRedactions).toBe(1);
   });
 
+  it("snapshots detector metadata and function references", async () => {
+    const detector: Detector = {
+      id: "profile:snapshot",
+      reasons: ["custom:customer_id"],
+      detect(input) {
+        const start = input.indexOf("cust_1234");
+        return start < 0
+          ? []
+          : [
+              {
+                reason: "custom:customer_id",
+                start,
+                end: start + "cust_1234".length,
+              },
+            ];
+      },
+    };
+    const creation = createRedactionProfile({
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+    expect(creation.ok).toBe(true);
+    if (!creation.ok) {
+      return;
+    }
+
+    detector.id = "profile:mutated";
+    detector.reasons = ["custom:mutated"];
+    detector.detect = () => [];
+
+    const result = await redactText("Customer cust_1234", {
+      profile: creation.value,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value).not.toContain("cust_1234");
+    expect(result.report.countsByReason).toEqual({
+      "custom:customer_id": 1,
+    });
+  });
+
   it("rejects unsafe static profile composition without exposing detector ids", () => {
     const invalidProfiles = [
       createRedactionProfile({ builtInDetectors: false }),

@@ -120,7 +120,11 @@ function createRedactionProfileInternal(
     return invalidProfile();
   }
 
-  const options = snapshotOptions(config);
+  const options = snapshotOptions({
+    ...config,
+    builtInDetectors: false,
+    detectors,
+  });
   const state = Object.freeze({ options });
   const profile = Object.freeze({ [PROFILE_STATE]: state });
   return { ok: true, value: profile };

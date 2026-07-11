@@ -64,28 +64,45 @@ function resolveDetectorsInternal(
     return invalidOptions("Custom detectors must be provided as an array.");
   }
 
+  const normalizedCustomDetectors: Detector[] = [];
   for (const detector of customDetectors) {
     if (!isDetector(detector)) {
       return invalidOptions("Redaction options included an invalid detector.");
     }
 
-    for (const reason of detector.reasons) {
+    const id = detector.id;
+    const reasons = Object.freeze([...detector.reasons]);
+    const detect = detector.detect;
+    for (const reason of reasons) {
       if (!isSafeReason(reason)) {
         return {
           ok: false,
           error: {
             code: "invalid_redaction_reason",
             message: "A detector declared an unsafe redaction reason.",
-            detectorId: detector.id,
+            detectorId: id,
           },
         };
       }
     }
+
+    normalizedCustomDetectors.push(
+      Object.freeze({
+        id,
+        reasons,
+        detect(input, context) {
+          return detect.call(detector, input, context);
+        },
+      }),
+    );
   }
 
   return {
     ok: true,
-    value: [...createBuiltInDetectors(builtInNames), ...customDetectors],
+    value: [
+      ...createBuiltInDetectors(builtInNames),
+      ...normalizedCustomDetectors,
+    ],
   };
 }
 

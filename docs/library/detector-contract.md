@@ -60,10 +60,12 @@ Profile-backed operations accept only the profile and an optional operation-loca
 overrides. Profiles preserve existing overlap behavior and do not introduce
 detector priority, first-match-wins, or automatic built-in suppression.
 
-The profile snapshots detector arrays but retains references to caller-owned
-detector objects. Callers must treat detector implementations and replacement
-functions as stable after profile creation; the library does not claim deep
-immutability for arbitrary function state.
+The profile snapshots detector arrays, detector IDs, declared reasons, and
+detector function references. Replacing those caller-owned properties after
+profile creation does not change the profile. Detector functions still execute
+with their original detector object as `this`, so caller-owned closure and object
+state used inside a function remains the caller's responsibility. Replacement
+function state is likewise not deeply immutable.
 
 ## Safety Requirements
 
