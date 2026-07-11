@@ -24,10 +24,18 @@ type MutableRecord = Record<string, unknown>;
 type AdapterState = {
   redaction: RedactionOptions;
   totalDeadlineEpochMs: number | undefined;
+  maxTotalDetections: number;
+  maxDetectorRuns: number;
+  totalDetections: number;
+  detectorRuns: number;
+  detectorCount: number;
   redactToolNames: boolean;
   reportAccumulator: RedactionReportAccumulator;
   warnings: RedactionWarning[];
 };
+
+const DEFAULT_MAX_TOTAL_DETECTIONS = 10_000;
+const DEFAULT_MAX_DETECTOR_RUNS = 50_000;
 
 const REQUEST_KEYS = new Set([
   "messages",
@@ -275,7 +283,7 @@ async function redactStructuredMetadata(
     return failureFromResult(result, state);
   }
 
-  state.reportAccumulator.add(result.report);
+  recordCoreReport(state, result.report);
   return success(result.value, state);
 }
 
@@ -365,7 +373,7 @@ async function redactContent(
       if (!result.ok) {
         return failureFromResult(result, state);
       }
-      state.reportAccumulator.add(result.report);
+      recordCoreReport(state, result.report);
       parts.push(result.value);
     }
     return success(parts, state);
@@ -383,7 +391,7 @@ async function redactContent(
     if (!result.ok) {
       return failureFromResult(result, state);
     }
-    state.reportAccumulator.add(result.report);
+    recordCoreReport(state, result.report);
     return success(result.value, state);
   }
 
@@ -477,7 +485,7 @@ async function redactToolArgumentsValue(
       if (!result.ok) {
         return failureFromResult(result, state);
       }
-      state.reportAccumulator.add(result.report);
+      recordCoreReport(state, result.report);
       return success(JSON.stringify(result.value), state);
     } catch (error) {
       if (error instanceof SyntaxError) {
@@ -495,7 +503,7 @@ async function redactToolArgumentsValue(
   if (!result.ok) {
     return failureFromResult(result, state);
   }
-  state.reportAccumulator.add(result.report);
+  recordCoreReport(state, result.report);
   return success(result.value, state);
 }
 
@@ -515,7 +523,7 @@ async function redactInputField(
     if (!result.ok) {
       return failureFromResult(result, state);
     }
-    state.reportAccumulator.add(result.report);
+    recordCoreReport(state, result.report);
     return success(result.value, state);
   }
 
@@ -561,12 +569,21 @@ async function redactStringValue(
     return success(value, state);
   }
 
+  if (state.detectorRuns + state.detectorCount > state.maxDetectorRuns) {
+    state.warnings.push({ code: "max_detector_runs_exceeded" });
+    return createFailure(
+      state,
+      "max_detector_runs_exceeded",
+      "Detector execution count exceeded the configured redaction limit.",
+    );
+  }
+
   const result = await redactText(value, redactionForCurrentBudget(state));
   if (!result.ok) {
     return failureFromResult(result, state);
   }
 
-  state.reportAccumulator.add(result.report);
+  recordCoreReport(state, result.report);
   return success(result.value, state);
 }
 
@@ -592,12 +609,21 @@ function createAdapterState(
 
     const redaction = redactionResult.value;
     const totalDeadlineEpochMs = totalDeadlineFromOptions(redaction);
+    const maxTotalDetections =
+      redaction.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS;
+    const maxDetectorRuns =
+      redaction.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS;
 
     return {
       ok: true,
       value: {
         redaction,
         totalDeadlineEpochMs,
+        maxTotalDetections,
+        maxDetectorRuns,
+        totalDetections: 0,
+        detectorRuns: 0,
+        detectorCount: detectorCount(redaction),
         redactToolNames,
         reportAccumulator: createRedactionReportAccumulator(),
         warnings: [],
@@ -612,6 +638,11 @@ function invalidAdapterOptions<T>(): RedactionResult<T> {
   const state: AdapterState = {
     redaction: {},
     totalDeadlineEpochMs: undefined,
+    maxTotalDetections: DEFAULT_MAX_TOTAL_DETECTIONS,
+    maxDetectorRuns: DEFAULT_MAX_DETECTOR_RUNS,
+    totalDetections: 0,
+    detectorRuns: 0,
+    detectorCount: 4,
     redactToolNames: false,
     reportAccumulator: createRedactionReportAccumulator(),
     warnings: [{ code: "invalid_redaction_options" }],
@@ -631,17 +662,39 @@ function totalDeadlineFromOptions(options: RedactionOptions) {
 }
 
 function redactionForCurrentBudget(state: AdapterState): RedactionOptions {
-  if (state.totalDeadlineEpochMs === undefined) {
-    return state.redaction;
-  }
-
   return {
     ...state.redaction,
     limits: {
       ...state.redaction.limits,
-      maxTotalDurationMs: Math.max(0, state.totalDeadlineEpochMs - Date.now()),
+      maxTotalDetections: Math.max(
+        0,
+        state.maxTotalDetections - state.totalDetections,
+      ),
+      maxDetectorRuns: Math.max(0, state.maxDetectorRuns - state.detectorRuns),
+      ...(state.totalDeadlineEpochMs === undefined
+        ? {}
+        : {
+            maxTotalDurationMs: Math.max(
+              0,
+              state.totalDeadlineEpochMs - Date.now(),
+            ),
+          }),
     },
   };
+}
+
+function recordCoreReport(state: AdapterState, report: RedactionReport) {
+  state.totalDetections += report.totalRedactions;
+  state.detectorRuns += report.timings?.detectorRuns ?? 0;
+  state.reportAccumulator.add(report);
+}
+
+function detectorCount(options: RedactionOptions) {
+  const builtInCount =
+    options.builtInDetectors === false
+      ? 0
+      : (options.builtInDetectors?.length ?? 4);
+  return builtInCount + (options.detectors?.length ?? 0);
 }
 
 function success<T>(value: T, state: AdapterState): RedactionResult<T> {

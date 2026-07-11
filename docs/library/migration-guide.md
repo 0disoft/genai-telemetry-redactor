@@ -61,6 +61,10 @@ OpenAI-compatible request or response and across both halves of an SDK
 request/response operation. Earlier adapter calls effectively restarted this
 budget for each nested core redaction.
 
+`maxTotalDetections` and `maxDetectorRuns` now follow the same cumulative adapter
+and SDK scope. A later field or response cannot reuse detection or detector-run
+budget already consumed by earlier content.
+
 ## 0.2.0
 
 `createRedactionProfile(config)` adds an immutable, reusable core policy for

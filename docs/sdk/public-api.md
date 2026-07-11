@@ -64,6 +64,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `options.redaction.limits.maxTotalDurationMs` spans the complete SDK operation,
   including both request and optional response redaction. The response receives
   only the duration left after request processing.
+- `maxTotalDetections` and `maxDetectorRuns` also span request and response
+  together; successful request usage is deducted before response redaction.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
 - Adapter-specific options are not allowed to override core redaction policy.

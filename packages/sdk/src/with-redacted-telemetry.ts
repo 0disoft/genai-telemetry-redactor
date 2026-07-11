@@ -26,6 +26,15 @@ const REPORT_CONTEXT_KEYS = [
   "attemptId",
   "idempotencyKey",
 ] as const;
+const DEFAULT_MAX_TOTAL_DETECTIONS = 10_000;
+const DEFAULT_MAX_DETECTOR_RUNS = 50_000;
+
+type SdkRedactionBudget = {
+  maxTotalDetections: number;
+  maxDetectorRuns: number;
+  totalDetections: number;
+  detectorRuns: number;
+};
 
 export async function withRedactedTelemetry(
   options: WithRedactedTelemetryOptions,
@@ -72,6 +81,14 @@ async function withOpenAICompatibleRedactedTelemetry(
   }
   const redaction = redactionResult.value;
   const totalDeadlineEpochMs = totalDeadlineFromOptions(redaction);
+  const budget: SdkRedactionBudget = {
+    maxTotalDetections:
+      redaction.limits?.maxTotalDetections ?? DEFAULT_MAX_TOTAL_DETECTIONS,
+    maxDetectorRuns:
+      redaction.limits?.maxDetectorRuns ?? DEFAULT_MAX_DETECTOR_RUNS,
+    totalDetections: 0,
+    detectorRuns: 0,
+  };
   const reports: RedactionReport[] = [];
 
   const request = await redactOpenAICompatibleRequest(
@@ -79,6 +96,7 @@ async function withOpenAICompatibleRedactedTelemetry(
     adapterOptionsForCurrentBudget(
       redaction,
       totalDeadlineEpochMs,
+      budget,
       options.openAICompatible?.redactToolNames === true,
     ),
   );
@@ -86,6 +104,7 @@ async function withOpenAICompatibleRedactedTelemetry(
     return failureFromRedaction(request, options, reports);
   }
   reports.push(request.report);
+  recordSdkBudget(budget, request.report);
 
   let redactedResponse: unknown;
   if ("response" in options) {
@@ -94,6 +113,7 @@ async function withOpenAICompatibleRedactedTelemetry(
       adapterOptionsForCurrentBudget(
         redaction,
         totalDeadlineEpochMs,
+        budget,
         options.openAICompatible?.redactToolNames === true,
       ),
     );
@@ -152,20 +172,34 @@ function totalDeadlineFromOptions(options: RedactionOptions) {
 function adapterOptionsForCurrentBudget(
   redaction: RedactionOptions,
   totalDeadlineEpochMs: number | undefined,
+  budget: SdkRedactionBudget,
   redactToolNames: boolean,
 ) {
-  if (totalDeadlineEpochMs === undefined) {
-    return { ...redaction, redactToolNames };
-  }
-
   return {
     ...redaction,
     limits: {
       ...redaction.limits,
-      maxTotalDurationMs: Math.max(0, totalDeadlineEpochMs - Date.now()),
+      maxTotalDetections: Math.max(
+        0,
+        budget.maxTotalDetections - budget.totalDetections,
+      ),
+      maxDetectorRuns: Math.max(
+        0,
+        budget.maxDetectorRuns - budget.detectorRuns,
+      ),
+      ...(totalDeadlineEpochMs === undefined
+        ? {}
+        : {
+            maxTotalDurationMs: Math.max(0, totalDeadlineEpochMs - Date.now()),
+          }),
     },
     redactToolNames,
   };
+}
+
+function recordSdkBudget(budget: SdkRedactionBudget, report: RedactionReport) {
+  budget.totalDetections += report.totalRedactions;
+  budget.detectorRuns += report.timings?.detectorRuns ?? 0;
 }
 
 function failureFromRedaction<T>(

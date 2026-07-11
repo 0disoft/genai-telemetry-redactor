@@ -48,6 +48,60 @@ describe("OpenAI-compatible adapter", () => {
     }
   });
 
+  it("shares one detection budget across request fields", async () => {
+    const result = await redactOpenAICompatibleRequest(
+      {
+        messages: [
+          { role: "user", content: "first@example.invalid" },
+          { role: "user", content: "second@example.invalid" },
+        ],
+      },
+      { limits: { maxTotalDetections: 1 } },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_total_detections_exceeded");
+    expect(JSON.stringify(result)).not.toContain("first@example.invalid");
+    expect(JSON.stringify(result)).not.toContain("second@example.invalid");
+  });
+
+  it("checks cumulative detector runs before the next request field", async () => {
+    let detectorRuns = 0;
+    const detector: Detector = {
+      id: "test:adapter-run-budget",
+      reasons: ["custom:run_budget"],
+      detect() {
+        detectorRuns += 1;
+        return [];
+      },
+    };
+    const result = await redactOpenAICompatibleRequest(
+      {
+        messages: [
+          { role: "user", content: "first safe field" },
+          { role: "user", content: "second safe field" },
+        ],
+      },
+      {
+        builtInDetectors: false,
+        detectors: [detector],
+        limits: { maxDetectorRuns: 1 },
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(detectorRuns).toBe(1);
+  });
+
   it("accepts a reusable redaction profile", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],

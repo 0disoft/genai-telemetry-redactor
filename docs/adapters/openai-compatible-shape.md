@@ -45,6 +45,9 @@ gateway behavior.
 - `maxTotalDurationMs` is one deadline for the complete adapter request or
   response operation. Each content-bearing field receives only the remaining
   duration; traversing another field does not reset the configured budget.
+- `maxTotalDetections` and `maxDetectorRuns` are likewise cumulative across
+  content-bearing fields. A text field is not dispatched when its detector count
+  would exceed the remaining run budget.
 - `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
   metadata with `streaming_content_omitted`.
 

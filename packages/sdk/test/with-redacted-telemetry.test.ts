@@ -45,6 +45,49 @@ describe("withRedactedTelemetry", () => {
     }
   });
 
+  it("shares detection and detector-run budgets across request and response", async () => {
+    let detectorRuns = 0;
+    const detector: Detector = {
+      id: "test:sdk-run-budget",
+      reasons: ["custom:run_budget"],
+      detect(input) {
+        detectorRuns += 1;
+        const start = input.indexOf("cust_1234");
+        return start < 0
+          ? []
+          : [
+              {
+                reason: "custom:run_budget",
+                start,
+                end: start + "cust_1234".length,
+              },
+            ];
+      },
+    };
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: { prompt: "Customer cust_1234" },
+      response: { choices: [{ text: "Customer cust_1234" }] },
+      redaction: {
+        builtInDetectors: false,
+        detectors: [detector],
+        limits: {
+          maxTotalDetections: 1,
+          maxDetectorRuns: 1,
+        },
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("max_detector_runs_exceeded");
+    expect(detectorRuns).toBe(1);
+    expect(JSON.stringify(result)).not.toContain("cust_1234");
+  });
+
   it("reuses a redaction profile through the SDK wrapper", async () => {
     const creation = createRedactionProfile({
       builtInDetectors: ["email"],
