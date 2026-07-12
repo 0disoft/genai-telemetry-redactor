@@ -31,6 +31,25 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.2
+
+JSON-like traversal now accepts only JSON-serializable primitives and plain data
+records. Object keys count toward the total string budget, key limits are checked
+before values are read, and symbol keys, accessors, non-enumerable properties,
+functions, `bigint`, `undefined`, and non-finite numbers fail closed. Own
+`__proto__` data properties no longer change the output prototype.
+
+Detector results are normalized from own data properties before range and reason
+validation. Hostile accessors, oversized raw result arrays, and abort races now
+produce safe failures without propagating detector exception text. Credential-
+shaped detector IDs and telemetry labels are dropped or rejected.
+
+OpenAI-compatible allowlisted metadata now receives runtime type validation, and
+symbol or accessor properties fail closed instead of surviving a clone. SDK
+`onReport` callbacks may return a promise; rejections add
+`report_callback_failed` while preserving the redacted result. Release tags must
+point to commits reachable from `main`.
+
 ## 0.2.1
 
 OpenAI-compatible request and response helpers and the SDK

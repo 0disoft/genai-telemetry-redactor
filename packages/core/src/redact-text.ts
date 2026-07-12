@@ -169,7 +169,16 @@ async function redactTextInternal(
     detectorRuns += 1;
 
     try {
-      detectorDetections = await runDetector(detector, input, detectorControl);
+      detectorDetections = await runDetector(
+        detector,
+        input,
+        detectorControl,
+        Math.max(
+          0,
+          (options.limits?.maxTotalDetections ?? Number.MAX_SAFE_INTEGER) -
+            detections.length,
+        ),
+      );
     } catch (error) {
       detectorDurationMs += Date.now() - detectorStartedAtMs;
       detectorDurationRecorded = true;
@@ -302,7 +311,10 @@ type DetectorControl = {
 class DetectorRunError extends Error {
   constructor(
     readonly code:
-      "detector_timeout" | "max_total_duration_exceeded" | "redaction_aborted",
+      | "detector_timeout"
+      | "max_total_detections_exceeded"
+      | "max_total_duration_exceeded"
+      | "redaction_aborted",
   ) {
     super(code);
   }
@@ -407,21 +419,11 @@ async function runDetector(
   detector: Detector,
   input: string,
   control: DetectorControl,
+  maxDetections: number,
 ): Promise<Detection[]> {
   if (control.signal.aborted) {
     throw new DetectorRunError(control.failureCode());
   }
-
-  const detectPromise = Promise.resolve(
-    detector.detect(input, {
-      detectorId: detector.id,
-      inputLength: input.length,
-      signal: control.signal,
-      ...(control.deadlineEpochMs === undefined
-        ? {}
-        : { deadlineEpochMs: control.deadlineEpochMs }),
-    }),
-  );
 
   let removeAbortListener = () => undefined;
   const abortPromise = new Promise<never>((_, reject) => {
@@ -435,16 +437,85 @@ async function runDetector(
   });
 
   try {
-    return await Promise.race([detectPromise, abortPromise]);
+    if (control.signal.aborted) {
+      throw new DetectorRunError(control.failureCode());
+    }
+
+    const detectPromise = Promise.resolve(
+      detector.detect(input, {
+        detectorId: detector.id,
+        inputLength: input.length,
+        signal: control.signal,
+        ...(control.deadlineEpochMs === undefined
+          ? {}
+          : { deadlineEpochMs: control.deadlineEpochMs }),
+      }),
+    );
+    const output = await Promise.race([detectPromise, abortPromise]);
+    if (control.signal.aborted) {
+      throw new DetectorRunError(control.failureCode());
+    }
+
+    return normalizeDetectorOutput(output, maxDetections);
   } finally {
     removeAbortListener();
   }
+}
+
+function normalizeDetectorOutput(
+  output: unknown,
+  maxDetections: number,
+): Detection[] {
+  if (!Array.isArray(output) || output.length > maxDetections) {
+    if (Array.isArray(output) && output.length > maxDetections) {
+      throw new DetectorRunError("max_total_detections_exceeded");
+    }
+    throw new Error("invalid detector output");
+  }
+
+  const normalized: Detection[] = [];
+  for (let index = 0; index < output.length; index += 1) {
+    const itemDescriptor = Object.getOwnPropertyDescriptor(output, index);
+    if (!itemDescriptor || !("value" in itemDescriptor)) {
+      throw new Error("invalid detector output");
+    }
+
+    const item = itemDescriptor.value;
+    if (typeof item !== "object" || item === null) {
+      throw new Error("invalid detector output");
+    }
+
+    const descriptors = Object.getOwnPropertyDescriptors(item);
+    const reason = ownDataPropertyValue(descriptors, "reason");
+    const start = ownDataPropertyValue(descriptors, "start");
+    const end = ownDataPropertyValue(descriptors, "end");
+    normalized.push({
+      reason: reason as Detection["reason"],
+      start: start as number,
+      end: end as number,
+    });
+  }
+
+  return normalized;
+}
+
+function ownDataPropertyValue(
+  descriptors: PropertyDescriptorMap,
+  key: string,
+): unknown {
+  const descriptor = descriptors[key];
+  if (!descriptor || !("value" in descriptor)) {
+    throw new Error("invalid detector output");
+  }
+
+  return descriptor.value;
 }
 
 function detectorFailureMessage(
   code:
     | "detector_failed"
     | "detector_timeout"
+    | "max_total_detections_exceeded"
     | "max_total_duration_exceeded"
     | "redaction_aborted",
 ): string {
@@ -453,6 +524,8 @@ function detectorFailureMessage(
       return "A detector timed out before content could be safely redacted.";
     case "max_total_duration_exceeded":
       return "Redaction exceeded the configured total operation duration.";
+    case "max_total_detections_exceeded":
+      return "Detection count exceeded the configured redaction limit.";
     case "redaction_aborted":
       return "Redaction was aborted before content could be safely redacted.";
     case "detector_failed":

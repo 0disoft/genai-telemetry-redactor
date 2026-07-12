@@ -39,6 +39,7 @@ This repository type owns public API, compatibility, examples, versioning, and c
 ## Documented Export Inventory
 
 <!-- sdk-api-inventory:start -->
+
 ### Export `./sdk`
 
 - `RedactedTelemetryAdapter`
@@ -50,6 +51,7 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `WithRedactedTelemetryResult`
 - `WithRedactedTelemetrySuccess`
 - `WithRedactedTelemetryValue`
+
 <!-- sdk-api-inventory:end -->
 
 ## Implemented SDK Surface
@@ -84,7 +86,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
   report context so external metrics, logs, or audit writes can deduplicate
   retries without reading payload content. If the callback throws, the SDK keeps
   the redacted result and adds `report_callback_failed` to returned warnings and
-  telemetry warning codes.
+  telemetry warning codes. Promise-returning callbacks are awaited and rejected
+  promises follow the same safe warning path.
 - Executable SDK examples cover OpenAI-compatible request-only wrapping,
   request/response wrapping, tool-call argument redaction, report callbacks, and
   timing metadata without storing raw payload content.

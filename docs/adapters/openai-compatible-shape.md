@@ -77,6 +77,12 @@ shape. Unknown top-level provider extensions such as `metadata`, `extra_body`,
 or unrecognized choice/message fields fail closed because they may carry prompt,
 completion, tool, or customer content.
 
+Allowlisted fields are also runtime type checked: scalar metadata cannot contain
+objects, response `text` must be a string, and known arrays and records must have
+the expected shape. Plain records may contain only enumerable string-keyed data
+properties. Symbols, accessors, class instances, and non-plain prototypes fail
+closed. Explicit `undefined` on an optional metadata field is treated as absent.
+
 ## Review Blockers
 
 - A provider SDK becomes a required dependency for the core redaction path.

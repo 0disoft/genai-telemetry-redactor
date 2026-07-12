@@ -6,15 +6,17 @@ Status: Product-shaping
 
 Traversal must redact nested plain JSON-like data without creating a
 denial-of-service path or leaking raw tool arguments. Supported values are
-primitives, arrays, plain objects, and `null`; provider SDK instances, `Date`,
+JSON primitives (finite numbers, booleans, strings, and `null`), arrays, and
+plain objects; provider SDK instances, `undefined`, non-finite numbers,
+`bigint`, symbols, functions, `Date`,
 `Map`, `Set`, `URL`, class instances, and other non-plain objects fail closed
 instead of being coerced into `{}`.
 
 ## Implemented Limits
 
 - Maximum string length: configurable through `maxStringLength`.
-- Maximum total string length per JSON-like traversal: configurable through
-  `maxTotalStringLength`.
+- Maximum total string length per JSON-like traversal, including object keys:
+  configurable through `maxTotalStringLength`.
 - Maximum object depth: configurable through `maxObjectDepth`.
 - Maximum key count: configurable through `maxObjectKeys`.
 - Maximum array length: configurable through `maxArrayLength`.
@@ -48,7 +50,8 @@ a denial-of-service amplifier:
 
 - `maxTotalStringLength`: 1,000,000 UTF-16 code units.
 - `maxTotalNodes`: 10,000 visited nodes.
-- `maxTotalDetections`: 10,000 selected detections.
+- `maxTotalDetections`: 10,000 detector-returned detections before overlap
+  resolution.
 - `maxDetectorRuns`: 50,000 detector executions.
 
 `redactText` uses `maxDetectors` to cap how many detectors may run for a single
@@ -81,6 +84,11 @@ include object paths, detector IDs, matched values, or raw content.
 Inline operation options snapshot detector arrays, built-in selection, limits,
 replacement policy, and abort signal at operation start. Mutating the caller's
 option collections after dispatch does not change an in-flight operation.
+
+Traversal enumerates own keys and enforces the object-key limit before reading
+property values. Symbol keys, accessors, non-enumerable properties, and unsafe
+`__proto__` handling fail closed; an own enumerable `__proto__` data property is
+copied as data without changing the output prototype.
 
 Malformed JSON string parsing is not implemented yet; callers can pass parsed
 tool argument objects or strings for text redaction.

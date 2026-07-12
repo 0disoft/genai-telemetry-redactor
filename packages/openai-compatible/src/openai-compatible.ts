@@ -90,6 +90,11 @@ export async function redactOpenAICompatibleRequest<T>(
       return keyResult;
     }
 
+    const metadataResult = validateRequestMetadata(input, state);
+    if (!metadataResult.ok) {
+      return metadataResult;
+    }
+
     const cloned = cloneRecord(input);
     const redactResult = await redactRequestRecord(cloned, state);
     if (!redactResult.ok) {
@@ -120,6 +125,11 @@ export async function redactOpenAICompatibleResponse<T>(
     const keyResult = validateAllowedKeys(input, RESPONSE_KEYS, state, "$");
     if (!keyResult.ok) {
       return keyResult;
+    }
+
+    const metadataResult = validateResponseMetadata(input, state);
+    if (!metadataResult.ok) {
+      return metadataResult;
     }
 
     const cloned = cloneRecord(input);
@@ -235,7 +245,17 @@ async function redactResponseRecord(
 
     const clonedChoice = cloneRecord(choice);
 
+    if (
+      !isOptionalInteger(clonedChoice.index) ||
+      !isOptionalStringOrNull(clonedChoice.finish_reason)
+    ) {
+      return unsupportedShape(state, `$.choices[${index}]`);
+    }
+
     if ("text" in clonedChoice) {
+      if (typeof clonedChoice.text !== "string") {
+        return unsupportedShape(state, `$.choices[${index}].text`);
+      }
       const result = await redactStringValue(clonedChoice.text, state);
       if (!result.ok) {
         return result;
@@ -328,6 +348,10 @@ async function redactMessage(
   }
 
   const message = cloneRecord(value);
+
+  if (!isOptionalString(message.role)) {
+    return unsupportedShape(state, `${path}.role`);
+  }
 
   if ("content" in message) {
     const result = await redactContent(
@@ -430,6 +454,12 @@ async function redactToolCalls(
     }
 
     const clonedToolCall = cloneRecord(toolCall);
+    if (
+      !isOptionalString(clonedToolCall.id) ||
+      !isOptionalString(clonedToolCall.type)
+    ) {
+      return unsupportedShape(state, `${path}[${index}]`);
+    }
     if ("function" in clonedToolCall && !isRecord(clonedToolCall.function)) {
       return unsupportedShape(state, `${path}[${index}].function`);
     }
@@ -446,6 +476,10 @@ async function redactToolCalls(
       }
 
       const fn = cloneRecord(clonedToolCall.function);
+
+      if (!isOptionalString(fn.name)) {
+        return unsupportedShape(state, `${path}[${index}].function.name`);
+      }
 
       if (state.redactToolNames && typeof fn.name === "string") {
         const result = await redactStringValue(fn.name, state);
@@ -767,7 +801,20 @@ function isRecord(value: unknown): value is MutableRecord {
 }
 
 function cloneRecord<T extends MutableRecord>(value: T): T {
-  return { ...value };
+  const clone: MutableRecord = {};
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  for (const key of Object.keys(descriptors)) {
+    const descriptor = descriptors[key];
+    if (descriptor && "value" in descriptor && descriptor.value !== undefined) {
+      Object.defineProperty(clone, key, {
+        configurable: true,
+        enumerable: true,
+        writable: true,
+        value: descriptor.value,
+      });
+    }
+  }
+  return clone as T;
 }
 
 function createFailure<T>(
@@ -817,12 +864,88 @@ function validateAllowedKeys(
   state: AdapterState,
   path: string,
 ): RedactionResult<void> {
-  const keys = Object.keys(record);
+  const prototype = Object.getPrototypeOf(record);
+  if (prototype !== Object.prototype && prototype !== null) {
+    return unsupportedShape(state, path);
+  }
+
+  const keys = Reflect.ownKeys(record);
+  const descriptors = Object.getOwnPropertyDescriptors(record);
   for (const [index, key] of keys.entries()) {
+    if (typeof key !== "string") {
+      return unsupportedShape(state, `${path}.{${index}}`);
+    }
+
+    const descriptor = descriptors[key];
+    if (!descriptor?.enumerable || !("value" in descriptor)) {
+      return unsupportedShape(state, `${path}.{${index}}`);
+    }
+
     if (!allowedKeys.has(key)) {
       return unsupportedShape(state, `${path}.{${index}}`);
     }
   }
 
   return success(undefined, state);
+}
+
+function validateRequestMetadata(
+  record: MutableRecord,
+  state: AdapterState,
+): RedactionResult<void> {
+  if (
+    !isOptionalString(record.model) ||
+    !isOptionalFiniteNumber(record.temperature) ||
+    !isOptionalFiniteNumber(record.top_p) ||
+    !isOptionalInteger(record.n) ||
+    !isOptionalBoolean(record.stream) ||
+    !isOptionalInteger(record.max_tokens) ||
+    !isOptionalInteger(record.max_completion_tokens)
+  ) {
+    return unsupportedShape(state);
+  }
+
+  return success(undefined, state);
+}
+
+function validateResponseMetadata(
+  record: MutableRecord,
+  state: AdapterState,
+): RedactionResult<void> {
+  if (
+    !isOptionalString(record.id) ||
+    !isOptionalString(record.object) ||
+    !isOptionalInteger(record.created) ||
+    !isOptionalString(record.model) ||
+    !isOptionalString(record.system_fingerprint)
+  ) {
+    return unsupportedShape(state);
+  }
+
+  return success(undefined, state);
+}
+
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === "string";
+}
+
+function isOptionalStringOrNull(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === "string";
+}
+
+function isOptionalBoolean(value: unknown): boolean {
+  return value === undefined || typeof value === "boolean";
+}
+
+function isOptionalFiniteNumber(value: unknown): boolean {
+  return (
+    value === undefined || (typeof value === "number" && Number.isFinite(value))
+  );
+}
+
+function isOptionalInteger(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (typeof value === "number" && Number.isInteger(value))
+  );
 }

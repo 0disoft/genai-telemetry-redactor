@@ -1,4 +1,5 @@
 import { createBuiltInDetectors } from "./built-in-detectors.js";
+import { isSafeTelemetryLabel } from "./safe-label.js";
 import type {
   BuiltInDetectorName,
   Detector,
@@ -71,6 +72,11 @@ function resolveDetectorsInternal(
     }
 
     const id = detector.id;
+    if (!isSafeTelemetryLabel(id)) {
+      return invalidOptions(
+        "Redaction options included an unsafe detector id.",
+      );
+    }
     const reasons = Object.freeze([...detector.reasons]);
     const detect = detector.detect;
     for (const reason of reasons) {

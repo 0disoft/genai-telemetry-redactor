@@ -177,7 +177,13 @@ async function visit(
 
     const result = await redactText(value, optionsForCurrentBudget(state));
     if (!result.ok) {
-      return result;
+      state.reportAccumulator.add(result.report);
+      return createTraversalFailure(
+        state,
+        result.error.code,
+        result.error.message,
+        result.error.detectorId ? { detectorId: result.error.detectorId } : {},
+      );
     }
 
     state.totalDetections += result.report.totalRedactions;
@@ -200,8 +206,21 @@ async function visit(
     };
   }
 
-  if (value === null || typeof value !== "object") {
+  if (
+    value === null ||
+    typeof value === "boolean" ||
+    (typeof value === "number" && Number.isFinite(value))
+  ) {
     return unchanged(value, state);
+  }
+
+  if (typeof value !== "object") {
+    state.warnings.push({ code: "unsupported_json_like", path });
+    return createTraversalFailure(
+      state,
+      "unsupported_json_like",
+      "Only JSON-serializable values can be safely traversed.",
+    );
   }
 
   if (state.seen.has(value)) {
@@ -337,8 +356,8 @@ async function visitObject(
   depth: number,
   state: TraversalState,
 ): Promise<RedactionResult<JsonLikeRecord>> {
-  const entries = Object.entries(value);
-  if (entries.length > state.limits.maxObjectKeys) {
+  const keys = Reflect.ownKeys(value);
+  if (keys.length > state.limits.maxObjectKeys) {
     state.warnings.push({ code: "max_object_keys_exceeded", path });
     return createTraversalFailure(
       state,
@@ -347,9 +366,51 @@ async function visitObject(
     );
   }
 
-  const next: JsonLikeRecord = {};
-  for (const [index, [key, item]] of entries.entries()) {
+  if (keys.some((key) => typeof key !== "string")) {
+    state.warnings.push({ code: "unsupported_json_like", path });
+    return createTraversalFailure(
+      state,
+      "unsupported_json_like",
+      "JSON-like objects cannot contain symbol keys.",
+    );
+  }
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+
+  const next: JsonLikeRecord =
+    Object.getPrototypeOf(value) === null ? Object.create(null) : {};
+  for (const [index, key] of (keys as string[]).entries()) {
     const safeChildPath = `${path}.{${index}}`;
+    const descriptor = descriptors[key];
+    if (
+      descriptor === undefined ||
+      !descriptor.enumerable ||
+      !("value" in descriptor)
+    ) {
+      state.warnings.push({
+        code: "unsupported_json_like",
+        path: safeChildPath,
+      });
+      return createTraversalFailure(
+        state,
+        "unsupported_json_like",
+        "JSON-like objects must contain enumerable data properties only.",
+      );
+    }
+
+    state.totalStringLength += key.length;
+    if (state.totalStringLength > state.limits.maxTotalStringLength) {
+      state.warnings.push({
+        code: "max_total_string_length_exceeded",
+        path: safeChildPath,
+      });
+      return createTraversalFailure(
+        state,
+        "max_total_string_length_exceeded",
+        "Total string length exceeded the configured redaction limit.",
+      );
+    }
+
     const keyRunBudget = countDetectorRunsForPath(state, safeChildPath);
     if (!keyRunBudget.ok) {
       return keyRunBudget;
@@ -357,6 +418,7 @@ async function visitObject(
 
     const keySafety = await redactText(key, optionsForCurrentBudget(state));
     if (!keySafety.ok) {
+      state.reportAccumulator.add(keySafety.report);
       state.warnings.push({ code: keySafety.error.code, path: safeChildPath });
       return createTraversalFailure(
         state,
@@ -377,12 +439,22 @@ async function visitObject(
       );
     }
 
-    const result = await visit(item, safeChildPath, depth + 1, state);
+    const result = await visit(
+      descriptor.value,
+      safeChildPath,
+      depth + 1,
+      state,
+    );
     if (!result.ok) {
       return result;
     }
 
-    next[key] = result.value;
+    Object.defineProperty(next, key, {
+      configurable: true,
+      enumerable: true,
+      value: result.value,
+      writable: true,
+    });
   }
 
   return unchanged(next, state);

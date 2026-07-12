@@ -24,7 +24,7 @@ export type RedactedTelemetryReportCallback = (
   report: RedactionReport,
   telemetry: OtelGenAIMetadata,
   context: RedactedTelemetryReportContext,
-) => void;
+) => void | Promise<void>;
 
 export type WithRedactedTelemetryOptions = {
   adapter: RedactedTelemetryAdapter;

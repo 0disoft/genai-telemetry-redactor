@@ -8,6 +8,7 @@ import type {
 } from "../../core/src/index.js";
 import { mergeReports } from "../../core/src/report.js";
 import { resolveRedactionOperationOptions } from "../../core/src/redaction-profile.js";
+import { isSafeTelemetryLabel } from "../../core/src/safe-label.js";
 import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
@@ -20,7 +21,6 @@ import type {
   WithRedactedTelemetryValue,
 } from "./types.js";
 
-const SAFE_CONTEXT_LABEL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const REPORT_CONTEXT_KEYS = [
   "operationId",
   "attemptId",
@@ -112,7 +112,7 @@ async function withOpenAICompatibleRedactedTelemetry(
     ),
   );
   if (!request.ok) {
-    return failureFromRedaction(request, options, reports);
+    return await failureFromRedaction(request, options, reports);
   }
   reports.push(request.report);
   recordSdkBudget(budget, request.report);
@@ -129,7 +129,7 @@ async function withOpenAICompatibleRedactedTelemetry(
       ),
     );
     if (!response.ok) {
-      return failureFromRedaction(response, options, reports);
+      return await failureFromRedaction(response, options, reports);
     }
 
     reports.push(response.report);
@@ -138,7 +138,7 @@ async function withOpenAICompatibleRedactedTelemetry(
 
   const report = mergeReports(reports);
   let telemetry = mapRedactionReportToGenAIMetadata(report, options.telemetry);
-  const finalReport = invokeReportCallback(
+  const finalReport = await invokeReportCallback(
     options,
     report,
     telemetry,
@@ -220,15 +220,15 @@ function recordSdkBudget(budget: SdkRedactionBudget, report: RedactionReport) {
   budget.totalStringLength += report.timings?.stringCodeUnits ?? 0;
 }
 
-function failureFromRedaction<T>(
+async function failureFromRedaction<T>(
   result: Extract<RedactionResult<T>, { ok: false }>,
   options: WithRedactedTelemetryOptions,
   priorReports: readonly RedactionReport[],
-): WithRedactedTelemetryResult {
+): Promise<WithRedactedTelemetryResult> {
   const reportContext = sanitizeReportContext(options.reportContext);
   const report = mergeReports([...priorReports, result.report]);
   let telemetry = mapRedactionReportToGenAIMetadata(report, options.telemetry);
-  const finalReport = invokeReportCallback(
+  const finalReport = await invokeReportCallback(
     options,
     report,
     telemetry,
@@ -251,18 +251,18 @@ function failureFromRedaction<T>(
   };
 }
 
-function invokeReportCallback(
+async function invokeReportCallback(
   options: WithRedactedTelemetryOptions,
   report: RedactionReport,
   telemetry: ReturnType<typeof mapRedactionReportToGenAIMetadata>,
   context: RedactedTelemetryReportContext,
-): RedactionReport {
+): Promise<RedactionReport> {
   if (!options.onReport) {
     return report;
   }
 
   try {
-    options.onReport(report, telemetry, context);
+    await options.onReport(report, telemetry, context);
     return report;
   } catch {
     return appendReportWarning(report, "report_callback_failed");
@@ -296,7 +296,7 @@ function sanitizeReportContext(
       continue;
     }
 
-    if (typeof value === "string" && SAFE_CONTEXT_LABEL_PATTERN.test(value)) {
+    if (isSafeTelemetryLabel(value)) {
       context[key] = value;
       continue;
     }

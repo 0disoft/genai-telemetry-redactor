@@ -261,6 +261,29 @@ describe("withRedactedTelemetry", () => {
     ).toEqual(["report_callback_failed"]);
   });
 
+  it("preserves redacted results when async report callbacks reject", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: {
+        prompt: "Contact user@example.invalid",
+      },
+      async onReport() {
+        await Promise.resolve();
+        throw new Error("synthetic async callback failure");
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
+    expect(result.value.report.warnings).toContainEqual(
+      expect.objectContaining({ code: "report_callback_failed" }),
+    );
+  });
+
   it("passes safe idempotency context to report callbacks and results", async () => {
     const contexts: unknown[] = [];
     const result = await withRedactedTelemetry({
@@ -325,6 +348,30 @@ describe("withRedactedTelemetry", () => {
     expect(JSON.stringify(result)).not.toContain(
       "https://example.invalid/private",
     );
+  });
+
+  it("drops credential-shaped report context labels", async () => {
+    const credentialShapedId = [
+      "sk",
+      "proj",
+      "sensitive",
+      "label",
+      "12345678",
+    ].join("-");
+    const result = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: { prompt: "safe" },
+      reportContext: { operationId: credentialShapedId },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.reportContext).toEqual({
+      droppedContextKeys: ["operationId"],
+    });
+    expect(JSON.stringify(result)).not.toContain(credentialShapedId);
   });
 
   it("fails closed for unknown adapter names from JavaScript callers", async () => {

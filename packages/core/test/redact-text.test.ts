@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Detector } from "../src/index.js";
+import type { Detection, Detector } from "../src/index.js";
 import { createRegexDetector, redactText } from "../src/index.js";
 
 describe("redactText", () => {
@@ -753,5 +753,85 @@ describe("redactText", () => {
     expect(result.error.code).toBe("max_total_detections_exceeded");
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
     expect(JSON.stringify(result)).not.toContain("admin@example.invalid");
+  });
+
+  it("fails closed without inspecting hostile detection accessors", async () => {
+    const detector: Detector = {
+      id: "custom:hostile-output",
+      reasons: ["custom:hostile"],
+      detect() {
+        return [
+          Object.defineProperty({}, "reason", {
+            enumerable: true,
+            get() {
+              throw new Error("secret user@example.invalid");
+            },
+          }) as Detection,
+        ];
+      },
+    };
+
+    const result = await redactText("safe input", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("detector_failed");
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("lets an abort raised during detector setup win over a success value", async () => {
+    const controller = new AbortController();
+    const detector: Detector = {
+      id: "custom:abort-during-setup",
+      reasons: ["custom:abort"],
+      detect() {
+        controller.abort();
+        return [];
+      },
+    };
+
+    const result = await redactText("safe input", {
+      builtInDetectors: false,
+      detectors: [detector],
+      signal: controller.signal,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.error.code).toBe("redaction_aborted");
+  });
+
+  it("rejects credential-shaped detector identifiers without exporting them", async () => {
+    const credentialShapedId = [
+      "sk",
+      "proj",
+      "sensitive",
+      "label",
+      "12345678",
+    ].join("-");
+    const detector: Detector = {
+      id: credentialShapedId,
+      reasons: ["custom:safe"],
+      detect() {
+        return [];
+      },
+    };
+
+    const result = await redactText("safe input", {
+      builtInDetectors: false,
+      detectors: [detector],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain(credentialShapedId);
   });
 });

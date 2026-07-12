@@ -7,6 +7,49 @@ import {
 } from "../src/index.js";
 
 describe("OpenAI-compatible adapter", () => {
+  it("fails closed for non-scalar request metadata", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      prompt: "safe",
+      temperature: { leaked: "user@example.invalid" },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed for non-string response text", async () => {
+    const result = await redactOpenAICompatibleResponse({
+      choices: [{ text: { leaked: "user@example.invalid" } }],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed for enumerable symbol keys", async () => {
+    const secretKey = Symbol("user@example.invalid");
+    const request = { prompt: "safe" } as Record<PropertyKey, unknown>;
+    request[secretKey] = "user@example.invalid";
+
+    const result = await redactOpenAICompatibleRequest(request);
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("treats explicitly undefined optional metadata as absent", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      prompt: "safe",
+      temperature: undefined,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect("temperature" in result.value).toBe(false);
+  });
+
   it("shares one total-duration deadline across request fields", async () => {
     let now = 1_000;
     let detectorRuns = 0;

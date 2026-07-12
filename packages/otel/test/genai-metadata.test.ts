@@ -225,6 +225,28 @@ describe("mapRedactionReportToGenAIMetadata", () => {
     expect(output).not.toContain("$.unknown");
   });
 
+  it("drops credential-shaped labels", () => {
+    const credentialShapedLabel = [
+      "sk",
+      "proj",
+      "sensitive",
+      "label",
+      "12345678",
+    ].join("-");
+    const result = mapRedactionReportToGenAIMetadata(
+      {
+        status: "unchanged",
+        totalRedactions: 0,
+        countsByReason: {},
+        warnings: [],
+      },
+      { requestModel: credentialShapedLabel },
+    );
+
+    expect(result.droppedMetadataKeys).toContain("requestModel");
+    expect(JSON.stringify(result)).not.toContain(credentialShapedLabel);
+  });
+
   it("drops unknown report status and warning codes from untyped callers", () => {
     const result = mapRedactionReportToGenAIMetadata({
       status: "user@example.invalid",

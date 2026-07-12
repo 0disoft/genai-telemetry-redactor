@@ -67,6 +67,12 @@ with their original detector object as `this`, so caller-owned closure and objec
 state used inside a function remains the caller's responsibility. Replacement
 function state is likewise not deeply immutable.
 
+Detector IDs must be bounded safe labels and must not have a common credential
+shape. Detector output is copied from own data properties before validation;
+accessors, malformed arrays, and output beyond `maxTotalDetections` fail closed
+without exporting detector exception text. An abort observed during detector
+setup wins over a detector success value.
+
 ## Safety Requirements
 
 - Avoid catastrophic backtracking on untrusted text.

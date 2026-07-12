@@ -1,5 +1,6 @@
 import type { RedactionReport } from "../../core/src/index.js";
 import { REDACTION_WARNING_CODES } from "../../core/src/warning-codes.js";
+import { isSafeTelemetryLabel } from "../../core/src/safe-label.js";
 import type {
   OtelGenAIAttributeMap,
   OtelGenAIMetadata,
@@ -10,7 +11,6 @@ const DEFAULT_CONVENTION_LABEL = "opentelemetry-semconv-genai-main";
 const GENAI_SEMCONV_STATUS = "development";
 const GENAI_SEMCONV_SOURCE =
   "https://github.com/open-telemetry/semantic-conventions-genai";
-const SAFE_LABEL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const BUILT_IN_REASON_KEYS = new Set([
   "email",
   "bearer_token",
@@ -225,7 +225,7 @@ function assignSafeNumber(
 }
 
 function isSafeLabel(value: string) {
-  return SAFE_LABEL_PATTERN.test(value);
+  return isSafeTelemetryLabel(value);
 }
 
 function nonNegativeInteger(value: number) {

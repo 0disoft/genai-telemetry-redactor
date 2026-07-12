@@ -106,6 +106,67 @@ describe("redactJsonLike", () => {
     expect(result.error.code).toBe("unsupported_json_like");
   });
 
+  it.each([
+    undefined,
+    1n,
+    Symbol("unsafe"),
+    () => "unsafe",
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+  ])("fails closed for non-JSON values %#", async (value) => {
+    const result = await redactJsonLike({ value });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unsupported_json_like");
+  });
+
+  it("preserves an own __proto__ property without changing the output prototype", async () => {
+    const input = JSON.parse(
+      '{"__proto__":{"email":"user@example.invalid"},"safe":true}',
+    ) as Record<string, unknown>;
+
+    const result = await redactJsonLike(input);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+    expect(Object.hasOwn(result.value, "__proto__")).toBe(true);
+    expect(result.value.__proto__).toEqual({ email: "[REDACTED:email]" });
+    expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed for accessors without invoking them", async () => {
+    let getterRuns = 0;
+    const input = Object.defineProperty({}, "secret", {
+      enumerable: true,
+      get() {
+        getterRuns += 1;
+        return "user@example.invalid";
+      },
+    });
+
+    const result = await redactJsonLike(input);
+
+    expect(result.ok).toBe(false);
+    expect(getterRuns).toBe(0);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed for symbol keys", async () => {
+    const input = { safe: true } as Record<PropertyKey, unknown>;
+    input[Symbol("secret")] = "user@example.invalid";
+
+    const result = await redactJsonLike(input);
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+  });
+
   it("fails closed on circular references", async () => {
     const input: Record<string, unknown> = {
       email: "user@example.invalid",
@@ -161,7 +222,7 @@ describe("redactJsonLike", () => {
         durationMs: expect.any(Number),
         detectorRuns: 16,
         nodesVisited: 4,
-        stringCodeUnits: 20,
+        stringCodeUnits: 36,
       }),
     );
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
@@ -417,5 +478,38 @@ describe("redactJsonLike", () => {
 
     expect(result.error.code).toBe("detector_failed");
     expect(result.error.message).not.toContain("user@example.invalid");
+  });
+
+  it("keeps prior redaction evidence when a later leaf fails", async () => {
+    const detector: Detector = {
+      id: "custom:late-failure",
+      reasons: ["custom:late_failure"],
+      detect(input) {
+        if (input === "boom") {
+          throw new Error("synthetic late failure");
+        }
+        return [];
+      },
+    };
+
+    const result = await redactJsonLike(
+      {
+        first: "user@example.invalid",
+        second: "boom",
+      },
+      { detectors: [detector] },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.report.status).toBe("failed");
+    expect(result.report.totalRedactions).toBe(1);
+    expect(result.report.countsByReason).toEqual({ email: 1 });
+    expect(result.report.timings).toEqual(
+      expect.objectContaining({ nodesVisited: 3, stringCodeUnits: 35 }),
+    );
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
 });
