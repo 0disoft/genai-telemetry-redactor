@@ -32,3 +32,17 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Runtime support is claimed without a real runtime check.
 - Provider support is claimed without representative payload fixtures.
+
+## Automated Consumer Matrix
+
+- `scripts/compatibility-baseline.json` pins the exact N-1 npm version. Baseline
+  movement is an explicit reviewed change, not a registry `latest` lookup.
+- `pnpm run compatibility` packs the current source package and runs the same
+  strict TypeScript and ESM runtime fixture against the pinned baseline and the
+  current tarball on Node.js 22.14.0.
+- `.github/workflows/compatibility.yml` runs the matrix for pull requests and
+  pushes to `main`.
+- The release workflow reruns the fixture against the exact registry version
+  after publish, with bounded retries for registry propagation.
+- Bun `1.3.14` runs the cross-platform TypeScript automation; Node.js remains the
+  consumer runtime under test.

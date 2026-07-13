@@ -22,12 +22,20 @@ const NPM_PUBLISHING_DOC = path.join(
   "npm-publishing.md",
 );
 const RELEASE_WORKFLOW = path.join(ROOT, ".github", "workflows", "release.yml");
-const REQUIRED_FILES = ["README.md", "LICENSE", "SECURITY.md"];
+const COMPATIBILITY_WORKFLOW = path.join(
+  ROOT,
+  ".github",
+  "workflows",
+  "compatibility.yml",
+);
+const REQUIRED_FILES = ["README.md", "LICENSE", "SECURITY.md", ".bun-version"];
 const REQUIRED_PACKAGE_NAME = "genai-telemetry-redactor";
 const REQUIRED_LICENSE = "Apache-2.0";
 const REQUIRED_PACKAGE_MANAGER = "pnpm@11.7.0";
 const REQUIRED_NODE_RANGE = ">=22.14.0";
 const REQUIRED_NPM_CLI = "npm@11.18.0";
+const REQUIRED_BUN_VERSION = "1.3.14";
+const REQUIRED_SETUP_BUN_SHA = "0c5077e51419868618aeaa5fe8019c62421857d6";
 
 const blockers: string[] = [];
 const warnings: string[] = [];
@@ -39,6 +47,7 @@ await checkRequiredFiles();
 checkPackageMetadata(packageJson);
 await checkPublishingPolicy();
 await checkTrustedPublishingWorkflow();
+await checkCompatibilityWorkflow();
 
 if (blockers.length > 0) {
   console.error("Release readiness: blocked");
@@ -162,6 +171,51 @@ async function checkTrustedPublishingWorkflow() {
   ) {
     blockers.push(
       "release workflow must verify tag name matches package.json version",
+    );
+  }
+
+  if (
+    !workflow.includes(`oven-sh/setup-bun@${REQUIRED_SETUP_BUN_SHA}`) ||
+    !workflow.includes("bun-version-file: .bun-version")
+  ) {
+    blockers.push("release workflow must install the pinned Bun runtime");
+  }
+
+  if (
+    !workflow.includes("check-package-compatibility.ts --current") ||
+    !workflow.includes('--current "${version}"')
+  ) {
+    blockers.push(
+      "release workflow must verify the exact published package with the compatibility fixture",
+    );
+  }
+}
+
+async function checkCompatibilityWorkflow() {
+  const bunVersion = await readFile(
+    path.join(ROOT, ".bun-version"),
+    "utf8",
+  ).catch(() => "");
+  if (bunVersion.trim() !== REQUIRED_BUN_VERSION) {
+    blockers.push(`.bun-version must pin Bun ${REQUIRED_BUN_VERSION}`);
+  }
+
+  const workflow = await readFile(COMPATIBILITY_WORKFLOW, "utf8").catch(
+    () => "",
+  );
+  if (!workflow) {
+    blockers.push(".github/workflows/compatibility.yml is missing");
+    return;
+  }
+  if (
+    !workflow.includes(`oven-sh/setup-bun@${REQUIRED_SETUP_BUN_SHA}`) ||
+    !workflow.includes("bun-version-file: .bun-version")
+  ) {
+    blockers.push("compatibility workflow must install the pinned Bun runtime");
+  }
+  if (!workflow.includes("pnpm run compatibility")) {
+    blockers.push(
+      "compatibility workflow must run the configured compatibility command",
     );
   }
 }

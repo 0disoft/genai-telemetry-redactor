@@ -31,6 +31,13 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.6
+
+Consumer compatibility automation now verifies the pinned `0.2.5` npm baseline
+and the current packed artifact with one TypeScript declaration and ESM runtime
+fixture. Pull requests and `main` run the current-tarball matrix; releases rerun
+it against the exact published version. Public package behavior is unchanged.
+
 ## 0.2.5
 
 Lossless JSON tool-argument reconstruction now applies all changed string tokens

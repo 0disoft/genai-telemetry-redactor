@@ -41,6 +41,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `scripts/check-package-consumer.ts` packs the package, installs the tarball into a
   temporary ESM consumer project, then verifies public root and subpath exports with
   runtime imports and TypeScript declaration resolution.
+- `scripts/check-package-compatibility.ts` applies that same fixture to the
+  pinned N-1 npm release and current tarball. Release publishing reruns it against
+  the exact newly published registry version.
 - `scripts/check-public-api-docs.ts` compares the documented public export
   inventory with actual package `index.ts` named exports.
 - `tsconfig.build.json` emits package JavaScript and declarations under ignored
@@ -50,7 +53,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   files, and consumer-facing docs only.
 - The `contract` runner executes the live-looking secret guard, package surface
   guard, public API documentation guard, dry-run artifact guard, and packed
-  consumer import guard.
+  consumer import guard. The separate `compatibility` runner owns registry-backed
+  N-1 verification so normal unit checks do not silently depend on network state.
 
 ## Review Blockers
 

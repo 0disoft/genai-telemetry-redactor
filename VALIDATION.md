@@ -17,6 +17,7 @@ library and SDK scaffold.
 - contract
 - release-readiness
 - migration-check
+- compatibility
 - smoke
 - docs
 - check
@@ -41,6 +42,9 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - contract: live-looking secret guard across docs, packages, and scripts plus
   package export-surface, public API documentation, dry-run artifact, and packed
   consumer import and executable example guards.
+- compatibility: packs the current package and runs the same ESM runtime and
+  TypeScript declaration fixture against the pinned N-1 npm release and current
+  tarball.
 - release-readiness: npm publish blocker check for package metadata, required
   release files, publishing policy, and trusted publishing workflow readiness.
 - docs: live-looking secret guard for documentation surfaces.
