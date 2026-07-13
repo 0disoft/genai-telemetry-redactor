@@ -31,6 +31,15 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.3
+
+OpenAI-compatible JSON string tool arguments no longer pass numeric values
+through JavaScript `number` conversion. The adapter now replaces only redacted
+string tokens in the original JSON, preserving large integers, decimal and
+exponent spellings, whitespace, and unchanged string escapes. Duplicate object
+keys now fail closed so no shadowed or escaped value can bypass structured
+inspection.
+
 ## 0.2.2
 
 JSON-like traversal now accepts only JSON-serializable primitives and plain data

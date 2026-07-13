@@ -90,8 +90,11 @@ property values. Symbol keys, accessors, non-enumerable properties, and unsafe
 `__proto__` handling fail closed; an own enumerable `__proto__` data property is
 copied as data without changing the output prototype.
 
-Malformed JSON string parsing is not implemented yet; callers can pass parsed
-tool argument objects or strings for text redaction.
+OpenAI-compatible string tool arguments use a bounded lossless JSON parser in the
+adapter. Core `redactToolArguments` continues to accept already parsed JSON-like
+values. Malformed strings fall back to whole-string redaction with
+`malformed_tool_arguments`; duplicate object keys fail closed because a fallback
+could miss shadowed or escaped values.
 
 ## Safety Rules
 

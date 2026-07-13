@@ -18,6 +18,10 @@ import type {
   OpenAICompatibleOptions,
   OpenAICompatibleStreamRedactionMetadata,
 } from "./types.js";
+import {
+  LosslessJsonToolArgumentsError,
+  redactJsonToolArgumentsString,
+} from "./lossless-json-tool-arguments.js";
 
 type MutableRecord = Record<string, unknown>;
 
@@ -517,17 +521,20 @@ async function redactToolArgumentsValue(
 ): Promise<RedactionResult<unknown>> {
   if (typeof value === "string") {
     try {
-      const parsed = JSON.parse(value) as unknown;
-      const result = await redactToolArguments(
-        parsed,
+      const result = await redactJsonToolArgumentsString(
+        value,
         redactionForCurrentBudget(state),
       );
       if (!result.ok) {
         return failureFromResult(result, state);
       }
       recordCoreReport(state, result.report);
-      return success(JSON.stringify(result.value), state);
+      return success(result.value, state);
     } catch (error) {
+      if (error instanceof LosslessJsonToolArgumentsError) {
+        state.warnings.push({ code: error.code, path });
+        return createFailure(state, error.code, error.safeMessage);
+      }
       if (error instanceof SyntaxError) {
         state.warnings.push({ code: "malformed_tool_arguments", path });
         return redactStringValue(value, state);

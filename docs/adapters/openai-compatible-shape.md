@@ -33,9 +33,17 @@ gateway behavior.
   `choices[].message.content`, `choices[].message.tool_calls`, and nested
   `function.arguments`.
 - Tool-call `function.arguments` strings are parsed as JSON when possible,
-  redacted through tool-argument traversal, and serialized back to a JSON string.
-  Malformed argument strings are redacted as text and return
+  redacted through tool-argument traversal, and reconstructed by replacing only
+  changed string tokens. Numeric lexemes, including integers beyond JavaScript's
+  safe integer range, and unchanged whitespace or escapes are preserved exactly.
+  Duplicate object keys fail closed because collapsing them or falling back to
+  raw-text inspection could leave an earlier or escaped value uninspected.
+  Other malformed argument strings are redacted as text and return
   `malformed_tool_arguments`.
+- Lossless JSON parsing enforces `maxStringLength`, `maxObjectDepth`,
+  `maxObjectKeys`, `maxArrayLength`, and `maxTotalNodes` before constructing an
+  over-limit semantic value. Limit failures remain fail closed and do not fall
+  back to exporting a partially inspected string.
 - Tool names are treated as metadata by default. Callers must opt in with
   `redactToolNames` when their policy treats tool names as content-bearing.
 - Request and response helpers accept either inline core redaction options or a

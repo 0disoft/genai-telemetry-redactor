@@ -265,6 +265,145 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.report.totalRedactions).toBe(3);
   });
 
+  it("preserves numeric lexemes and formatting in JSON tool arguments", async () => {
+    const argumentsValue =
+      '{ "orderId": 9007199254740993, "ratio": 1.2300e+4, "contact": "user@example.invalid" }';
+    const result = await redactOpenAICompatibleResponse({
+      choices: [
+        {
+          message: {
+            tool_calls: [
+              {
+                function: {
+                  arguments: argumentsValue,
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const output = (
+      result.value as {
+        choices: Array<{
+          message: {
+            tool_calls: Array<{ function: { arguments: string } }>;
+          };
+        }>;
+      }
+    ).choices[0]?.message.tool_calls[0]?.function.arguments;
+    expect(output).toBe(
+      '{ "orderId": 9007199254740993, "ratio": 1.2300e+4, "contact": "[REDACTED:email]" }',
+    );
+  });
+
+  it("redacts decoded JSON strings without rewriting unchanged escapes", async () => {
+    const argumentsValue =
+      '{"contact":"user\\u0040example.invalid","label":"safe\\u0020label"}';
+    const result = await redactOpenAICompatibleRequest({
+      messages: [
+        {
+          tool_calls: [
+            {
+              function: {
+                arguments: argumentsValue,
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    const output = JSON.stringify(result.value);
+    expect(output).toContain("[REDACTED:email]");
+    expect(output).toContain("safe\\\\u0020label");
+    expect(output).not.toContain("user\\\\u0040example.invalid");
+  });
+
+  it("fails closed for duplicate JSON tool-argument keys", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      messages: [
+        {
+          tool_calls: [
+            {
+              function: {
+                arguments:
+                  '{"contact":"first@example.invalid","contact":"second@example.invalid"}',
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unsupported_json_like");
+    expect(JSON.stringify(result)).not.toContain("first@example.invalid");
+    expect(JSON.stringify(result)).not.toContain("second@example.invalid");
+  });
+
+  it("does not expose escaped values from duplicate JSON keys", async () => {
+    const result = await redactOpenAICompatibleRequest({
+      messages: [
+        {
+          tool_calls: [
+            {
+              function: {
+                arguments:
+                  '{"contact":"first\\u0040example.invalid","contact":"second\\u0040example.invalid"}',
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("first\\u0040example.invalid");
+    expect(JSON.stringify(result)).not.toContain(
+      "second\\u0040example.invalid",
+    );
+  });
+
+  it("enforces array limits while parsing lossless tool arguments", async () => {
+    const result = await redactOpenAICompatibleRequest(
+      {
+        messages: [
+          {
+            tool_calls: [
+              {
+                function: {
+                  arguments: "[9007199254740993,9007199254740995]",
+                },
+              },
+            ],
+          },
+        ],
+      },
+      { limits: { maxArrayLength: 1 } },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("max_array_length_exceeded");
+    expect(JSON.stringify(result)).not.toContain("9007199254740993");
+  });
+
   it("redacts nested request input and multimodal content parts", async () => {
     const result = await redactOpenAICompatibleRequest({
       messages: [
