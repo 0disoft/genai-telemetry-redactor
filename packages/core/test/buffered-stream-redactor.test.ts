@@ -76,4 +76,39 @@ describe("createBufferedTextStreamRedactor", () => {
     expect(result.error.detectorId).toBe("custom:stream-failure");
     expect(JSON.stringify(result)).not.toContain("user@example.invalid");
   });
+
+  it("returns a dedicated error when close is called twice", async () => {
+    const stream = createBufferedTextStreamRedactor();
+
+    const first = await stream.close();
+    const second = await stream.close();
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(false);
+    if (second.ok) {
+      return;
+    }
+    expect(second.error.code).toBe("stream_already_closed");
+    expect(second.warnings).toContainEqual({ code: "stream_already_closed" });
+  });
+
+  it("keeps the closed state after push is attempted after close", async () => {
+    const stream = createBufferedTextStreamRedactor();
+    await stream.close();
+
+    const pushResult = stream.push("late content");
+    const closeResult = await stream.close();
+
+    expect(pushResult.ok).toBe(false);
+    if (!pushResult.ok) {
+      expect(pushResult.error.code).toBe("stream_closed");
+    }
+    expect(closeResult.ok).toBe(false);
+    if (!closeResult.ok) {
+      expect(closeResult.error.code).toBe("stream_already_closed");
+    }
+    expect(JSON.stringify({ pushResult, closeResult })).not.toContain(
+      "late content",
+    );
+  });
 });

@@ -31,6 +31,18 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.4
+
+Malformed OpenAI-compatible JSON string tool arguments now fail closed with
+`malformed_tool_arguments` and return no redacted provider payload. The previous
+whole-string fallback could not reliably inspect escaped values inside malformed
+JSON.
+
+Buffered stream lifecycle misuse now has dedicated safe errors. `push()` after
+close returns `stream_closed`, while repeated `close()` returns
+`stream_already_closed`. A rejected push does not replace the terminal closed
+state.
+
 ## 0.2.3
 
 OpenAI-compatible JSON string tool arguments no longer pass numeric values

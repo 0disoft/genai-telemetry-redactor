@@ -145,8 +145,8 @@ and limit behavior.
 It also includes `packages/openai-compatible`: provider-SDK-free request and
 response shape helpers for `messages`, `prompt`, `input`, `choices`, completion
 text, message content, and tool-call function arguments. Unsupported shapes fail
-closed with `unsupported_provider_shape`, malformed JSON tool arguments are
-redacted as text with a warning, and streaming events return metadata-only
+closed with `unsupported_provider_shape`, malformed JSON tool arguments fail
+closed with `malformed_tool_arguments`, and streaming events return metadata-only
 `streaming_content_omitted` results instead of exporting chunk content.
 
 `packages/otel` starts the OpenTelemetry boundary with

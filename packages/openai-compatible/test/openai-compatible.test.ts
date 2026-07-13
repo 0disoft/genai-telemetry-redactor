@@ -513,7 +513,7 @@ describe("OpenAI-compatible adapter", () => {
     expect(result.error.code).toBe("unsupported_provider_shape");
   });
 
-  it("redacts malformed tool argument strings as text and warns", async () => {
+  it("fails closed for malformed tool argument strings", async () => {
     const result = await redactOpenAICompatibleResponse({
       choices: [
         {
@@ -530,15 +530,37 @@ describe("OpenAI-compatible adapter", () => {
       ],
     });
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) {
+    expect(result.ok).toBe(false);
+    if (result.ok) {
       return;
     }
 
-    expect(JSON.stringify(result.value)).not.toContain("token_example_value");
+    expect(result.error.code).toBe("malformed_tool_arguments");
+    expect(JSON.stringify(result)).not.toContain("token_example_value");
     expect(result.report.warnings).toContainEqual(
       expect.objectContaining({ code: "malformed_tool_arguments" }),
     );
+  });
+
+  it("fails closed for malformed escaped tool argument strings", async () => {
+    const result = await redactOpenAICompatibleResponse({
+      choices: [
+        {
+          message: {
+            tool_calls: [
+              {
+                function: {
+                  arguments: '{"contact":"user\\u0040example.invalid"',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user\\u0040example.invalid");
   });
 
   it("omits streaming content and returns metadata-only warning", () => {

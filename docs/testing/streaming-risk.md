@@ -29,7 +29,8 @@ helper.
 `push(chunk)` omits content and reports `streaming_content_omitted`; `close()`
 redacts the full buffered text. Buffer overflow fails closed with
 `max_stream_buffer_length_exceeded` and detector failure returns no partial
-content.
+content. Calls to `push()` after close return `stream_closed`; repeated close
+calls return `stream_already_closed` without changing terminal state.
 
 ## Review Blockers
 

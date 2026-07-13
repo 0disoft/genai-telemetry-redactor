@@ -92,9 +92,9 @@ copied as data without changing the output prototype.
 
 OpenAI-compatible string tool arguments use a bounded lossless JSON parser in the
 adapter. Core `redactToolArguments` continues to accept already parsed JSON-like
-values. Malformed strings fall back to whole-string redaction with
-`malformed_tool_arguments`; duplicate object keys fail closed because a fallback
-could miss shadowed or escaped values.
+values. Malformed strings fail closed with `malformed_tool_arguments`, and
+duplicate object keys fail closed with `unsupported_json_like`; neither path
+returns a partially inspected argument payload.
 
 ## Safety Rules
 

@@ -103,10 +103,13 @@ export type SafeRedactionErrorCode =
   | "max_detector_runs_exceeded"
   | "max_total_duration_exceeded"
   | "max_stream_buffer_length_exceeded"
+  | "stream_closed"
+  | "stream_already_closed"
   | "overlapping_detection"
   | "redaction_aborted"
   | "circular_reference"
   | "unsafe_object_key"
+  | "malformed_tool_arguments"
   | "unsupported_json_like"
   | "unsupported_provider_shape";
 

@@ -537,7 +537,11 @@ async function redactToolArgumentsValue(
       }
       if (error instanceof SyntaxError) {
         state.warnings.push({ code: "malformed_tool_arguments", path });
-        return redactStringValue(value, state);
+        return createFailure(
+          state,
+          "malformed_tool_arguments",
+          "Malformed tool arguments could not be safely redacted.",
+        );
       }
       throw error;
     }

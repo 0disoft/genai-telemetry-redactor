@@ -41,6 +41,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 ## Documented Export Inventory
 
 <!-- public-api-inventory:start -->
+
 ### Export `.`
 
 - `BufferedTextStreamChunk`
@@ -161,6 +162,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `WithRedactedTelemetryResult`
 - `WithRedactedTelemetrySuccess`
 - `WithRedactedTelemetryValue`
+
 <!-- public-api-inventory:end -->
 
 ## Implemented Core Surface
@@ -178,7 +180,9 @@ This repository type owns public API surface, package compatibility, semantic ve
   `invalid_redaction_options` instead of silently falling back to defaults.
 - `createBufferedTextStreamRedactor(options)`: explicit final-flush buffered
   stream redactor. `push(chunk)` omits intermediate content, and `close()`
-  redacts the complete buffer before returning content.
+  redacts the complete buffer before returning content. Calls to `push()` after
+  close fail with `stream_closed`; repeated `close()` calls fail with
+  `stream_already_closed`.
 - `redactJsonLike(input, options)`: async JSON-like traversal that redacts string
   leaves while preserving safe plain-object and array shape. Non-plain objects
   and content-bearing object keys fail closed instead of being coerced or echoed
@@ -222,6 +226,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `OpenAICompatibleRedactionOptions`: inline core options or the reusable
   profile-backed operation shape accepted by adapter request and response
   helpers.
+- Malformed JSON string tool arguments fail closed with
+  `malformed_tool_arguments` and return no provider payload.
 
 ## Implemented OpenTelemetry Metadata Surface
 

@@ -29,6 +29,9 @@ The initial flush policy is final-only:
 - `maxStreamBufferLength` bounds buffered UTF-16 code units.
 - Buffer overflow fails closed with `max_stream_buffer_length_exceeded`.
 - Detector failure during `close()` fails closed and returns no partial content.
+- `push()` after close fails with `stream_closed` without changing the terminal
+  closed state.
+- Repeated `close()` calls fail with `stream_already_closed`.
 
 The prototype is intentionally not wired into
 `redactOpenAICompatibleStreamEvent`. Provider adapters continue to emit
@@ -42,7 +45,8 @@ shape fixtures and safe flush semantics are reviewed.
 - Compatibility impact: `createBufferedTextStreamRedactor`,
   `BufferedTextStreamChunk`, `BufferedTextStreamRedactor`,
   `RedactionLimits.maxStreamBufferLength`, and
-  `max_stream_buffer_length_exceeded` become public contracts.
+  `max_stream_buffer_length_exceeded`, `stream_closed`, and
+  `stream_already_closed` become public contracts.
 - False-negative or false-positive impact: final redaction uses the same detector
   behavior as `redactText`.
 - Telemetry semantics impact: default streaming telemetry remains metadata-only;

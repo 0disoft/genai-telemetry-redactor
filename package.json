@@ -1,6 +1,6 @@
 {
   "name": "genai-telemetry-redactor",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": false,
   "description": "Redact sensitive GenAI telemetry before logs, spans, events, and observability export.",
   "type": "module",

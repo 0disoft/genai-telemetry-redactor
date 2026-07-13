@@ -19,6 +19,8 @@ export const REDACTION_WARNING_CODES = [
   "max_detector_runs_exceeded",
   "max_total_duration_exceeded",
   "max_stream_buffer_length_exceeded",
+  "stream_closed",
+  "stream_already_closed",
   "redaction_aborted",
   "circular_reference",
   "unsafe_object_key",

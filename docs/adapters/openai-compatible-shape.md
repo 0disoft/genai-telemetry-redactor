@@ -38,8 +38,9 @@ gateway behavior.
   safe integer range, and unchanged whitespace or escapes are preserved exactly.
   Duplicate object keys fail closed because collapsing them or falling back to
   raw-text inspection could leave an earlier or escaped value uninspected.
-  Other malformed argument strings are redacted as text and return
-  `malformed_tool_arguments`.
+  Other malformed argument strings also fail closed with
+  `malformed_tool_arguments`; the adapter does not return a partially inspected
+  argument payload.
 - Lossless JSON parsing enforces `maxStringLength`, `maxObjectDepth`,
   `maxObjectKeys`, `maxArrayLength`, and `maxTotalNodes` before constructing an
   over-limit semantic value. Limit failures remain fail closed and do not fall

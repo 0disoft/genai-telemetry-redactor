@@ -46,12 +46,11 @@ export function createBufferedTextStreamRedactor(
       }
 
       if (closed) {
-        failed = streamFailure(
-          "unsupported_provider_shape",
+        return streamFailure(
+          "stream_closed",
           "Streaming redaction cannot accept chunks after close.",
-          [{ code: "unsupported_provider_shape" }],
+          [{ code: "stream_closed" }],
         );
-        return failed;
       }
 
       if (typeof chunk !== "string") {
@@ -83,9 +82,9 @@ export function createBufferedTextStreamRedactor(
 
       if (closed) {
         return streamFailure(
-          "unsupported_provider_shape",
+          "stream_already_closed",
           "Streaming redaction has already been closed.",
-          [{ code: "unsupported_provider_shape" }],
+          [{ code: "stream_already_closed" }],
         );
       }
 
