@@ -51,19 +51,9 @@ export async function redactJsonToolArgumentsString(
   const replacements: Replacement[] = [];
   collectStringReplacements(root, result.value, replacements);
 
-  let value = input;
-  for (const replacement of replacements.sort(
-    (left, right) => right.start - left.start,
-  )) {
-    value =
-      value.slice(0, replacement.start) +
-      replacement.value +
-      value.slice(replacement.end);
-  }
-
   return {
     ...result,
-    value,
+    value: applyReplacements(input, replacements),
   };
 }
 
@@ -383,4 +373,24 @@ function collectStringReplacements(
         collectStringReplacements(entry.value, descriptor.value, replacements);
       }
   }
+}
+
+function applyReplacements(input: string, replacements: Replacement[]) {
+  if (replacements.length === 0) {
+    return input;
+  }
+
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const replacement of replacements.sort(
+    (left, right) => left.start - right.start,
+  )) {
+    if (replacement.start < cursor || replacement.end < replacement.start) {
+      throw new TypeError("JSON string replacements overlap.");
+    }
+    parts.push(input.slice(cursor, replacement.start), replacement.value);
+    cursor = replacement.end;
+  }
+  parts.push(input.slice(cursor));
+  return parts.join("");
 }

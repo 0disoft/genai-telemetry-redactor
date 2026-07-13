@@ -31,6 +31,13 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.5
+
+Lossless JSON tool-argument reconstruction now applies all changed string tokens
+in one forward pass instead of repeatedly copying the whole payload. A bounded
+valid and invalid JSON corpus covers numeric forms, escapes, decoded duplicate
+keys, and maximum-default-array redaction without changing the public API.
+
 ## 0.2.4
 
 Malformed OpenAI-compatible JSON string tool arguments now fail closed with

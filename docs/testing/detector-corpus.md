@@ -30,6 +30,11 @@ demonstrate what categories are tested without becoming a sensitive-data dump.
   sensitive value cannot escape only because it crosses a chunk boundary.
 - Exercise known OpenAI-compatible request and response variants, and require
   unknown content-bearing shapes to fail closed without echoing input canaries.
+- Differentially check the lossless tool-argument parser against `JSON.parse`
+  for bounded valid and invalid syntax corpora while asserting unchanged numeric
+  lexemes and string escapes remain byte-for-byte stable.
+- Exercise the maximum default tool-argument array with every string redacted so
+  reconstruction cannot regress to repeated whole-payload copying.
 - Keep fuzz fixtures synthetic and compatible with the fixture safety policy.
 
 ## Output Assertions
