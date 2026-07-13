@@ -65,6 +65,29 @@ export async function verifyConsumerPackage(
   console.log(`Compatibility consumer passed: ${label}`);
 }
 
+export async function waitForPublishedPackage(version: string, attempts = 12) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const { stdout } = await runNpm(
+        ["view", `${PACKAGE_NAME}@${version}`, "version", "--json"],
+        process.cwd(),
+      );
+      if (JSON.parse(stdout) === version) {
+        console.log(`Published package is visible: ${PACKAGE_NAME}@${version}`);
+        return;
+      }
+    } catch {
+      // npm registry metadata can lag briefly after a successful publish.
+    }
+    if (attempt < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
+    }
+  }
+  throw new Error(
+    `published package did not become visible after ${attempts} attempts`,
+  );
+}
+
 async function installConsumer(consumerRoot: string, attempts: number) {
   let lastError: unknown;
   for (let attempt = 1; attempt <= Math.max(1, attempts); attempt += 1) {

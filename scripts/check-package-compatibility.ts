@@ -6,6 +6,7 @@ import {
   packCurrentPackage,
   PACKAGE_NAME,
   verifyConsumerPackage,
+  waitForPublishedPackage,
 } from "./package-consumer-fixture.js";
 
 type Baseline = {
@@ -41,6 +42,8 @@ try {
   if (!currentSpecifier) {
     const tarballPath = await packCurrentPackage(root, tempRoot);
     currentSpecifier = filePackageSpecifier(tarballPath);
+  } else {
+    await waitForPublishedPackage(currentSpecifier);
   }
   await verifyConsumerPackage(
     path.join(tempRoot, "current"),
@@ -48,7 +51,7 @@ try {
     currentArgument
       ? `published ${PACKAGE_NAME}@${currentArgument}`
       : "current tarball",
-    currentArgument ? 3 : 1,
+    currentArgument ? 2 : 1,
   );
 } finally {
   await rm(tempRoot, { recursive: true, force: true });

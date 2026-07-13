@@ -28,6 +28,9 @@ package name is `genai-telemetry-redactor`.
 - After publish, install the exact published version and the pinned N-1 baseline
   into the shared consumer fixture. Do not treat a local tarball check as proof
   that the registry artifact is consumable.
+- Poll exact-version registry metadata for at most 60 seconds before the
+  post-publish install. A successful publish can precede public registry
+  visibility briefly; an exhausted visibility window remains a release failure.
 - Keep `pnpm run release-readiness` outside the normal `check` runner while the
   package is intentionally unpublished. It must fail with explicit blockers until
   package metadata and trusted publishing workflow requirements are satisfied.
