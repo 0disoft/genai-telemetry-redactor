@@ -42,7 +42,8 @@ This repository type owns public API surface, package compatibility, semantic ve
   current tarball on Node.js 22.14.0.
 - `.github/workflows/compatibility.yml` runs the matrix for pull requests and
   pushes to `main`.
-- The release workflow reruns the fixture against the exact registry version
-  after publish, with bounded retries for registry propagation.
+- The release workflow runs the N-1/current-tarball matrix before staging. After
+  maintainer 2FA approval, rerunning the workflow applies the same fixture to the
+  exact public registry version, with bounded retries for registry propagation.
 - Bun `1.3.14` runs the cross-platform TypeScript automation; Node.js remains the
   consumer runtime under test.

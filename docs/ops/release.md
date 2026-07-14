@@ -19,7 +19,12 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - No release artifact includes raw GenAI content or live-looking secrets.
 - Runtime, license, package name, and publishing requirements are reflected in
   ADRs before release workflow files are added.
-- `pnpm run release-readiness` passes before any npm publish attempt.
+- `pnpm run release-readiness` and the N-1/current consumer matrix pass before
+  any npm staging attempt.
+- The tag workflow stages the package but does not make it public. A maintainer
+  reviews the staged artifact and approves it with npm 2FA. After the exact
+  version is visible in the npm registry, the maintainer reruns the tag workflow
+  so the public package is verified. Do not rerun while approval is pending.
 
 ## Published Release Evidence
 
@@ -80,4 +85,6 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - Detector default changes lack evidence.
 - Package surface changes lack semver or migration notes.
 - Publishing relies on long-lived credentials without an ADR-backed reason.
+- A staged package has not received maintainer 2FA approval or the public
+  registry artifact has not passed the rerun verification.
 - `pnpm run release-readiness` reports unresolved blockers.

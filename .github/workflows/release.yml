@@ -76,6 +76,9 @@ jobs:
       - name: Run release readiness
         run: pnpm run release-readiness
 
+      - name: Verify pre-release consumer compatibility
+        run: pnpm run compatibility
+
       - name: Check published version
         id: published
         run: |
@@ -86,11 +89,22 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish package
+      - name: Stage package
         if: steps.published.outputs.exists != 'true'
-        run: npm publish --access public
+        run: npm stage publish
+
+      - name: Record manual approval requirement
+        if: steps.published.outputs.exists != 'true'
+        run: |
+          {
+            echo "## npm approval required"
+            echo
+            echo "The package was staged but is not public yet."
+            echo "Review and approve it with 2FA in the npm Staged Packages page, then rerun this workflow to verify the public registry artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify published consumer compatibility
+        if: steps.published.outputs.exists == 'true'
         run: |
           version="$(node --print "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
           bun scripts/check-package-compatibility.ts --current "${version}"

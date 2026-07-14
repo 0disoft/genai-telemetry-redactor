@@ -45,8 +45,9 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - compatibility: packs the current package and runs the same ESM runtime and
   TypeScript declaration fixture against the pinned N-1 npm release and current
   tarball.
-- release-readiness: npm publish blocker check for package metadata, required
-  release files, publishing policy, and trusted publishing workflow readiness.
+- release-readiness: npm staged-publish blocker check for package metadata,
+  required release files, publishing policy, and trusted publishing workflow
+  readiness.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, reusable profile, OpenAI-compatible
   adapter, OTel metadata mapper, and SDK wrapper smoke tests.

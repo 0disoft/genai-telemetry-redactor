@@ -134,6 +134,10 @@ async function checkPublishingPolicy() {
   if (!policy.includes("long-lived npm tokens")) {
     blockers.push("npm publishing policy must reject long-lived npm tokens");
   }
+
+  if (!policy.includes("staged publishing")) {
+    blockers.push("npm publishing policy must require staged publishing");
+  }
 }
 
 async function checkTrustedPublishingWorkflow() {
@@ -187,6 +191,54 @@ async function checkTrustedPublishingWorkflow() {
   ) {
     blockers.push(
       "release workflow must verify the exact published package with the compatibility fixture",
+    );
+  }
+
+  if (/\bnpm\s+publish\b/.test(workflow)) {
+    blockers.push(
+      "release workflow must stage packages instead of publishing directly",
+    );
+  }
+
+  const compatibilityIndex = workflow.indexOf("pnpm run compatibility");
+  const stageIndex = workflow.indexOf("npm stage publish");
+  const publishedVerificationIndex = workflow.indexOf(
+    "check-package-compatibility.ts --current",
+  );
+
+  if (compatibilityIndex < 0) {
+    blockers.push(
+      "release workflow must verify the pinned N-1 and packed current package before staging",
+    );
+  }
+
+  if (stageIndex < 0) {
+    blockers.push("release workflow must submit releases with npm stage publish");
+  }
+
+  if (
+    compatibilityIndex >= 0 &&
+    stageIndex >= 0 &&
+    compatibilityIndex > stageIndex
+  ) {
+    blockers.push(
+      "release workflow must run consumer compatibility before staging",
+    );
+  }
+
+  if (
+    stageIndex >= 0 &&
+    publishedVerificationIndex >= 0 &&
+    stageIndex > publishedVerificationIndex
+  ) {
+    blockers.push(
+      "release workflow must keep exact registry verification after staging",
+    );
+  }
+
+  if (!workflow.includes("steps.published.outputs.exists == 'true'")) {
+    blockers.push(
+      "release workflow must run exact registry verification only after the version is public",
     );
   }
 }

@@ -31,6 +31,14 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.2.7
+
+The release workflow now submits packages through npm staged publishing instead
+of moving `latest` directly. It runs the pinned `0.2.6` baseline and current
+packed-artifact consumer fixture before staging. A maintainer must approve the
+stage with npm 2FA, then rerun the tag workflow to verify the exact public
+registry version. Package exports and runtime behavior are unchanged.
+
 ## 0.2.6
 
 Consumer compatibility automation now verifies the pinned `0.2.5` npm baseline
