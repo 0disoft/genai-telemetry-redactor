@@ -213,7 +213,9 @@ async function checkTrustedPublishingWorkflow() {
   }
 
   if (stageIndex < 0) {
-    blockers.push("release workflow must submit releases with npm stage publish");
+    blockers.push(
+      "release workflow must submit releases with npm stage publish",
+    );
   }
 
   if (
