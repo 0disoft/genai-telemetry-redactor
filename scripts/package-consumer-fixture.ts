@@ -186,7 +186,7 @@ const requestResult = await redactOpenAICompatibleRequest({
 if (rootResult.ok) {
   mapRedactionReportToGenAIMetadata(rootResult.report, {
     operationName: "chat",
-    providerName: "openai-compatible",
+    providerName: "openai",
   });
 }
 const sdkResult: WithRedactedTelemetryResult = await withRedactedTelemetry({

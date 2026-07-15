@@ -36,7 +36,7 @@ const result = await withRedactedTelemetry({
   },
   telemetry: {
     operationName: "chat",
-    providerName: "openai-compatible",
+    providerName: "openai",
     requestModel: "model_example",
   },
 });
@@ -185,9 +185,10 @@ binary diffs, local files, build outputs, caches, and secret files under control
 
 Runtime packaging is decided as Node.js `>=22.14.0`, ESM-only TypeScript, and a
 pnpm workspace with one initial npm package named `genai-telemetry-redactor`.
-The OpenTelemetry GenAI semantic-convention source is tracked as the upstream
-Development GenAI convention, so custom redaction metadata stays under the
-`genai_redactor.*` namespace. Package exports point at compiled `dist`
-JavaScript and declaration files emitted from the TypeScript source. The product
-boundary is already decided: redact before export, capture content only by
-explicit opt-in, and never treat redaction as perfect sensitive-data discovery.
+The OpenTelemetry GenAI semantic-convention source is pinned to an audited
+upstream Development snapshot, so official `gen_ai.*` mappings are reproducible
+and custom redaction metadata stays under the `genai_redactor.*` namespace.
+Package exports point at compiled `dist` JavaScript and declaration files emitted
+from the TypeScript source. The product boundary is already decided: redact
+before export, capture content only by explicit opt-in, and never treat redaction
+as perfect sensitive-data discovery.

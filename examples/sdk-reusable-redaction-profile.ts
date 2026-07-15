@@ -30,7 +30,7 @@ const result = await withRedactedTelemetry({
   redaction: { profile: profileResult.value },
   telemetry: {
     operationName: "chat",
-    providerName: "openai-compatible",
+    providerName: "openai",
   },
 });
 

@@ -234,9 +234,15 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `mapRedactionReportToGenAIMetadata(report, options)`: metadata-only mapper from
   redaction reports and safe GenAI metadata candidates to an attribute object.
 - The mapper emits official OpenTelemetry GenAI attributes for operation,
-  provider, request model, response model, and token usage.
+  provider, request model, response model, and non-negative integer input/output
+  token usage.
+- `providerName` describes the actual provider, not the adapter shape. Callers
+  should use the upstream well-known provider value when one applies.
 - The mapper emits library-specific redaction, content-capture, semconv-source, and
   latency attributes under `genai_redactor.*`.
+- Caller-provided total token usage is emitted as
+  `genai_redactor.usage.total_tokens`; the pinned upstream convention does not
+  define `gen_ai.usage.total_tokens`.
 - Unsafe label-like metadata values are dropped and counted instead of exported.
 - Warning paths, detector IDs, raw provider payloads, prompt text, completion text,
   tool arguments, credentials, and span writer objects are outside the mapper API.

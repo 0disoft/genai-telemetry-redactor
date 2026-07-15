@@ -60,7 +60,7 @@ describe("mapRedactionReportToGenAIMetadata", () => {
       },
       {
         operationName: "chat",
-        providerName: "openai-compatible",
+        providerName: "openai",
         requestModel: "model_example",
         responseModel: "model_example",
         tokenUsage: {
@@ -74,7 +74,7 @@ describe("mapRedactionReportToGenAIMetadata", () => {
 
     expect(result.attributes).toMatchObject({
       "genai_redactor.otel.genai.semconv.label":
-        "opentelemetry-semconv-genai-main",
+        "opentelemetry-semconv-genai-93a59e48a9b4",
       "genai_redactor.otel.genai.semconv.status": "development",
       "genai_redactor.content_capture.enabled": false,
       "genai_redactor.redaction.status": "redacted",
@@ -83,12 +83,12 @@ describe("mapRedactionReportToGenAIMetadata", () => {
       "genai_redactor.redaction.reason_count.api_key": 2,
       "genai_redactor.redaction.warning_codes": ["malformed_tool_arguments"],
       "gen_ai.operation.name": "chat",
-      "gen_ai.provider.name": "openai-compatible",
+      "gen_ai.provider.name": "openai",
       "gen_ai.request.model": "model_example",
       "gen_ai.response.model": "model_example",
       "gen_ai.usage.input_tokens": 12,
       "gen_ai.usage.output_tokens": 34,
-      "gen_ai.usage.total_tokens": 46,
+      "genai_redactor.usage.total_tokens": 46,
       "genai_redactor.operation.duration_ms": 25.5,
       "genai_redactor.redaction.duration_ms": 12.5,
       "genai_redactor.redaction.detector_duration_ms": 8,
@@ -245,6 +245,35 @@ describe("mapRedactionReportToGenAIMetadata", () => {
 
     expect(result.droppedMetadataKeys).toContain("requestModel");
     expect(JSON.stringify(result)).not.toContain(credentialShapedLabel);
+  });
+
+  it("drops token counts that are not non-negative safe integers", () => {
+    const result = mapRedactionReportToGenAIMetadata(
+      {
+        status: "unchanged",
+        totalRedactions: 0,
+        countsByReason: {},
+        warnings: [],
+      },
+      {
+        tokenUsage: {
+          inputTokens: 1.5,
+          outputTokens: Number.MAX_SAFE_INTEGER + 1,
+          totalTokens: Number.NaN,
+        },
+      },
+    );
+
+    expect(result.attributes).not.toHaveProperty("gen_ai.usage.input_tokens");
+    expect(result.attributes).not.toHaveProperty("gen_ai.usage.output_tokens");
+    expect(result.attributes).not.toHaveProperty(
+      "genai_redactor.usage.total_tokens",
+    );
+    expect(result.droppedMetadataKeys).toEqual([
+      "tokenUsage.inputTokens",
+      "tokenUsage.outputTokens",
+      "tokenUsage.totalTokens",
+    ]);
   });
 
   it("drops unknown report status and warning codes from untyped callers", () => {

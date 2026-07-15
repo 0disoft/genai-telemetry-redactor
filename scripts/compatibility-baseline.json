@@ -1,5 +1,5 @@
 {
   "schemaVersion": "genai-telemetry-redactor/compatibility-baseline/v1",
   "package": "genai-telemetry-redactor",
-  "version": "0.2.6"
+  "version": "0.2.7"
 }

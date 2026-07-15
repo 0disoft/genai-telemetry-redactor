@@ -13,8 +13,8 @@ const result = await withRedactedTelemetry({
     },
   },
   telemetry: {
-    operationName: "completion",
-    providerName: "openai-compatible",
+    operationName: "text_completion",
+    providerName: "openai",
     requestModel: "model_example",
   },
 });

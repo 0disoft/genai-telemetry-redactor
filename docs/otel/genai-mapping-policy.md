@@ -12,6 +12,8 @@ customer identifiers.
 
 - Treat the upstream OpenTelemetry GenAI semantic conventions as Development until
   the upstream project marks them stable.
+- Pin the default mapping provenance to an audited upstream commit. Do not label
+  moving `main` as a reproducible mapping version.
 - Use official `gen_ai.*` attributes only for fields present in the upstream GenAI
   semantic conventions.
 - Put library-specific redaction and content-capture fields under
@@ -19,7 +21,8 @@ customer identifiers.
   attributes.
 - Separate pure metadata-object mapping from optional span-writer helpers.
 - Treat token usage, model, operation, latency, error class, redaction status,
-  counts-by-reason, and numeric redaction timings as safe candidate fields.
+  counts-by-reason, and numeric redaction timings as safe candidate fields. Token
+  counts mapped to official attributes must be non-negative safe integers.
 
 ## Implemented Mapper
 
@@ -32,8 +35,13 @@ customer identifiers.
   exporter objects.
 - The mapper uses official GenAI attributes for `gen_ai.operation.name`,
   `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.response.model`,
-  `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, and
-  `gen_ai.usage.total_tokens`.
+  `gen_ai.usage.input_tokens`, and `gen_ai.usage.output_tokens`.
+- `providerName` identifies the provider that served the request. Adapter-shape
+  labels such as `openai-compatible` are not provider names; callers should use
+  the upstream well-known provider value when one applies.
+- OpenTelemetry GenAI does not define `gen_ai.usage.total_tokens` in the pinned
+  snapshot. The optional caller-provided total is emitted as the library extension
+  `genai_redactor.usage.total_tokens`.
 - The mapper uses `genai_redactor.*` attributes for redaction status, redaction
   counts, warning codes, content-capture disabled state, mapper semconv source,
   mapper semconv status, latency, redaction duration, detector duration, and
@@ -44,8 +52,11 @@ customer identifiers.
 - Redaction status and warning codes use closed allowlists at the mapper
   boundary. Unknown runtime values are dropped rather than copied into telemetry
   attributes.
-- The mapper records `opentelemetry-semconv-genai-main` and `development` as
-  semconv metadata. This is not a stability claim.
+- The mapper records `opentelemetry-semconv-genai-93a59e48a9b4`, the full
+  upstream commit URL, and `development` as semconv metadata. This is not a
+  stability claim.
+- The package emits metadata objects only. It does not write spans or events, so
+  upstream Span Event API migration is outside this mapper's ownership boundary.
 - If report or metadata option inspection throws, the mapper returns a minimal
   metadata-only failure with content capture disabled and records `mapperInput`
   as dropped. Original exception text and caller input are not propagated.

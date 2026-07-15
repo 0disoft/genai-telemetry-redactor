@@ -6,11 +6,12 @@ import type {
   OtelGenAIMetadata,
   OtelGenAIMetadataOptions,
 } from "./types.js";
+import {
+  OTEL_GENAI_SEMCONV_LABEL,
+  OTEL_GENAI_SEMCONV_SOURCE,
+  OTEL_GENAI_SEMCONV_STATUS,
+} from "./semconv.js";
 
-const DEFAULT_CONVENTION_LABEL = "opentelemetry-semconv-genai-main";
-const GENAI_SEMCONV_STATUS = "development";
-const GENAI_SEMCONV_SOURCE =
-  "https://github.com/open-telemetry/semantic-conventions-genai";
 const BUILT_IN_REASON_KEYS = new Set([
   "email",
   "bearer_token",
@@ -42,10 +43,10 @@ function mapRedactionReportToGenAIMetadataInternal(
   const attributes: OtelGenAIAttributeMap = {
     "genai_redactor.otel.genai.semconv.label": safeLabelOrDefault(
       options.conventionLabel,
-      DEFAULT_CONVENTION_LABEL,
+      OTEL_GENAI_SEMCONV_LABEL,
     ),
-    "genai_redactor.otel.genai.semconv.status": GENAI_SEMCONV_STATUS,
-    "genai_redactor.otel.genai.semconv.source": GENAI_SEMCONV_SOURCE,
+    "genai_redactor.otel.genai.semconv.status": OTEL_GENAI_SEMCONV_STATUS,
+    "genai_redactor.otel.genai.semconv.source": OTEL_GENAI_SEMCONV_SOURCE,
     "genai_redactor.content_capture.enabled": false,
     "genai_redactor.redaction.status": redactionStatus,
     "genai_redactor.redaction.total_count": nonNegativeInteger(
@@ -109,31 +110,31 @@ function mapRedactionReportToGenAIMetadataInternal(
     "report.timings.detectorDurationMs",
     report.timings?.detectorDurationMs,
   );
-  assignSafeNumber(
+  assignSafeInteger(
     attributes,
     droppedMetadataKeys,
     "genai_redactor.redaction.detector_runs",
     "report.timings.detectorRuns",
     report.timings?.detectorRuns,
   );
-  assignSafeNumber(
+  assignSafeInteger(
     attributes,
     droppedMetadataKeys,
     "gen_ai.usage.input_tokens",
     "tokenUsage.inputTokens",
     options.tokenUsage?.inputTokens,
   );
-  assignSafeNumber(
+  assignSafeInteger(
     attributes,
     droppedMetadataKeys,
     "gen_ai.usage.output_tokens",
     "tokenUsage.outputTokens",
     options.tokenUsage?.outputTokens,
   );
-  assignSafeNumber(
+  assignSafeInteger(
     attributes,
     droppedMetadataKeys,
-    "gen_ai.usage.total_tokens",
+    "genai_redactor.usage.total_tokens",
     "tokenUsage.totalTokens",
     options.tokenUsage?.totalTokens,
   );
@@ -166,9 +167,9 @@ function mapRedactionReportToGenAIMetadataInternal(
 function failedMapperMetadata(): OtelGenAIMetadata {
   return {
     attributes: {
-      "genai_redactor.otel.genai.semconv.label": DEFAULT_CONVENTION_LABEL,
-      "genai_redactor.otel.genai.semconv.status": GENAI_SEMCONV_STATUS,
-      "genai_redactor.otel.genai.semconv.source": GENAI_SEMCONV_SOURCE,
+      "genai_redactor.otel.genai.semconv.label": OTEL_GENAI_SEMCONV_LABEL,
+      "genai_redactor.otel.genai.semconv.status": OTEL_GENAI_SEMCONV_STATUS,
+      "genai_redactor.otel.genai.semconv.source": OTEL_GENAI_SEMCONV_SOURCE,
       "genai_redactor.content_capture.enabled": false,
       "genai_redactor.redaction.status": "failed",
       "genai_redactor.redaction.total_count": 0,
@@ -217,6 +218,25 @@ function assignSafeNumber(
   }
 
   if (!Number.isFinite(value) || value < 0) {
+    droppedMetadataKeys.push(optionName);
+    return;
+  }
+
+  attributes[attributeName] = value;
+}
+
+function assignSafeInteger(
+  attributes: OtelGenAIAttributeMap,
+  droppedMetadataKeys: string[],
+  attributeName: string,
+  optionName: string,
+  value: number | undefined,
+) {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Number.isSafeInteger(value) || value < 0) {
     droppedMetadataKeys.push(optionName);
     return;
   }

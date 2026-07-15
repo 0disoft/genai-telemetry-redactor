@@ -31,6 +31,15 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.3.0
+
+The OpenTelemetry GenAI mapper now pins its Development provenance to upstream
+commit `93a59e48a9b4ea162a4d76edac4ace2d415a759e` instead of moving `main`.
+`gen_ai.usage.input_tokens` and `gen_ai.usage.output_tokens` now reject values
+that are not non-negative safe integers. The upstream snapshot does not define
+`gen_ai.usage.total_tokens`, so a valid `tokenUsage.totalTokens` value now maps
+to `genai_redactor.usage.total_tokens`. Mapper function signatures are unchanged.
+
 ## 0.2.7
 
 The release workflow now submits packages through npm staged publishing instead

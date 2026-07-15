@@ -157,7 +157,7 @@ describe("withRedactedTelemetry", () => {
       },
       telemetry: {
         operationName: "chat",
-        providerName: "openai-compatible",
+        providerName: "openai",
         requestModel: "model_example",
         responseModel: "model_example",
         tokenUsage: {
@@ -179,7 +179,7 @@ describe("withRedactedTelemetry", () => {
     expect(result.value.report.totalRedactions).toBe(2);
     expect(result.value.telemetry.attributes).toMatchObject({
       "gen_ai.operation.name": "chat",
-      "gen_ai.provider.name": "openai-compatible",
+      "gen_ai.provider.name": "openai",
       "genai_redactor.redaction.total_count": 2,
       "genai_redactor.content_capture.enabled": false,
     });

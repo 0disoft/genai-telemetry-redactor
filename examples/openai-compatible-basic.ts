@@ -24,7 +24,7 @@ const result = await withRedactedTelemetry({
   },
   telemetry: {
     operationName: "chat",
-    providerName: "openai-compatible",
+    providerName: "openai",
     requestModel: "model_example",
     responseModel: "model_example",
     tokenUsage: {
