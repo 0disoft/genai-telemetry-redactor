@@ -30,6 +30,11 @@ not define `gen_ai.usage.total_tokens`. Invalid token counts are dropped, while 
 valid caller-provided total remains available under
 `genai_redactor.usage.total_tokens`.
 
+A weekly GitHub Actions check compares the pin with upstream `main`. Drift is an
+advisory review signal: the workflow creates or refreshes a single issue, but it
+does not update source, create a pull request, or claim that every upstream commit
+requires a mapper release.
+
 ## Consequences
 
 - Mapping output remains inspectable when upstream GenAI semantic conventions

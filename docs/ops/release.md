@@ -24,7 +24,9 @@ rules follow docs/library/semver.md and docs/library/migration-guide.md.
 - The tag workflow stages the package but does not make it public. A maintainer
   reviews the staged artifact and approves it with npm 2FA. After the exact
   version is visible in the npm registry, the maintainer reruns the tag workflow
-  so the public package is verified. Do not rerun while approval is pending.
+  so the public package is verified. After that verification succeeds, the
+  workflow creates the GitHub Release if it does not already exist. Do not rerun
+  while approval is pending.
 
 ## Published Release Evidence
 

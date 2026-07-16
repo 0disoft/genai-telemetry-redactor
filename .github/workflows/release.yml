@@ -6,7 +6,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -108,3 +108,33 @@ jobs:
         run: |
           version="$(node --print "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
           bun scripts/check-package-compatibility.ts --current "${version}"
+
+      - name: Create GitHub release
+        if: steps.published.outputs.exists == 'true'
+        # actions/github-script v9.0.0
+        uses: actions/github-script@ff4b64fc288a21d5291396a384c1273f032e6333
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = context.ref.replace("refs/tags/", "");
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag,
+              });
+              core.info(`GitHub release already exists: ${existing.data.html_url}`);
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+              const created = await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: tag,
+                target_commitish: context.sha,
+                name: tag,
+                generate_release_notes: true,
+              });
+              core.info(`Created GitHub release: ${created.data.html_url}`);
+            }

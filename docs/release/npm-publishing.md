@@ -36,6 +36,9 @@ package name is `genai-telemetry-redactor`.
 - After approval, rerun the tag workflow. It installs the exact public version
   and the pinned N-1 baseline into the shared consumer fixture. Do not treat a
   local tarball check as proof that the registry artifact is consumable.
+- After exact registry compatibility passes, create the GitHub Release from the
+  same tag and commit. The step is idempotent so a manually created release is
+  preserved rather than duplicated.
 - Do not rerun the tag workflow while the stage is still pending. After approval,
   wait until the exact version is visible in the npm registry before rerunning;
   an early rerun can correctly fail because the staged version already reserves
@@ -52,7 +55,8 @@ package name is `genai-telemetry-redactor`.
 A trusted-publishing setup is proven when the workflow stages a previously
 unstaged package version without npm token configuration. A release is complete
 only after a maintainer approves that stage with 2FA and a workflow rerun verifies
-the exact public registry version.
+the exact public registry version and creates or confirms the matching GitHub
+Release.
 
 ## Release Blockers
 

@@ -28,7 +28,20 @@ const COMPATIBILITY_WORKFLOW = path.join(
   "workflows",
   "compatibility.yml",
 );
-const REQUIRED_FILES = ["README.md", "LICENSE", "SECURITY.md", ".bun-version"];
+const OTEL_DRIFT_WORKFLOW = path.join(
+  ROOT,
+  ".github",
+  "workflows",
+  "otel-semconv-drift.yml",
+);
+const REQUIRED_FILES = [
+  "README.md",
+  "LICENSE",
+  "SECURITY.md",
+  ".bun-version",
+  "scripts/migration-baseline.json",
+  "scripts/performance-baseline.json",
+];
 const REQUIRED_PACKAGE_NAME = "genai-telemetry-redactor";
 const REQUIRED_LICENSE = "Apache-2.0";
 const REQUIRED_PACKAGE_MANAGER = "pnpm@11.7.0";
@@ -36,6 +49,7 @@ const REQUIRED_NODE_RANGE = ">=22.14.0";
 const REQUIRED_NPM_CLI = "npm@11.18.0";
 const REQUIRED_BUN_VERSION = "1.3.14";
 const REQUIRED_SETUP_BUN_SHA = "0c5077e51419868618aeaa5fe8019c62421857d6";
+const REQUIRED_GITHUB_SCRIPT_SHA = "ff4b64fc288a21d5291396a384c1273f032e6333";
 
 const blockers: string[] = [];
 const warnings: string[] = [];
@@ -48,6 +62,7 @@ checkPackageMetadata(packageJson);
 await checkPublishingPolicy();
 await checkTrustedPublishingWorkflow();
 await checkCompatibilityWorkflow();
+await checkOtelDriftWorkflow();
 
 if (blockers.length > 0) {
   console.error("Release readiness: blocked");
@@ -153,6 +168,12 @@ async function checkTrustedPublishingWorkflow() {
     blockers.push("release workflow must grant id-token: write for provenance");
   }
 
+  if (!workflow.includes("contents: write")) {
+    blockers.push(
+      "release workflow must grant contents: write for post-publish GitHub Release creation",
+    );
+  }
+
   if (/(NPM_TOKEN|NODE_AUTH_TOKEN|_authToken)/.test(workflow)) {
     blockers.push("release workflow must not rely on long-lived npm tokens");
   }
@@ -243,6 +264,29 @@ async function checkTrustedPublishingWorkflow() {
       "release workflow must run exact registry verification only after the version is public",
     );
   }
+
+  if (
+    !workflow.includes(`actions/github-script@${REQUIRED_GITHUB_SCRIPT_SHA}`) ||
+    !workflow.includes("github.rest.repos.getReleaseByTag") ||
+    !workflow.includes("github.rest.repos.createRelease")
+  ) {
+    blockers.push(
+      "release workflow must idempotently create the GitHub Release with the pinned github-script action",
+    );
+  }
+
+  const releaseCreationIndex = workflow.indexOf(
+    "github.rest.repos.createRelease",
+  );
+  if (
+    publishedVerificationIndex >= 0 &&
+    releaseCreationIndex >= 0 &&
+    releaseCreationIndex < publishedVerificationIndex
+  ) {
+    blockers.push(
+      "release workflow must create the GitHub Release only after exact published-package verification",
+    );
+  }
 }
 
 async function checkCompatibilityWorkflow() {
@@ -270,6 +314,45 @@ async function checkCompatibilityWorkflow() {
   if (!workflow.includes("pnpm run compatibility")) {
     blockers.push(
       "compatibility workflow must run the configured compatibility command",
+    );
+  }
+}
+
+async function checkOtelDriftWorkflow() {
+  const workflow = await readFile(OTEL_DRIFT_WORKFLOW, "utf8").catch(() => "");
+  if (!workflow) {
+    blockers.push(".github/workflows/otel-semconv-drift.yml is missing");
+    return;
+  }
+  if (
+    !workflow.includes("schedule:") ||
+    !workflow.includes("workflow_dispatch:") ||
+    workflow.includes("pull_request:") ||
+    workflow.includes("push:")
+  ) {
+    blockers.push(
+      "OTel semconv drift workflow must run only on schedule or explicit dispatch",
+    );
+  }
+  if (
+    !workflow.includes("contents: read") ||
+    !workflow.includes("issues: write") ||
+    workflow.includes("contents: write")
+  ) {
+    blockers.push(
+      "OTel semconv drift workflow must keep read-only contents and issue-only write permissions",
+    );
+  }
+  if (
+    !workflow.includes("pnpm run otel-semconv:drift") ||
+    !workflow.includes(`actions/github-script@${REQUIRED_GITHUB_SCRIPT_SHA}`) ||
+    !workflow.includes("<!-- otel-genai-semconv-drift -->") ||
+    !workflow.includes("github.rest.issues.listForRepo") ||
+    !workflow.includes("github.rest.issues.update") ||
+    !workflow.includes("github.rest.issues.create")
+  ) {
+    blockers.push(
+      "OTel semconv drift workflow must use the validated command and deduplicated review issue contract",
     );
   }
 }

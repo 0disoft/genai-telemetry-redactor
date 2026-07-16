@@ -18,6 +18,8 @@ library and SDK scaffold.
 - release-readiness
 - migration-check
 - compatibility
+- otel-semconv-drift
+- performance
 - smoke
 - docs
 - check
@@ -48,6 +50,11 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - release-readiness: npm staged-publish blocker check for package metadata,
   required release files, publishing policy, and trusted publishing workflow
   readiness.
+- otel-semconv-drift: compare the pinned OpenTelemetry GenAI semantic-convention
+  commit with upstream `main`. This validation requires network access and reports
+  drift without changing the pin.
+- performance: run bounded synthetic 16 KiB text and 100-item nested tool-argument
+  benchmarks and fail on coarse median or p95 regression ceilings.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, reusable profile, OpenAI-compatible
   adapter, OTel metadata mapper, and SDK wrapper smoke tests.

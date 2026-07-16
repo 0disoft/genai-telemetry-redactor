@@ -14,6 +14,12 @@ customer identifiers.
   the upstream project marks them stable.
 - Pin the default mapping provenance to an audited upstream commit. Do not label
   moving `main` as a reproducible mapping version.
+- Run the scheduled drift detector as an advisory freshness check. When upstream
+  `main` differs from the pin, it opens or refreshes one review issue with exact
+  commit and comparison links.
+- Do not automatically update the pin or generate a pull request. A maintainer must
+  review mapped attributes, conformance fixtures, migration notes, and version
+  impact before adopting an upstream change.
 - Use official `gen_ai.*` attributes only for fields present in the upstream GenAI
   semantic conventions.
 - Put library-specific redaction and content-capture fields under

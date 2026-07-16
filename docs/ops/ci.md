@@ -6,8 +6,8 @@ Status: Active
 
 CI proves package safety before release with GitHub Actions. The workflow is
 `.github/workflows/ci.yml` and it runs on pull requests and pushes to `main`.
-The workflow uses Node.js `22.14.0`, pnpm `11.7.0`, and read-only repository
-permissions.
+The workflow uses Node.js `22.14.0` and `24.x`, pnpm `11.7.0`, and read-only
+repository permissions.
 
 ## Required Gates
 
@@ -16,6 +16,11 @@ permissions.
 - check: repository-level safety and hygiene checks.
 - smoke: focused package behavior checks for core redaction, adapters, OTel
   mapping, and SDK wrapper behavior.
+- migration-check: package contract, version, N-1 baseline, and migration-guide
+  alignment.
+- performance: broad median and p95 ceilings for synthetic hot-path workloads.
+- otel-semconv-drift: scheduled advisory comparison against upstream `main`; it
+  can write only a deduplicated review issue and cannot change repository content.
 
 ## Artifact Policy
 

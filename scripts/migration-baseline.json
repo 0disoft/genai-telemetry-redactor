@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "genai-telemetry-redactor/migration-baseline/v1",
+  "package": "genai-telemetry-redactor",
+  "version": "0.3.0",
+  "previousVersion": "0.2.7",
+  "contract": {
+    "nodeEngine": ">=22.14.0",
+    "packageExports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      },
+      "./core": {
+        "types": "./dist/packages/core/src/index.d.ts",
+        "default": "./dist/packages/core/src/index.js"
+      },
+      "./openai-compatible": {
+        "types": "./dist/packages/openai-compatible/src/index.d.ts",
+        "default": "./dist/packages/openai-compatible/src/index.js"
+      },
+      "./otel": {
+        "types": "./dist/packages/otel/src/index.d.ts",
+        "default": "./dist/packages/otel/src/index.js"
+      },
+      "./sdk": {
+        "types": "./dist/packages/sdk/src/index.d.ts",
+        "default": "./dist/packages/sdk/src/index.js"
+      }
+    },
+    "publicApiInventorySha256": "5d403f6afeb1059f706ac431d04707c1eee2cf5263c792fa19fc06167833a560",
+    "sdkApiInventorySha256": "7f22cafcda8f7cdb0d1546c5c12440566220ca64d528e29dee8a644cc23605d1",
+    "defaultDetectors": [
+      {
+        "id": "builtin:email",
+        "reasons": ["email"]
+      },
+      {
+        "id": "builtin:bearer_token",
+        "reasons": ["bearer_token"]
+      },
+      {
+        "id": "builtin:api_key",
+        "reasons": ["api_key"]
+      },
+      {
+        "id": "builtin:url",
+        "reasons": ["url"]
+      }
+    ],
+    "replacementTokens": {
+      "email": "[REDACTED:email]",
+      "bearer_token": "[REDACTED:bearer_token]",
+      "api_key": "[REDACTED:api_key]",
+      "url": "[REDACTED:url]"
+    },
+    "warningCodes": [
+      "detector_failed",
+      "detector_timeout",
+      "invalid_detection_range",
+      "invalid_redaction_input",
+      "invalid_redaction_options",
+      "invalid_redaction_profile",
+      "invalid_redaction_reason",
+      "overlapping_detection",
+      "replacement_failed",
+      "max_string_length_exceeded",
+      "max_total_string_length_exceeded",
+      "max_object_depth_exceeded",
+      "max_object_keys_exceeded",
+      "max_array_length_exceeded",
+      "max_total_nodes_exceeded",
+      "max_total_detections_exceeded",
+      "max_detectors_exceeded",
+      "max_detector_runs_exceeded",
+      "max_total_duration_exceeded",
+      "max_stream_buffer_length_exceeded",
+      "stream_closed",
+      "stream_already_closed",
+      "redaction_aborted",
+      "circular_reference",
+      "unsafe_object_key",
+      "unsupported_json_like",
+      "unsupported_provider_shape",
+      "streaming_content_omitted",
+      "report_callback_failed",
+      "malformed_tool_arguments"
+    ],
+    "otelSemconvCommit": "93a59e48a9b4ea162a4d76edac4ace2d415a759e"
+  }
+}

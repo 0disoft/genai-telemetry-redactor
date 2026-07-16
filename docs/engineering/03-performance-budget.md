@@ -18,9 +18,15 @@ acceptable.
 
 ## Current Thresholds
 
-Exact numeric thresholds are not chosen yet. Until implementation begins,
-changes must document expected complexity and avoid dependencies that make the
-redaction hot path unexpectedly heavy.
+`pnpm run performance` uses synthetic data and intentionally broad CI ceilings.
+It is a catastrophic-regression gate, not a hardware benchmark:
+
+- 16 KiB text redaction: median at most 30 ms and p95 at most 100 ms.
+- 100-item nested tool arguments: median at most 120 ms and p95 at most 350 ms.
+
+The checked-in baseline owns iteration counts and thresholds. Tightening a limit
+requires repeatable CI evidence; loosening one requires a reviewed reason. Security
+and fail-closed behavior still take priority over passing the timing gate.
 
 ## Review Blockers
 

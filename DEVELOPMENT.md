@@ -4,10 +4,10 @@ Status: Active
 
 ## Development Contract
 
-Development should stay documentation-first until implementation choices are
-made. The known product shape is a TypeScript-oriented library/SDK wrapper for
-redacting GenAI telemetry content before export; exact runtime, package manager,
-and OpenTelemetry dependency versions remain implementation decisions.
+Development follows the documented TypeScript library and SDK contracts. Node.js
+`>=22.14.0` is the consumer runtime, pnpm `11.7.0` owns the workspace, and Bun is
+used only by bounded cross-platform validation scripts where documented. The OTel
+mapper remains SDK-free and pins its upstream semantic-convention provenance.
 
 ## Before Changing Code
 
@@ -20,9 +20,10 @@ and OpenTelemetry dependency versions remain implementation decisions.
 
 ## Validation
 
-Stable validation names are defined in VALIDATION.md. If a runner is not yet
-configured for `test`, `docs`, or `check`, report the validation as skipped with
-the reason and remaining risk.
+Stable validation names are defined in VALIDATION.md. `check` covers formatting,
+types, tests, package contracts, migration alignment, coarse performance budgets,
+and docs safety. Networked compatibility and OTel drift checks remain explicit
+separate validations.
 
 ## Review Blockers
 

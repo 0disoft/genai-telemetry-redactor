@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "genai-telemetry-redactor/performance-baseline/v1",
+  "cases": {
+    "text_16k": {
+      "iterations": 20,
+      "maxMedianMs": 30,
+      "maxP95Ms": 100
+    },
+    "tool_arguments_100": {
+      "iterations": 10,
+      "maxMedianMs": 120,
+      "maxP95Ms": 350
+    }
+  }
+}

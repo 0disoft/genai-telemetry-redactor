@@ -122,6 +122,9 @@ automatically disable built-ins when custom detectors are present.
 - scripts/check-no-live-secrets.ts: repository safety guard for live-looking secrets
 - scripts/check-package-surface.ts: package export and internal package surface guard
 - scripts/check-package-artifact.ts: npm dry-run package artifact guard
+- scripts/check-migration.ts: versioned public-contract and migration-guide guard
+- scripts/check-performance.ts: bounded synthetic hot-path regression guard
+- scripts/check-otel-genai-semconv-drift.ts: advisory upstream semconv freshness check
 
 ## Repository Shape Notes
 

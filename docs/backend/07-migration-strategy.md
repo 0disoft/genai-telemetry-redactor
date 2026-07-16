@@ -16,6 +16,15 @@ replacement token format changes, and telemetry mapping changes.
   reason labels and counts.
 - OpenTelemetry GenAI mapping changes must call out convention-version impact.
 
+## Automated Migration Gate
+
+`pnpm run migration-check` compares the current package with
+`scripts/migration-baseline.json`. The baseline covers package exports, public API
+inventory fingerprints, runtime floor, default detectors, replacement tokens,
+warning codes, and the pinned OpenTelemetry GenAI commit. Its version must match
+`package.json`, its previous version must match the N-1 compatibility baseline,
+and the migration guide must contain a substantive section for that version.
+
 ## Merge Blockers
 
 - A behavior change lacks migration notes.
