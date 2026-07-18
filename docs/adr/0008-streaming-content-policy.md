@@ -19,9 +19,16 @@ prototype. It is explicit opt-in and final-flush only. OpenAI-compatible
 streaming adapters still return metadata-only `streaming_content_omitted`
 results by default.
 
+`createBuiltInRollingTextStreamRedactor` is the first lower-latency core helper.
+It flushes only proven whitespace-delimited prefixes, retains bearer-scheme
+context, rejects custom detectors and profiles, and fails closed on retained
+buffer overflow or overlapping async operations. Provider adapters and the SDK
+remain metadata-only; the core proof does not establish provider event-shape or
+cancellation safety.
+
 ## Consequences
 
 - Initial streaming observability has less content detail.
 - The SDK must surface warnings when streaming content is omitted.
-- Low-latency streaming redaction still requires a future ADR update or
-  replacement.
+- Low-latency custom-detector and provider-adapter streaming still requires a
+  separate proof. ADR 0017 covers only the reviewed built-in core boundary.

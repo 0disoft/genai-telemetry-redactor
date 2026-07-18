@@ -50,6 +50,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - `examples/buffered-stream-redaction.ts`: uses the provider-agnostic buffered
   stream redactor to handle fake sensitive text split across chunk boundaries
   without returning intermediate content.
+- `examples/rolling-stream-redaction.ts`: uses the built-in-only rolling core
+  helper, awaits every operation, and verifies split email and bearer-token
+  content never survives in concatenated output.
 - `examples/streaming-metadata-only.ts`: passes a fake streaming chunk to the
   OpenAI-compatible streaming helper and verifies only metadata plus
   `streaming_content_omitted` are returned.

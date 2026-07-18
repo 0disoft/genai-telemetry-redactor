@@ -35,6 +35,9 @@ library while leaving room for provider adapters and telemetry integrations.
 5. Provider expansion: the Anthropic Messages adapter is the first completed
    expansion. Add further provider or Anthropic block shapes only after fixtures
    prove no raw content leaks through unsupported paths.
+6. Built-in rolling streaming: the core whitespace-boundary helper is complete.
+   Custom-detector and provider-adapter streaming remain blocked until their own
+   boundary, ordering, and cancellation contracts are proven.
 
 ## Review Blockers
 

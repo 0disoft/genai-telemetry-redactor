@@ -162,6 +162,25 @@ const anthropicSdkResult = await withRedactedTelemetry({
     surface === "current"
       ? " || !anthropicRequestResult.ok || !anthropicSdkResult.ok"
       : "";
+  const rollingTypeImport =
+    surface === "current"
+      ? `import { createBuiltInRollingTextStreamRedactor } from "${PACKAGE_NAME}";`
+      : "";
+  const rollingTypeCheck =
+    surface === "current"
+      ? `const rollingStream = createBuiltInRollingTextStreamRedactor({ builtInDetectors: ["email"] });
+await rollingStream.push("stream@example.invalid ");
+await rollingStream.close();`
+      : "";
+  const rollingRuntimeImport = rollingTypeImport;
+  const rollingRuntimeCheck =
+    surface === "current"
+      ? `const rollingStream = createBuiltInRollingTextStreamRedactor({ builtInDetectors: ["email"] });
+const rollingChunk = await rollingStream.push("stream@example.invalid ");
+const rollingFinal = await rollingStream.close();`
+      : "";
+  const rollingRuntimeCondition =
+    surface === "current" ? " || !rollingChunk.ok || !rollingFinal.ok" : "";
 
   await mkdir(consumerRoot, { recursive: true });
   await writeFile(
@@ -200,6 +219,7 @@ const anthropicSdkResult = await withRedactedTelemetry({
   await writeFile(
     path.join(consumerRoot, "consumer-types.ts"),
     `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
+${rollingTypeImport}
 import { redactText as redactCore, type RedactionProfileCreationResult, type RedactionResult } from "${PACKAGE_NAME}/core";
 ${anthropicTypeImport}
 import { redactOpenAICompatibleRequest, type OpenAICompatibleRedactionOptions } from "${PACKAGE_NAME}/openai-compatible";
@@ -208,6 +228,7 @@ import { withRedactedTelemetry, type WithRedactedTelemetryResult } from "${PACKA
 
 const rootResult: RedactionResult<string> = await redactText("user@example.invalid");
 const coreResult: RedactionResult<string> = await redactCore("safe input");
+${rollingTypeCheck}
 const profileResult: RedactionProfileCreationResult = createRedactionProfile({
   builtInDetectors: ["email"],
 });
@@ -251,6 +272,7 @@ void sdkResult;
   await writeFile(
     path.join(consumerRoot, "consumer-runtime.mjs"),
     `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
+${rollingRuntimeImport}
 import { redactText as redactCore } from "${PACKAGE_NAME}/core";
 ${anthropicRuntimeImport}
 import { redactOpenAICompatibleRequest } from "${PACKAGE_NAME}/openai-compatible";
@@ -259,6 +281,7 @@ import { withRedactedTelemetry } from "${PACKAGE_NAME}/sdk";
 
 const rootResult = await redactText("user@example.invalid");
 const coreResult = await redactCore("safe input");
+${rollingRuntimeCheck}
 const profileResult = createRedactionProfile({ builtInDetectors: ["email"] });
 if (!profileResult.ok) {
   throw new Error("consumer profile creation failed");
@@ -276,7 +299,7 @@ const sdkResult = await withRedactedTelemetry({
   request: { messages: [{ role: "user", content: "user@example.invalid" }] },
   redaction: { profile: profileResult.value },
 });
-if (!rootResult.ok || !coreResult.ok || !profileRedaction.ok || !requestResult.ok${anthropicRuntimeCondition} || !sdkResult.ok) {
+if (!rootResult.ok || !coreResult.ok${rollingRuntimeCondition} || !profileRedaction.ok || !requestResult.ok${anthropicRuntimeCondition} || !sdkResult.ok) {
   throw new Error("consumer import smoke failed");
 }
 const metadata = mapRedactionReportToGenAIMetadata(rootResult.report);

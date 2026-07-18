@@ -58,8 +58,9 @@ Unconfigured runner commands must fail, not pass with a fake success.
   `--output artifacts/<file>.json` argument writes bounded trend evidence without
   payload content.
 - docs: live-looking secret guard for documentation surfaces.
-- smoke: focused core text, JSON-like redaction, reusable profile, OpenAI-compatible
-  adapter, OTel metadata mapper, and SDK wrapper smoke tests.
+- smoke: focused core text, JSON-like redaction, buffered and built-in rolling
+  streams, reusable profile, provider adapters, OTel metadata mapper, and SDK
+  wrapper smoke tests.
 - check: format, typecheck, test, contract, and docs.
 
 ## Hygiene Validation

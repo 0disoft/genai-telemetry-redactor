@@ -105,6 +105,7 @@ export type SafeRedactionErrorCode =
   | "max_stream_buffer_length_exceeded"
   | "stream_closed"
   | "stream_already_closed"
+  | "stream_operation_in_progress"
   | "overlapping_detection"
   | "redaction_aborted"
   | "circular_reference"

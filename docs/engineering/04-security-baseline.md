@@ -21,6 +21,8 @@ blockers.
 - A change bypasses the redaction policy source of truth.
 - A change weakens default redaction or enables content capture by default.
 - A change hides skipped detector, streaming, nested-object, or provider-shape checks.
+- A rolling stream accepts custom detectors or flushes an unbounded match behind
+  a guessed fixed holdback length.
 - A change adds examples, fixtures, logs, or telemetry with live-looking secrets or
   private identifiers.
 - A change claims complete PII/DLP/compliance coverage.

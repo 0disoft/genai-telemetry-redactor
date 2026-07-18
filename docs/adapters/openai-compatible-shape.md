@@ -18,7 +18,9 @@ gateway behavior.
 - Completion and response text.
 - Tool call names only when caller policy marks them content-bearing.
 - Tool call function arguments and nested argument payloads.
-- Streaming chunks only as metadata-only until streaming redaction is proven.
+- Provider streaming chunks remain metadata-only until OpenAI-compatible event
+  ordering, cancellation, and content-shape redaction are proven. The core
+  built-in rolling helper alone does not satisfy this adapter gate.
 
 ## Implemented Behavior
 

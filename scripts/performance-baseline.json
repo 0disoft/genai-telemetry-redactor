@@ -10,6 +10,11 @@
       "iterations": 10,
       "maxMedianMs": 120,
       "maxP95Ms": 350
+    },
+    "rolling_stream_16k": {
+      "iterations": 10,
+      "maxMedianMs": 100,
+      "maxP95Ms": 300
     }
   }
 }

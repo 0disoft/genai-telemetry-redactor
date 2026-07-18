@@ -38,6 +38,10 @@ The prototype is intentionally not wired into
 metadata-only `streaming_content_omitted` results until adapter-specific stream
 shape fixtures and safe flush semantics are reviewed.
 
+ADR 0017 adds a separate built-in-only rolling helper. It does not weaken this
+final-flush contract: custom detectors and reusable profiles still require the
+complete buffered input because they have no proven incremental boundary.
+
 ## Consequences
 
 - Security impact: split secrets can be redacted at final flush without leaking

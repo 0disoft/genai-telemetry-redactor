@@ -27,6 +27,12 @@ export {
   type BufferedTextStreamRedactor,
 } from "./buffered-stream-redactor.js";
 export {
+  createBuiltInRollingTextStreamRedactor,
+  type BuiltInRollingTextStreamOptions,
+  type RollingTextStreamChunk,
+  type RollingTextStreamRedactor,
+} from "./rolling-stream-redactor.js";
+export {
   createRedactionProfile,
   type RedactionOperationOptions,
   type RedactionProfile,

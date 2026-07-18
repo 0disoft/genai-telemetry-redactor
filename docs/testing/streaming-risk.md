@@ -32,8 +32,26 @@ redacts the full buffered text. Buffer overflow fails closed with
 content. Calls to `push()` after close return `stream_closed`; repeated close
 calls return `stream_already_closed` without changing terminal state.
 
+## Built-in Rolling Helper
+
+`createBuiltInRollingTextStreamRedactor` may return content only through a
+reviewed whitespace boundary. It retains `Bearer`, `Token`, or `Basic` plus the
+following whitespace so the next token is inspected with its required context.
+Custom detectors, profiles, and empty built-in selection fail closed. Long
+whitespace-free segments remain buffered and fail closed at
+`maxStreamBufferLength`; the implementation never substitutes an arbitrary
+fixed holdback length.
+
+The split corpus runs every UTF-16 chunk boundary for email, URL, API-key, and
+bearer-token examples. Cumulative limits and overlapping async calls are also
+tested so chunking cannot reset budgets or race content out of the buffer.
+
 ## Review Blockers
 
 - Streaming chunks are redacted independently without boundary tests.
 - A streaming example includes raw content in telemetry.
 - The SDK hides streaming omission warnings from callers.
+- A fixed holdback length is claimed to cover unbounded built-in or custom
+  matches.
+- A provider adapter treats the core whitespace proof as provider stream-shape
+  proof.

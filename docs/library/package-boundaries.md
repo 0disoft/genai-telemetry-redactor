@@ -12,6 +12,7 @@ Messages shape handling, OpenTelemetry mapping, and SDK ergonomics.
 ## Boundary Model
 
 - Core redaction: detector contracts, traversal, replacement tokens, reports,
+  built-in-only whitespace-boundary streaming, final-flush generic streaming,
   safe errors, and fail-closed behavior.
 - OpenAI-compatible adapter: request, response, tool-call, and streaming policy
   shapes; no detector implementation.

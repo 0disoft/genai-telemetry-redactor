@@ -1,7 +1,7 @@
 {
   "schemaVersion": "genai-telemetry-redactor/migration-baseline/v1",
   "package": "genai-telemetry-redactor",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "previousVersion": "0.3.0",
   "contract": {
     "nodeEngine": ">=22.14.0",
@@ -31,7 +31,7 @@
         "default": "./dist/packages/sdk/src/index.js"
       }
     },
-    "publicApiInventorySha256": "b14bbaead184f2afd4b706ff8ae66a1323657a0923dcfa86d3d96e72193db011",
+    "publicApiInventorySha256": "a4185f66dec1ed4d3056958b407d02b8ac2cc73736d830dc871a8254de894ce9",
     "sdkApiInventorySha256": "7f22cafcda8f7cdb0d1546c5c12440566220ca64d528e29dee8a644cc23605d1",
     "defaultDetectors": [
       {
@@ -80,6 +80,7 @@
       "max_stream_buffer_length_exceeded",
       "stream_closed",
       "stream_already_closed",
+      "stream_operation_in_progress",
       "redaction_aborted",
       "circular_reference",
       "unsafe_object_key",

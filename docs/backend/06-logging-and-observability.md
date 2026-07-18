@@ -22,6 +22,9 @@ redaction.
   values.
 - Telemetry mapping: OpenTelemetry GenAI metadata helpers must emit redaction summaries
   without raw content.
+- Streaming mapping: provider stream events remain metadata-only by default.
+  Explicit rolling core output may be exported only after a successful built-in
+  whitespace-boundary result; retained suffixes and failures are never telemetry.
 
 ## Merge Blockers
 
@@ -30,3 +33,5 @@ redaction.
 - Content capture is enabled by default.
 - Redaction failure exports raw content instead of suppressing content fields.
 - Redaction summary fields reveal enough context to reconstruct the original value.
+- A guessed fixed holdback or provider chunk boundary is treated as proof that
+  rolling content is safe.

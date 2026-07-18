@@ -23,10 +23,18 @@ It is a catastrophic-regression gate, not a hardware benchmark:
 
 - 16 KiB text redaction: median at most 30 ms and p95 at most 100 ms.
 - 100-item nested tool arguments: median at most 120 ms and p95 at most 350 ms.
+- 16 KiB built-in rolling stream redaction in 512-code-unit input chunks:
+  median at most 100 ms and p95 at most 300 ms.
 
 The checked-in baseline owns iteration counts and thresholds. Tightening a limit
 requires repeatable CI evidence; loosening one requires a reviewed reason. Security
 and fail-closed behavior still take priority over passing the timing gate.
+
+Rolling-stream thresholds include repeated detector execution and output
+assembly across whitespace flushes. They are deliberately broad catastrophic
+regression limits, not a promise of time-to-first-token on every payload. A long
+whitespace-free URL or token is intentionally retained until a delimiter or the
+configured buffer failure boundary.
 
 ## Trend Evidence
 

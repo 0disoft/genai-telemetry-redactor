@@ -47,6 +47,19 @@ not proof of complete PII or DLP coverage.
   size and async detector duration, but it cannot preempt a synchronous
   JavaScript regex while the engine is evaluating a backtracking-heavy pattern.
 
+## Streaming Boundary
+
+The generic `Detector` contract does not declare a maximum match length or a
+prefix-finality rule. Custom detectors and reusable profiles are therefore not
+accepted by `createBuiltInRollingTextStreamRedactor`; they must use the
+final-flush buffered helper. A caller-provided fixed holdback length is not a
+substitute for a detector boundary proof.
+
+The rolling helper's whitespace proof applies only to the four reviewed
+built-in grammars. Adding or changing a built-in pattern requires revalidating
+that it cannot cross the flush boundary and extending the all-split fixture
+corpus.
+
 ## Reusable Profiles
 
 `createRedactionProfile(config)` snapshots built-in selection, custom detector

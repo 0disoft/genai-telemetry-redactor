@@ -49,7 +49,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `BufferedTextStreamChunk`
 - `BufferedTextStreamRedactor`
 - `BuiltInDetectorName`
+- `BuiltInRollingTextStreamOptions`
 - `createBufferedTextStreamRedactor`
+- `createBuiltInRollingTextStreamRedactor`
 - `createBuiltInDetectors`
 - `createRedactionProfile`
 - `createRegexDetector`
@@ -93,6 +95,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `redactText`
 - `redactToolArguments`
 - `ReplacementTokenPolicy`
+- `RollingTextStreamChunk`
+- `RollingTextStreamRedactor`
 - `SafeRedactionError`
 - `SafeRedactionErrorCode`
 - `withRedactedTelemetry`
@@ -114,7 +118,9 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `BufferedTextStreamChunk`
 - `BufferedTextStreamRedactor`
 - `BuiltInDetectorName`
+- `BuiltInRollingTextStreamOptions`
 - `createBufferedTextStreamRedactor`
+- `createBuiltInRollingTextStreamRedactor`
 - `createBuiltInDetectors`
 - `createRedactionProfile`
 - `createRegexDetector`
@@ -140,6 +146,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `redactText`
 - `redactToolArguments`
 - `ReplacementTokenPolicy`
+- `RollingTextStreamChunk`
+- `RollingTextStreamRedactor`
 - `SafeRedactionError`
 - `SafeRedactionErrorCode`
 
@@ -194,6 +202,12 @@ This repository type owns public API surface, package compatibility, semantic ve
   redacts the complete buffer before returning content. Calls to `push()` after
   close fail with `stream_closed`; repeated `close()` calls fail with
   `stream_already_closed`.
+- `createBuiltInRollingTextStreamRedactor(options)`: built-in-only rolling
+  helper that returns redacted content through proven whitespace boundaries,
+  retains bearer-scheme context, and final-flushes the remaining suffix.
+  Custom detectors, reusable profiles, empty built-in selection, retained
+  buffer overflow, cumulative budget exhaustion, and overlapping operations
+  fail closed without returning the retained suffix.
 - `redactJsonLike(input, options)`: async JSON-like traversal that redacts string
   leaves while preserving safe plain-object and array shape. Non-plain objects
   and content-bearing object keys fail closed instead of being coerced or echoed
@@ -204,7 +218,9 @@ This repository type owns public API surface, package compatibility, semantic ve
   executions with `maxDetectorRuns`, including object-key safety checks. Async
   detector duration can also be bounded with `maxDetectorDurationMs`, and the
   whole operation can be bounded with `maxTotalDurationMs`. Explicit buffered
-  streaming can bound its buffered content with `maxStreamBufferLength`.
+  and rolling streaming can bound retained content with
+  `maxStreamBufferLength`; rolling streaming also keeps total string,
+  detection, detector-run, and duration budgets cumulative across flushes.
 - `redactToolArguments(input, options)`: tool-argument redaction wrapper over
   JSON-like traversal.
 - `createBuiltInDetectors(names)`: built-in detector construction.

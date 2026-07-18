@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import { redactJsonLike } from "../packages/core/src/redact-json-like.js";
 import { redactText } from "../packages/core/src/redact-text.js";
+import { createBuiltInRollingTextStreamRedactor } from "../packages/core/src/rolling-stream-redactor.js";
 
 const ROOT = process.cwd();
 const BASELINE_SCHEMA = "genai-telemetry-redactor/performance-baseline/v1";
@@ -270,6 +271,50 @@ function benchmarkOperation(caseName: string): () => Promise<number> {
         ) {
           throw new Error(
             "tool_arguments_100 did not redact the synthetic corpus safely",
+          );
+        }
+        return durationMs;
+      };
+    }
+    case "rolling_stream_16k": {
+      const chunk =
+        "contact user@example.invalid through https://service.example.invalid/path for synthetic telemetry ";
+      const input = chunk
+        .repeat(Math.ceil(16_384 / chunk.length))
+        .slice(0, 16_384);
+      const chunks = Array.from(
+        { length: Math.ceil(input.length / 512) },
+        (_, index) => input.slice(index * 512, (index + 1) * 512),
+      );
+      return async () => {
+        const startedAt = performance.now();
+        const stream = createBuiltInRollingTextStreamRedactor({
+          limits: {
+            maxStreamBufferLength: 2_048,
+            maxTotalStringLength: input.length,
+          },
+        });
+        const output: string[] = [];
+        for (const inputChunk of chunks) {
+          const result = await stream.push(inputChunk);
+          if (!result.ok) {
+            throw new Error("rolling_stream_16k failed before final flush");
+          }
+          output.push(result.value.content);
+        }
+        const final = await stream.close();
+        if (!final.ok) {
+          throw new Error("rolling_stream_16k failed at final flush");
+        }
+        output.push(final.value.content);
+        const durationMs = performance.now() - startedAt;
+        const serialized = output.join("");
+        if (
+          serialized.includes("user@example.invalid") ||
+          serialized.includes("https://service.example.invalid")
+        ) {
+          throw new Error(
+            "rolling_stream_16k did not redact the synthetic corpus safely",
           );
         }
         return durationMs;

@@ -66,6 +66,13 @@ It buffers string chunks, omits content from intermediate `push(chunk)` results,
 and returns redacted content only from `close()`. OpenAI-compatible streaming
 adapters remain metadata-only by default.
 
+`createBuiltInRollingTextStreamRedactor` is a lower-latency core-only helper for
+the reviewed built-in detectors. It flushes redacted text only through safe
+whitespace boundaries, retains bearer-scheme context, and buffers long
+whitespace-free segments. It rejects custom detectors and profiles; those still
+require the final-flush helper. Await every `push()` and `close()` call because
+overlapping operations fail closed.
+
 Redaction reports may include numeric `timings` such as operation duration,
 detector duration, and detector run count. These metrics are safe summaries only:
 they do not include matched values, raw content, detector IDs, or field paths.
@@ -140,8 +147,9 @@ request and response shapes, nested tool arguments and results, a small detector
 set, replacement-token policy, and safe OpenTelemetry GenAI metadata mapping.
 
 The current implementation starts with `packages/core`: async `redactText`,
-`redactJsonLike`, `redactToolArguments`, and
-`createBufferedTextStreamRedactor`; built-in detectors for email, bearer token,
+`redactJsonLike`, `redactToolArguments`,
+`createBufferedTextStreamRedactor`, and
+`createBuiltInRollingTextStreamRedactor`; built-in detectors for email, bearer token,
 API-key-like strings, and URLs; category-only replacement tokens; redaction
 reports; shape-preserving JSON-like traversal with shared-reference reuse; and
 fail-closed detector, traversal, buffered-stream, circular-reference, overlap,
@@ -177,7 +185,8 @@ transport, telemetry exporters, or prompt storage.
 `examples` contains executable TypeScript samples for the first safe integration
 paths: OpenAI-compatible wrapping, Anthropic Messages system and text redaction,
 tool-call argument redaction with a report callback, custom detector
-registration, and streaming metadata-only handling. The contract runner imports
+registration, final-flush and built-in rolling redaction, and streaming
+metadata-only handling. The contract runner imports
 these samples against built package exports so example drift is treated as a
 package contract failure.
 

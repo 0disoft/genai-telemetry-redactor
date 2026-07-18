@@ -111,12 +111,14 @@ This repository type owns public API, compatibility, examples, versioning, and c
 - The helper does not invoke provider SDKs or HTTP clients.
 - The helper does not own credentials, retries, routing, tenant authorization,
   telemetry exporter configuration, prompt storage, or model gateway behavior.
-- The helper does not redact streaming chunk content; streaming remains
-  metadata-only until streaming redaction is proven.
+- The SDK helper does not redact streaming chunk content; provider streaming
+  remains metadata-only. The core built-in rolling helper is a separate
+  low-level API and does not prove provider event ordering or cancellation.
 
 ## Review Blockers
 
 - SDK examples drift from public API.
 - Compatibility claims lack runtime or consumer evidence.
 - SDK behavior hides partial-redaction warnings from callers.
-- SDK wrappers export streaming content before streaming redaction is proven.
+- SDK wrappers export streaming content before provider event ordering,
+  cancellation, and content-shape redaction are proven.

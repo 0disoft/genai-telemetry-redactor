@@ -11,9 +11,9 @@ redacting LLM telemetry content before export.
 The first product slice targets OpenAI-compatible request/response shapes and
 Anthropic Messages request/response shapes, completion text, prompt messages,
 nested tool-call arguments and results, redaction summary output, and
-OpenTelemetry GenAI metadata mapping. Streaming content redaction remains a
-safety area that must default to metadata-only export until chunk handling is
-proven.
+OpenTelemetry GenAI metadata mapping. Provider streaming remains metadata-only
+by default. The built-in-only core rolling helper is an explicit opt-in for
+whitespace-boundary text; it is not provider stream-shape proof.
 
 ## Source of Truth
 

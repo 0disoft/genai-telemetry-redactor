@@ -31,6 +31,26 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.5.0
+
+The package adds `createBuiltInRollingTextStreamRedactor`,
+`BuiltInRollingTextStreamOptions`, `RollingTextStreamChunk`, and
+`RollingTextStreamRedactor` from the root and `./core` exports. This opt-in
+helper may emit redacted content before close only through reviewed whitespace
+boundaries. It retains bearer-scheme context and final-flushes the remaining
+suffix.
+
+The rolling helper rejects custom detectors, reusable profiles, and empty
+built-in selection with `invalid_redaction_options`. Long whitespace-free
+segments fail at `maxStreamBufferLength` instead of using a guessed fixed
+holdback. Concurrent `push()` or `close()` calls fail closed with the new
+`stream_operation_in_progress` code, and cumulative limits do not restart after
+each flush.
+
+Existing `createBufferedTextStreamRedactor` behavior is unchanged and remains
+the required path for custom detectors and profiles. OpenAI-compatible stream
+events and SDK streaming remain metadata-only.
+
 ## 0.4.0
 
 The package adds the explicit `./anthropic-messages` export with
