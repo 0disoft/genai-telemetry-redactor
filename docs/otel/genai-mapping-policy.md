@@ -15,8 +15,9 @@ customer identifiers.
 - Pin the default mapping provenance to an audited upstream commit. Do not label
   moving `main` as a reproducible mapping version.
 - Run the scheduled drift detector as an advisory freshness check. When upstream
-  `main` differs from the pin, it opens or refreshes one review issue with exact
-  commit and comparison links.
+  `main` differs from the pin, it opens, refreshes, or reopens one review issue
+  with exact commit and comparison links. When the pin catches up, it closes the
+  stale issue. Every run writes the compared commits and status to the job summary.
 - Do not automatically update the pin or generate a pull request. A maintainer must
   review mapped attributes, conformance fixtures, migration notes, and version
   impact before adopting an upstream change.
@@ -58,9 +59,14 @@ customer identifiers.
 - Redaction status and warning codes use closed allowlists at the mapper
   boundary. Unknown runtime values are dropped rather than copied into telemetry
   attributes.
-- The mapper records `opentelemetry-semconv-genai-93a59e48a9b4`, the full
+- The mapper records `opentelemetry-semconv-genai-c26a2c21d1ee`, the full
   upstream commit URL, and `development` as semconv metadata. This is not a
   stability claim.
+- The `c26a2c21d1ee` adoption reviewed six upstream commits. They changed
+  repository automation, the referenced core semantic-conventions version, MCP
+  tooling, review guidance, and agent invocation metrics. None of those commits
+  changed the six official attributes emitted by this mapper, so the mapped
+  attribute inventory remains unchanged.
 - The package emits metadata objects only. It does not write spans or events, so
   upstream Span Event API migration is outside this mapper's ownership boundary.
 - If report or metadata option inspection throws, the mapper returns a minimal

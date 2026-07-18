@@ -41,7 +41,7 @@ jobs:
       - name: Inspect upstream commit
         run: pnpm run otel-semconv:drift > otel-semconv-drift.json
 
-      - name: Open or refresh drift review issue
+      - name: Reconcile drift review issue
         # actions/github-script v9.0.0
         uses: actions/github-script@ff4b64fc288a21d5291396a384c1273f032e6333
         with:
@@ -52,17 +52,51 @@ jobs:
               fs.readFileSync("otel-semconv-drift.json", "utf8"),
             );
 
-            if (result.status === "current") {
-              core.info(`Pinned semconv commit is current: ${result.pinnedCommit}`);
-              return;
-            }
-
-            if (result.status !== "drift") {
+            if (result.status !== "current" && result.status !== "drift") {
               throw new Error(`Unexpected drift status: ${String(result.status)}`);
             }
 
             const title = "chore(otel): review GenAI semantic-convention drift";
             const marker = "<!-- otel-genai-semconv-drift -->";
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "all",
+              per_page: 100,
+            });
+            const existing = issues.find(
+              (issue) =>
+                !issue.pull_request &&
+                issue.title === title &&
+                issue.body?.includes(marker),
+            );
+
+            const summaryRows = [
+              [{ data: "Status", header: true }, result.status],
+              [{ data: "Pinned commit", header: true }, result.pinnedCommit],
+              [{ data: "Upstream commit", header: true }, result.latestCommit],
+              [{ data: "Comparison", header: true }, result.compareUrl],
+            ];
+            await core.summary
+              .addHeading("OpenTelemetry GenAI semconv drift")
+              .addTable(summaryRows)
+              .write();
+
+            if (result.status === "current") {
+              core.info(`Pinned semconv commit is current: ${result.pinnedCommit}`);
+              if (existing?.state === "open") {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existing.number,
+                  state: "closed",
+                  state_reason: "completed",
+                });
+                core.info(`Closed resolved drift review issue #${existing.number}`);
+              }
+              return;
+            }
+
             const body = [
               marker,
               "",
@@ -78,27 +112,15 @@ jobs:
               "",
             ].join("\n");
 
-            const issues = await github.paginate(github.rest.issues.listForRepo, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: "open",
-              per_page: 100,
-            });
-            const existing = issues.find(
-              (issue) =>
-                !issue.pull_request &&
-                issue.title === title &&
-                issue.body?.includes(marker),
-            );
-
             if (existing) {
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existing.number,
                 body,
+                state: "open",
               });
-              core.info(`Updated drift review issue #${existing.number}`);
+              core.info(`Updated or reopened drift review issue #${existing.number}`);
               return;
             }
 

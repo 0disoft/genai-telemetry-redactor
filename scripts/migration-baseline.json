@@ -1,8 +1,8 @@
 {
   "schemaVersion": "genai-telemetry-redactor/migration-baseline/v1",
   "package": "genai-telemetry-redactor",
-  "version": "0.3.0",
-  "previousVersion": "0.2.7",
+  "version": "0.3.1",
+  "previousVersion": "0.3.0",
   "contract": {
     "nodeEngine": ">=22.14.0",
     "packageExports": {
@@ -85,6 +85,6 @@
       "report_callback_failed",
       "malformed_tool_arguments"
     ],
-    "otelSemconvCommit": "93a59e48a9b4ea162a4d76edac4ace2d415a759e"
+    "otelSemconvCommit": "c26a2c21d1ee70d5231bd440c7b48d3c94ee506a"
   }
 }

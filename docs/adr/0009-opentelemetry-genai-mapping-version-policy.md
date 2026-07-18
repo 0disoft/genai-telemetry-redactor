@@ -12,8 +12,8 @@ explicit.
 
 The mapper records the upstream OpenTelemetry GenAI semantic-convention source
 as Development, not stable. The default mapper label is
-`opentelemetry-semconv-genai-93a59e48a9b4`, the status is `development`, and the
-source URL pins commit `93a59e48a9b4ea162a4d76edac4ace2d415a759e` in
+`opentelemetry-semconv-genai-c26a2c21d1ee`, the status is `development`, and the
+source URL pins commit `c26a2c21d1ee70d5231bd440c7b48d3c94ee506a` in
 `open-telemetry/semantic-conventions-genai`.
 
 This label is a mapping provenance marker, not a compatibility promise that the
@@ -31,9 +31,17 @@ valid caller-provided total remains available under
 `genai_redactor.usage.total_tokens`.
 
 A weekly GitHub Actions check compares the pin with upstream `main`. Drift is an
-advisory review signal: the workflow creates or refreshes a single issue, but it
-does not update source, create a pull request, or claim that every upstream commit
-requires a mapper release.
+advisory review signal: the workflow creates, refreshes, or reopens a single
+issue and closes it after the pin catches up. It also records the status and
+compared commits in the job summary. It does not update source, create a pull
+request, or claim that every upstream commit requires a mapper release.
+
+The `c26a2c21d1ee` review covered the upstream range from
+`93a59e48a9b4` through `c26a2c21d1ee`. The range changed repository
+automation, core semantic-conventions references, MCP tooling, review guidance,
+and agent invocation metrics. The mapper's six official attribute names and
+value types did not change, so this adoption updates provenance without adding
+or removing mapper output.
 
 ## Consequences
 

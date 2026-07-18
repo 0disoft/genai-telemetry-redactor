@@ -33,11 +33,19 @@ describe("OpenTelemetry GenAI semconv drift workflow", () => {
     }
   });
 
-  it("deduplicates drift reports and never mutates the pinned source", () => {
+  it("summarizes and reconciles one reusable drift review issue", () => {
     expect(workflow).toContain("<!-- otel-genai-semconv-drift -->");
+    expect(workflow).toContain("core.summary");
     expect(workflow).toContain("github.rest.issues.listForRepo");
+    expect(workflow).toContain('state: "all"');
     expect(workflow).toContain("github.rest.issues.update");
     expect(workflow).toContain("github.rest.issues.create");
+    expect(workflow).toContain('state: "closed"');
+    expect(workflow).toContain('state_reason: "completed"');
+    expect(workflow).toContain('state: "open"');
+  });
+
+  it("never mutates the pinned source automatically", () => {
     expect(workflow).not.toContain("git push");
     expect(workflow).not.toContain("createPullRequest");
   });

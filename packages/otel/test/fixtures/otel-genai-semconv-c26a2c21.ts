@@ -1,6 +1,6 @@
 export const PINNED_OTEL_GENAI_SEMCONV = {
   repository: "https://github.com/open-telemetry/semantic-conventions-genai",
-  commit: "93a59e48a9b4ea162a4d76edac4ace2d415a759e",
+  commit: "c26a2c21d1ee70d5231bd440c7b48d3c94ee506a",
   status: "development",
   mappedAttributes: {
     "gen_ai.operation.name": "string",

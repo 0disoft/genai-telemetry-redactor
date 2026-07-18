@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RedactionReport } from "../../core/src/index.js";
 import { mapRedactionReportToGenAIMetadata } from "../src/index.js";
-import { PINNED_OTEL_GENAI_SEMCONV } from "./fixtures/otel-genai-semconv-93a59e48.js";
+import { PINNED_OTEL_GENAI_SEMCONV } from "./fixtures/otel-genai-semconv-c26a2c21.js";
 
 const EMPTY_REPORT: RedactionReport = {
   status: "unchanged",
@@ -55,7 +55,7 @@ describe("pinned OpenTelemetry GenAI semantic convention", () => {
 
     expect(result.attributes).toMatchObject({
       "genai_redactor.otel.genai.semconv.label":
-        "opentelemetry-semconv-genai-93a59e48a9b4",
+        "opentelemetry-semconv-genai-c26a2c21d1ee",
       "genai_redactor.otel.genai.semconv.status":
         PINNED_OTEL_GENAI_SEMCONV.status,
       "genai_redactor.otel.genai.semconv.source": `${PINNED_OTEL_GENAI_SEMCONV.repository}/commit/${PINNED_OTEL_GENAI_SEMCONV.commit}`,

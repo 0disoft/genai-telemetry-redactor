@@ -74,7 +74,7 @@ describe("mapRedactionReportToGenAIMetadata", () => {
 
     expect(result.attributes).toMatchObject({
       "genai_redactor.otel.genai.semconv.label":
-        "opentelemetry-semconv-genai-93a59e48a9b4",
+        "opentelemetry-semconv-genai-c26a2c21d1ee",
       "genai_redactor.otel.genai.semconv.status": "development",
       "genai_redactor.content_capture.enabled": false,
       "genai_redactor.redaction.status": "redacted",

@@ -31,6 +31,18 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.3.1
+
+The default OpenTelemetry GenAI mapping provenance now pins upstream commit
+`c26a2c21d1ee70d5231bd440c7b48d3c94ee506a`. The reviewed upstream range did
+not change the six official attributes emitted by the mapper, so mapper option
+and output shapes are unchanged. The observable
+`genai_redactor.otel.genai.semconv.label` and source URL now identify the new
+snapshot.
+
+The scheduled drift workflow now writes a job summary, reopens the single drift
+review issue when drift returns, and closes that issue after the pin catches up.
+
 ## 0.3.0
 
 The OpenTelemetry GenAI mapper now pins its Development provenance to upstream
