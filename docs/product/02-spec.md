@@ -8,10 +8,12 @@ Owner: repository owner
 GenAI Telemetry Redactor provides a TypeScript-oriented library/SDK contract for
 redacting LLM telemetry content before export.
 
-The first product slice targets OpenAI-compatible request/response shapes, completion
-text, prompt messages, nested tool-call arguments, redaction summary output, and
-OpenTelemetry GenAI metadata mapping. Streaming content redaction remains a safety
-area that must default to metadata-only export until chunk handling is proven.
+The first product slice targets OpenAI-compatible request/response shapes and
+Anthropic Messages request/response shapes, completion text, prompt messages,
+nested tool-call arguments and results, redaction summary output, and
+OpenTelemetry GenAI metadata mapping. Streaming content redaction remains a
+safety area that must default to metadata-only export until chunk handling is
+proven.
 
 ## Source of Truth
 
@@ -33,6 +35,8 @@ area that must default to metadata-only export until chunk handling is proven.
 ## MVP Requirements
 
 - Redact prompt messages, completion text, and tool arguments.
+- Redact Anthropic top-level system prompts, text blocks, tool-use inputs, and
+  tool-result content.
 - Detect common email addresses, bearer tokens, API-key-like strings, and internal or
   absolute URLs.
 - Allow custom detector hooks with reason codes.
@@ -46,7 +50,8 @@ area that must default to metadata-only export until chunk handling is proven.
 - Complete DLP or PII coverage.
 - Telemetry backend, prompt storage, model gateway, or provider account management.
 - Legal compliance certification.
-- All LLM providers in the first release.
+- Provider shapes beyond the explicitly documented OpenAI-compatible and
+  Anthropic Messages adapters.
 
 ## Review Blockers
 

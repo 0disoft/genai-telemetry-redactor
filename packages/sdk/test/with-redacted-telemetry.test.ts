@@ -437,4 +437,63 @@ describe("withRedactedTelemetry", () => {
     expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
     expect(result.value.report.totalRedactions).toBe(1);
   });
+
+  it("redacts Anthropic Messages request and response payloads", async () => {
+    const result = await withRedactedTelemetry({
+      adapter: "anthropic-messages",
+      request: {
+        system: "System system@example.invalid",
+        messages: [
+          {
+            role: "user",
+            content: "Request request@example.invalid",
+          },
+        ],
+      },
+      response: {
+        role: "assistant",
+        content: [{ type: "text", text: "Response response@example.invalid" }],
+      },
+      telemetry: {
+        operationName: "chat",
+        providerName: "anthropic",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.redactedRequest).toMatchObject({
+      system: "System [REDACTED:email]",
+      messages: [{ role: "user", content: "Request [REDACTED:email]" }],
+    });
+    expect(result.value.redactedResponse).toMatchObject({
+      content: [{ type: "text", text: "Response [REDACTED:email]" }],
+    });
+    expect(result.telemetry.attributes).toMatchObject({
+      "gen_ai.provider.name": "anthropic",
+      "genai_redactor.redaction.total_count": 3,
+    });
+  });
+
+  it("rejects adapter-specific option bags from another provider", async () => {
+    const anthropic = await withRedactedTelemetry({
+      adapter: "anthropic-messages",
+      request: { messages: [{ role: "user", content: "safe" }] },
+      openAICompatible: { redactToolNames: true },
+    });
+    const openAI = await withRedactedTelemetry({
+      adapter: "openai-compatible",
+      request: { prompt: "safe" },
+      anthropicMessages: { redactToolNames: true },
+    });
+
+    expect(anthropic.ok).toBe(false);
+    expect(openAI.ok).toBe(false);
+    if (!anthropic.ok) {
+      expect(anthropic.error.code).toBe("invalid_redaction_options");
+    }
+    if (!openAI.ok) {
+      expect(openAI.error.code).toBe("invalid_redaction_options");
+    }
+  });
 });

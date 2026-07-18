@@ -10,6 +10,10 @@ import { mergeReports } from "../../core/src/report.js";
 import { resolveRedactionOperationOptions } from "../../core/src/redaction-profile.js";
 import { isSafeTelemetryLabel } from "../../core/src/safe-label.js";
 import {
+  redactAnthropicMessagesRequest,
+  redactAnthropicMessagesResponse,
+} from "../../anthropic-messages/src/index.js";
+import {
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
 } from "../../openai-compatible/src/index.js";
@@ -20,6 +24,11 @@ import type {
   WithRedactedTelemetryResult,
   WithRedactedTelemetryValue,
 } from "./types.js";
+
+type AdapterRedactor = (
+  input: unknown,
+  options: RedactionOptions & { redactToolNames: boolean },
+) => Promise<RedactionResult<unknown>>;
 
 const REPORT_CONTEXT_KEYS = [
   "operationId",
@@ -54,8 +63,34 @@ export async function withRedactedTelemetry(
     }
 
     switch (options.adapter) {
+      case "anthropic-messages":
+        if (options.openAICompatible !== undefined) {
+          return sdkFailure(
+            "invalid_redaction_options",
+            "OpenAI-compatible options cannot be used with the Anthropic Messages adapter.",
+            options,
+          );
+        }
+        return withAdapterRedactedTelemetry(
+          options,
+          redactAnthropicMessagesRequest,
+          redactAnthropicMessagesResponse,
+          options.anthropicMessages?.redactToolNames === true,
+        );
       case "openai-compatible":
-        return withOpenAICompatibleRedactedTelemetry(options);
+        if (options.anthropicMessages !== undefined) {
+          return sdkFailure(
+            "invalid_redaction_options",
+            "Anthropic Messages options cannot be used with the OpenAI-compatible adapter.",
+            options,
+          );
+        }
+        return withAdapterRedactedTelemetry(
+          options,
+          redactOpenAICompatibleRequest,
+          redactOpenAICompatibleResponse,
+          options.openAICompatible?.redactToolNames === true,
+        );
       default:
         return sdkFailure(
           "unsupported_provider_shape",
@@ -71,8 +106,11 @@ export async function withRedactedTelemetry(
   }
 }
 
-async function withOpenAICompatibleRedactedTelemetry(
+async function withAdapterRedactedTelemetry(
   options: WithRedactedTelemetryOptions,
+  redactRequest: AdapterRedactor,
+  redactResponse: AdapterRedactor,
+  redactToolNames: boolean,
 ): Promise<WithRedactedTelemetryResult> {
   const reportContext = sanitizeReportContext(options.reportContext);
   const redactionResult = resolveRedactionOperationOptions(
@@ -102,13 +140,13 @@ async function withOpenAICompatibleRedactedTelemetry(
   };
   const reports: RedactionReport[] = [];
 
-  const request = await redactOpenAICompatibleRequest(
+  const request = await redactRequest(
     options.request,
     adapterOptionsForCurrentBudget(
       redaction,
       totalDeadlineEpochMs,
       budget,
-      options.openAICompatible?.redactToolNames === true,
+      redactToolNames,
     ),
   );
   if (!request.ok) {
@@ -119,13 +157,13 @@ async function withOpenAICompatibleRedactedTelemetry(
 
   let redactedResponse: unknown;
   if ("response" in options) {
-    const response = await redactOpenAICompatibleResponse(
+    const response = await redactResponse(
       options.response,
       adapterOptionsForCurrentBudget(
         redaction,
         totalDeadlineEpochMs,
         budget,
-        options.openAICompatible?.redactToolNames === true,
+        redactToolNames,
       ),
     );
     if (!response.ok) {

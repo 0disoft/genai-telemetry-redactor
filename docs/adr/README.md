@@ -25,6 +25,7 @@ LLM prompt, completion, and tool argument content before telemetry export.
 - 0013: Detector timing breakdown policy.
 - 0014: Buffered stream redaction policy.
 - 0015: Redaction profile composition policy.
+- 0016: Anthropic Messages adapter boundary.
 - 0000: Template for future decisions.
 
 ## Source of Truth

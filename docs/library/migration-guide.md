@@ -31,6 +31,24 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.4.0
+
+The package adds the explicit `./anthropic-messages` export with
+`redactAnthropicMessagesRequest`, `redactAnthropicMessagesResponse`,
+`AnthropicMessagesOptions`, and `AnthropicMessagesRedactionOptions`.
+`withRedactedTelemetry` now accepts `adapter: "anthropic-messages"` and the
+optional `anthropicMessages.redactToolNames` policy.
+
+The adapter supports top-level system prompts, string and text-block message
+content, assistant `tool_use.input`, and user `tool_result.content`. Unknown or
+unreviewed block types fail closed with `unsupported_provider_shape`; callers
+that need image, document, search-result, thinking, or server-tool blocks should
+keep those payloads out of telemetry until a later adapter contract adds them.
+
+Existing OpenAI-compatible APIs remain source-compatible. Adapter-specific SDK
+option bags are now rejected when used with the other provider adapter instead
+of being silently ignored.
+
 ## 0.3.1
 
 The default OpenTelemetry GenAI mapping provenance now pins upstream commit

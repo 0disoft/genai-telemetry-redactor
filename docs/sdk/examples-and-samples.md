@@ -33,6 +33,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
 
 ## Executable Examples
 
+- `examples/anthropic-messages-basic.ts`: redacts a top-level system prompt and
+  Anthropic text block through the provider-SDK-free Messages adapter.
 - `examples/openai-compatible-basic.ts`: wraps an OpenAI-compatible request and
   response with `withRedactedTelemetry`, verifies fake email, URL, and API-key-like
   content are removed, and checks content capture stays disabled.

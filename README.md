@@ -114,6 +114,8 @@ automatically disable built-ins when custom detectors are present.
 - package.json, pnpm-workspace.yaml, tsconfig*.json, vitest.config.ts: package,
   build, and validation runner setup
 - packages/core/: initial provider-agnostic redaction core
+- packages/anthropic-messages/: structural Anthropic Messages request and
+  response adapter for system, text, tool-use, and tool-result content
 - packages/openai-compatible/: structural OpenAI-compatible request, response, and
   streaming metadata adapter
 - packages/otel/: metadata-only OpenTelemetry GenAI mapping helpers
@@ -133,9 +135,9 @@ automatically disable built-ins when custom detectors are present.
 
 ## MVP Boundary
 
-The first useful version should support OpenAI-compatible request and response shapes,
-nested tool arguments, a small detector set, replacement-token policy, and safe
-OpenTelemetry GenAI metadata mapping.
+The first useful versions support OpenAI-compatible and Anthropic Messages
+request and response shapes, nested tool arguments and results, a small detector
+set, replacement-token policy, and safe OpenTelemetry GenAI metadata mapping.
 
 The current implementation starts with `packages/core`: async `redactText`,
 `redactJsonLike`, `redactToolArguments`, and
@@ -152,6 +154,13 @@ closed with `unsupported_provider_shape`, malformed JSON tool arguments fail
 closed with `malformed_tool_arguments`, and streaming events return metadata-only
 `streaming_content_omitted` results instead of exporting chunk content.
 
+`packages/anthropic-messages` adds a second provider-SDK-free adapter for the
+Anthropic Messages wire shape. It redacts top-level `system`, message strings,
+`text` blocks, assistant `tool_use.input`, and user `tool_result.content`.
+Unknown or unreviewed content blocks fail closed instead of being copied through.
+Image, document, search-result, thinking, and server-tool blocks remain outside
+the supported adapter contract until dedicated fixtures prove them safe.
+
 `packages/otel` starts the OpenTelemetry boundary with
 `mapRedactionReportToGenAIMetadata`: a pure metadata mapper that accepts redaction
 reports and safe GenAI metadata candidates, keeps content capture disabled, and
@@ -160,17 +169,17 @@ library-specific `genai_redactor.*` redaction metadata without accepting raw
 provider payloads or span writer objects.
 
 `packages/sdk` starts the SDK ergonomics boundary with `withRedactedTelemetry`:
-an explicit-adapter helper that redacts OpenAI-compatible request and response
-payloads, returns safe telemetry metadata, and invokes optional report callbacks
-without owning provider credentials, retries, routing, transport, telemetry
-exporters, or prompt storage.
+an explicit-adapter helper that redacts OpenAI-compatible or Anthropic Messages
+request and response payloads, returns safe telemetry metadata, and invokes
+optional report callbacks without owning provider credentials, retries, routing,
+transport, telemetry exporters, or prompt storage.
 
 `examples` contains executable TypeScript samples for the first safe integration
-paths: OpenAI-compatible request-only wrapping, request/response wrapping, tool
-call argument redaction with a report callback, custom detector registration,
-and streaming metadata-only handling. The contract runner imports these samples
-against built package exports so example drift is treated as a package contract
-failure.
+paths: OpenAI-compatible wrapping, Anthropic Messages system and text redaction,
+tool-call argument redaction with a report callback, custom detector
+registration, and streaming metadata-only handling. The contract runner imports
+these samples against built package exports so example drift is treated as a
+package contract failure.
 
 The MVP must not become a telemetry backend, model gateway, prompt store, legal
 compliance product, or full DLP platform.

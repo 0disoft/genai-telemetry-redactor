@@ -57,8 +57,9 @@ export async function verifyConsumerPackage(
   packageSpecifier: string,
   label: string,
   installAttempts = 1,
+  surface: "baseline" | "current" = "current",
 ) {
-  await writeConsumerProject(consumerRoot, packageSpecifier);
+  await writeConsumerProject(consumerRoot, packageSpecifier, surface);
   await installConsumer(consumerRoot, installAttempts);
   await runNode([tscPath, "--project", "tsconfig.json"], consumerRoot);
   await runNode(["consumer-runtime.mjs"], consumerRoot);
@@ -117,7 +118,51 @@ async function installConsumer(consumerRoot: string, attempts: number) {
 async function writeConsumerProject(
   consumerRoot: string,
   packageSpecifier: string,
+  surface: "baseline" | "current",
 ) {
+  const anthropicTypeImport =
+    surface === "current"
+      ? `import { redactAnthropicMessagesRequest, type AnthropicMessagesRedactionOptions } from "${PACKAGE_NAME}/anthropic-messages";`
+      : "";
+  const anthropicProfileTypeCheck =
+    surface === "current"
+      ? `  const anthropicOperation: AnthropicMessagesRedactionOptions = {
+    profile: profileResult.value,
+  };
+  await redactAnthropicMessagesRequest(
+    { messages: [{ role: "user", content: "adapter@example.invalid" }] },
+    anthropicOperation,
+  );`
+      : "";
+  const anthropicTypeCheck =
+    surface === "current"
+      ? `const anthropicRequestResult = await redactAnthropicMessagesRequest({
+  messages: [{ role: "user", content: "user@example.invalid" }],
+});`
+      : "";
+  const anthropicTypeVoid =
+    surface === "current" ? "void anthropicRequestResult;" : "";
+  const anthropicRuntimeImport =
+    surface === "current"
+      ? `import { redactAnthropicMessagesRequest } from "${PACKAGE_NAME}/anthropic-messages";`
+      : "";
+  const anthropicRuntimeCheck =
+    surface === "current"
+      ? `const anthropicRequestResult = await redactAnthropicMessagesRequest(
+  { messages: [{ role: "user", content: "user@example.invalid" }] },
+  { profile: profileResult.value },
+);
+const anthropicSdkResult = await withRedactedTelemetry({
+  adapter: "anthropic-messages",
+  request: { messages: [{ role: "user", content: "user@example.invalid" }] },
+  redaction: { profile: profileResult.value },
+});`
+      : "";
+  const anthropicRuntimeCondition =
+    surface === "current"
+      ? " || !anthropicRequestResult.ok || !anthropicSdkResult.ok"
+      : "";
+
   await mkdir(consumerRoot, { recursive: true });
   await writeFile(
     path.join(consumerRoot, "package.json"),
@@ -156,6 +201,7 @@ async function writeConsumerProject(
     path.join(consumerRoot, "consumer-types.ts"),
     `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
 import { redactText as redactCore, type RedactionProfileCreationResult, type RedactionResult } from "${PACKAGE_NAME}/core";
+${anthropicTypeImport}
 import { redactOpenAICompatibleRequest, type OpenAICompatibleRedactionOptions } from "${PACKAGE_NAME}/openai-compatible";
 import { mapRedactionReportToGenAIMetadata } from "${PACKAGE_NAME}/otel";
 import { withRedactedTelemetry, type WithRedactedTelemetryResult } from "${PACKAGE_NAME}/sdk";
@@ -174,6 +220,7 @@ if (profileResult.ok) {
     { prompt: "adapter@example.invalid" },
     profileOperation,
   );
+${anthropicProfileTypeCheck}
   await withRedactedTelemetry({
     adapter: "openai-compatible",
     request: { prompt: "sdk@example.invalid" },
@@ -183,6 +230,7 @@ if (profileResult.ok) {
 const requestResult = await redactOpenAICompatibleRequest({
   messages: [{ role: "user", content: "user@example.invalid" }],
 });
+${anthropicTypeCheck}
 if (rootResult.ok) {
   mapRedactionReportToGenAIMetadata(rootResult.report, {
     operationName: "chat",
@@ -196,6 +244,7 @@ const sdkResult: WithRedactedTelemetryResult = await withRedactedTelemetry({
 
 void coreResult;
 void requestResult;
+${anthropicTypeVoid}
 void sdkResult;
 `,
   );
@@ -203,6 +252,7 @@ void sdkResult;
     path.join(consumerRoot, "consumer-runtime.mjs"),
     `import { createRedactionProfile, redactText } from "${PACKAGE_NAME}";
 import { redactText as redactCore } from "${PACKAGE_NAME}/core";
+${anthropicRuntimeImport}
 import { redactOpenAICompatibleRequest } from "${PACKAGE_NAME}/openai-compatible";
 import { mapRedactionReportToGenAIMetadata } from "${PACKAGE_NAME}/otel";
 import { withRedactedTelemetry } from "${PACKAGE_NAME}/sdk";
@@ -220,12 +270,13 @@ const requestResult = await redactOpenAICompatibleRequest(
   { messages: [{ role: "user", content: "user@example.invalid" }] },
   { profile: profileResult.value },
 );
+${anthropicRuntimeCheck}
 const sdkResult = await withRedactedTelemetry({
   adapter: "openai-compatible",
   request: { messages: [{ role: "user", content: "user@example.invalid" }] },
   redaction: { profile: profileResult.value },
 });
-if (!rootResult.ok || !coreResult.ok || !profileRedaction.ok || !requestResult.ok || !sdkResult.ok) {
+if (!rootResult.ok || !coreResult.ok || !profileRedaction.ok || !requestResult.ok${anthropicRuntimeCondition} || !sdkResult.ok) {
   throw new Error("consumer import smoke failed");
 }
 const metadata = mapRedactionReportToGenAIMetadata(rootResult.report);

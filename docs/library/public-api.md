@@ -44,6 +44,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 ### Export `.`
 
+- `AnthropicMessagesOptions`
+- `AnthropicMessagesRedactionOptions`
 - `BufferedTextStreamChunk`
 - `BufferedTextStreamRedactor`
 - `BuiltInDetectorName`
@@ -81,6 +83,8 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `RedactionTimings`
 - `RedactionWarning`
 - `RedactionWarningCode`
+- `redactAnthropicMessagesRequest`
+- `redactAnthropicMessagesResponse`
 - `RegexDetectorOptions`
 - `redactJsonLike`
 - `redactOpenAICompatibleRequest`
@@ -97,6 +101,13 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `WithRedactedTelemetryResult`
 - `WithRedactedTelemetrySuccess`
 - `WithRedactedTelemetryValue`
+
+### Export `./anthropic-messages`
+
+- `AnthropicMessagesOptions`
+- `AnthropicMessagesRedactionOptions`
+- `redactAnthropicMessagesRequest`
+- `redactAnthropicMessagesResponse`
 
 ### Export `./core`
 
@@ -229,6 +240,25 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Malformed JSON string tool arguments fail closed with
   `malformed_tool_arguments` and return no provider payload.
 
+## Implemented Anthropic Messages Adapter Surface
+
+- `redactAnthropicMessagesRequest(input, options)`: structural request redaction
+  for top-level `system`, message string content, `text` blocks, assistant
+  `tool_use.input`, user `tool_result.content`, and content-bearing request
+  metadata structures.
+- `redactAnthropicMessagesResponse(input, options)`: structural response
+  redaction for `text` blocks, assistant `tool_use.input`, and usage structure.
+- The adapter has no Anthropic SDK dependency and owns no credentials, HTTP
+  transport, retries, routing, telemetry export, or prompt storage.
+- Tool names remain metadata by default and can be redacted through the explicit
+  `redactToolNames` adapter policy.
+- Unknown top-level fields, unknown content block types, role/block mismatches,
+  accessors, symbols, and non-plain objects fail closed with
+  `unsupported_provider_shape` and return no provider payload.
+- Image, document, search-result, thinking, redacted-thinking, server-tool, and
+  beta-only blocks are intentionally unsupported until dedicated fixtures and
+  content policies are reviewed.
+
 ## Implemented OpenTelemetry Metadata Surface
 
 - `mapRedactionReportToGenAIMetadata(report, options)`: metadata-only mapper from
@@ -250,7 +280,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 ## Implemented SDK Surface
 
 - `withRedactedTelemetry(options)`: explicit-adapter helper that combines
-  OpenAI-compatible redaction and OTel metadata mapping.
+  OpenAI-compatible or Anthropic Messages redaction and OTel metadata mapping.
 - The helper returns redacted request/response payloads only when every requested
   redaction step succeeds.
 - On failure, the helper returns safe metadata, report, warnings, and safe error

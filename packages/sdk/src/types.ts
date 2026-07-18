@@ -5,13 +5,15 @@ import type {
   RedactionWarning,
   SafeRedactionError,
 } from "../../core/src/index.js";
+import type { AnthropicMessagesOptions } from "../../anthropic-messages/src/index.js";
 import type { OpenAICompatibleOptions } from "../../openai-compatible/src/index.js";
 import type {
   OtelGenAIMetadata,
   OtelGenAIMetadataOptions,
 } from "../../otel/src/index.js";
 
-export type RedactedTelemetryAdapter = "openai-compatible";
+export type RedactedTelemetryAdapter =
+  "anthropic-messages" | "openai-compatible";
 
 export type RedactedTelemetryReportContext = {
   operationId?: string;
@@ -31,6 +33,7 @@ export type WithRedactedTelemetryOptions = {
   request: unknown;
   response?: unknown;
   redaction?: RedactionOperationOptions;
+  anthropicMessages?: Pick<AnthropicMessagesOptions, "redactToolNames">;
   openAICompatible?: Pick<OpenAICompatibleOptions, "redactToolNames">;
   telemetry?: OtelGenAIMetadataOptions;
   reportContext?: {

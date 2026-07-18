@@ -36,7 +36,7 @@ Addons: sdk
   docs/library/traversal-and-limits.md
 - SDK integration contract: docs/sdk/public-api.md
 - Adapter and OTel policies: docs/adapters/openai-compatible-shape.md,
-  docs/otel/genai-mapping-policy.md
+  docs/adapters/anthropic-messages-shape.md, docs/otel/genai-mapping-policy.md
 - Security baseline: docs/engineering/04-security-baseline.md
 - Security and fixture policy: docs/security/redaction-failure-policy.md,
   docs/security/fixture-safety-policy.md

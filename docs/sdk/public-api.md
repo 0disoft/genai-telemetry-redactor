@@ -31,7 +31,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
 
 ## Initial SDK Use Cases
 
-- Wrap an OpenAI-compatible client call and emit metadata-only telemetry.
+- Wrap an OpenAI-compatible or Anthropic Messages client call and emit
+  metadata-only telemetry.
 - Redact nested tool arguments before creating telemetry events.
 - Register a custom detector for project-specific identifiers.
 - Inspect redaction counts without reading raw content.
@@ -57,9 +58,9 @@ This repository type owns public API, compatibility, examples, versioning, and c
 ## Implemented SDK Surface
 
 - `withRedactedTelemetry(options)`: explicit-adapter helper for already available
-  OpenAI-compatible request and optional response payloads.
-- `options.adapter` currently accepts `"openai-compatible"` only. New provider
-  wrappers must remain explicit adapter selections.
+  OpenAI-compatible or Anthropic Messages request and optional response payloads.
+- `options.adapter` accepts `"openai-compatible"` and
+  `"anthropic-messages"`. Provider wrappers remain explicit adapter selections.
 - `options.redaction` accepts inline core detector and replacement configuration
   or a reusable `{ profile, signal? }` operation and passes it to the selected
   adapter.
@@ -72,9 +73,14 @@ This repository type owns public API, compatibility, examples, versioning, and c
   scope using safe numeric usage counters from core reports.
 - `options.openAICompatible.redactToolNames` opts in to tool-name redaction when
   caller policy treats tool names as content-bearing.
+- `options.anthropicMessages.redactToolNames` applies the same explicit policy
+  to Anthropic `tool_use.name` values.
 - Adapter-specific options are not allowed to override core redaction policy.
   For example, `openAICompatible` cannot disable built-in detectors; callers must
   use `options.redaction` for detector policy.
+- Adapter-specific option bags are mutually exclusive. Passing an
+  `openAICompatible` bag to the Anthropic adapter, or an `anthropicMessages` bag
+  to the OpenAI-compatible adapter, fails with `invalid_redaction_options`.
 - `options.telemetry` passes safe metadata candidates to the OTel metadata mapper.
 - `options.reportContext` accepts caller-owned `operationId`, `attemptId`, and
   `idempotencyKey` values for retry-safe report callback writes. These values are
@@ -90,7 +96,8 @@ This repository type owns public API, compatibility, examples, versioning, and c
   promises follow the same safe warning path.
 - Executable SDK examples cover OpenAI-compatible request-only wrapping,
   request/response wrapping, tool-call argument redaction, report callbacks, and
-  timing metadata without storing raw payload content.
+  timing metadata plus Anthropic Messages request redaction without storing raw
+  payload content.
 - On any redaction failure, the helper returns `ok: false`, safe error details,
   metadata, report, and warnings without returning partially redacted payloads.
 - Unknown adapter names from untyped JavaScript callers return a safe failure

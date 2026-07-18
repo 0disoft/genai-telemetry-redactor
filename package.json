@@ -1,6 +1,6 @@
 {
   "name": "genai-telemetry-redactor",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": false,
   "description": "Redact sensitive GenAI telemetry before logs, spans, events, and observability export.",
   "type": "module",
@@ -52,6 +52,10 @@
       "types": "./dist/packages/core/src/index.d.ts",
       "default": "./dist/packages/core/src/index.js"
     },
+    "./anthropic-messages": {
+      "types": "./dist/packages/anthropic-messages/src/index.d.ts",
+      "default": "./dist/packages/anthropic-messages/src/index.js"
+    },
     "./openai-compatible": {
       "types": "./dist/packages/openai-compatible/src/index.d.ts",
       "default": "./dist/packages/openai-compatible/src/index.js"
@@ -78,7 +82,7 @@
     "otel-semconv:drift": "tsx scripts/check-otel-genai-semconv-drift.ts",
     "performance": "tsx scripts/check-performance.ts",
     "release-readiness": "tsx scripts/check-release-readiness.ts",
-    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/core/test/buffered-stream-redactor.test.ts packages/core/test/redaction-profile.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/otel/test/genai-semconv-conformance.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
+    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/core/test/buffered-stream-redactor.test.ts packages/core/test/redaction-profile.test.ts packages/anthropic-messages/test/anthropic-messages.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/otel/test/genai-semconv-conformance.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
     "check": "pnpm run format && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run performance && pnpm run docs"
   },
   "devDependencies": {

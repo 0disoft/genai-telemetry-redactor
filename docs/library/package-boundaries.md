@@ -6,8 +6,8 @@ Status: Product-shaping
 
 The project should stay in one GitHub repository while implementation boundaries
 remain visible. Implementation should use a pnpm workspace so internal packages
-can separate core redaction, OpenAI-compatible shape handling, OpenTelemetry
-mapping, and SDK ergonomics.
+can separate core redaction, OpenAI-compatible shape handling, Anthropic
+Messages shape handling, OpenTelemetry mapping, and SDK ergonomics.
 
 ## Boundary Model
 
@@ -15,6 +15,8 @@ mapping, and SDK ergonomics.
   safe errors, and fail-closed behavior.
 - OpenAI-compatible adapter: request, response, tool-call, and streaming policy
   shapes; no detector implementation.
+- Anthropic Messages adapter: system, message, text, tool-use, and tool-result
+  shapes; no provider SDK, transport, credential, or detector implementation.
 - OpenTelemetry mapping: safe metadata and redaction summary mapping; no raw
   content intake.
 - SDK wrapper: caller ergonomics; no credential storage, retry ownership,
@@ -22,7 +24,8 @@ mapping, and SDK ergonomics.
 
 ## Implemented Boundary Notes
 
-- `packages/sdk` may compose `packages/openai-compatible` and `packages/otel`.
+- `packages/sdk` may compose `packages/anthropic-messages`,
+  `packages/openai-compatible`, and `packages/otel`.
 - `packages/sdk` must not import provider SDKs, HTTP clients, telemetry exporters,
   filesystem persistence, or logging side effects.
 - SDK failure paths must not return partially redacted request or response payloads.

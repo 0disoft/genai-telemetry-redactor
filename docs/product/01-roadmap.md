@@ -16,8 +16,8 @@ library while leaving room for provider adapters and telemetry integrations.
 
 ## Required Decisions
 
-- Boundary: core redaction pipeline, OpenAI-compatible adapter, OTel metadata mapper,
-  and test corpus first.
+- Boundary: core redaction pipeline, explicit provider adapters, OTel metadata
+  mapper, and test corpus first.
 - Data ownership: no raw prompt or completion persistence.
 - Failure and recovery behavior: fail closed for content export.
 - Validation needed before merge: VALIDATION.md
@@ -32,8 +32,9 @@ library while leaving room for provider adapters and telemetry integrations.
    opt-in behavior.
 4. SDK ergonomics: middleware/wrapper examples, custom detector hooks, and migration
    guidance.
-5. Provider expansion: add new provider shapes only after fixtures prove no raw content
-   leaks through unsupported paths.
+5. Provider expansion: the Anthropic Messages adapter is the first completed
+   expansion. Add further provider or Anthropic block shapes only after fixtures
+   prove no raw content leaks through unsupported paths.
 
 ## Review Blockers
 

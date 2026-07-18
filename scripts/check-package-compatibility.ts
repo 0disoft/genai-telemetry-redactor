@@ -36,6 +36,7 @@ try {
     baseline.version,
     `baseline ${baseline.version}`,
     2,
+    "baseline",
   );
 
   let currentSpecifier = currentArgument;
