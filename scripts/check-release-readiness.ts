@@ -34,6 +34,7 @@ const OTEL_DRIFT_WORKFLOW = path.join(
   "workflows",
   "otel-semconv-drift.yml",
 );
+const CI_WORKFLOW = path.join(ROOT, ".github", "workflows", "ci.yml");
 const REQUIRED_FILES = [
   "README.md",
   "LICENSE",
@@ -50,6 +51,7 @@ const REQUIRED_NPM_CLI = "npm@11.18.0";
 const REQUIRED_BUN_VERSION = "1.3.14";
 const REQUIRED_SETUP_BUN_SHA = "0c5077e51419868618aeaa5fe8019c62421857d6";
 const REQUIRED_GITHUB_SCRIPT_SHA = "ff4b64fc288a21d5291396a384c1273f032e6333";
+const REQUIRED_UPLOAD_ARTIFACT_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a";
 
 const blockers: string[] = [];
 const warnings: string[] = [];
@@ -63,6 +65,7 @@ await checkPublishingPolicy();
 await checkTrustedPublishingWorkflow();
 await checkCompatibilityWorkflow();
 await checkOtelDriftWorkflow();
+await checkCiPerformanceArtifacts();
 
 if (blockers.length > 0) {
   console.error("Release readiness: blocked");
@@ -353,6 +356,26 @@ async function checkOtelDriftWorkflow() {
   ) {
     blockers.push(
       "OTel semconv drift workflow must use the validated command and deduplicated review issue contract",
+    );
+  }
+}
+
+async function checkCiPerformanceArtifacts() {
+  const workflow = await readFile(CI_WORKFLOW, "utf8").catch(() => "");
+  if (!workflow) {
+    blockers.push(".github/workflows/ci.yml is missing");
+    return;
+  }
+  if (
+    !workflow.includes("--output artifacts/performance-node-") ||
+    !workflow.includes(
+      `actions/upload-artifact@${REQUIRED_UPLOAD_ARTIFACT_SHA}`,
+    ) ||
+    !workflow.includes("if-no-files-found: error") ||
+    !workflow.includes("retention-days: 30")
+  ) {
+    blockers.push(
+      "CI must retain fail-closed per-runtime performance trend artifacts with the pinned upload action",
     );
   }
 }

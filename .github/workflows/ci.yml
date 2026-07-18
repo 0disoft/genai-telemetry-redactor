@@ -55,3 +55,18 @@ jobs:
 
       - name: Run smoke validation
         run: pnpm run smoke
+
+      - name: Capture performance trend sample
+        run: >-
+          pnpm run performance --
+          --output artifacts/performance-node-${{ matrix.node-version }}.json
+
+      - name: Upload performance trend sample
+        if: ${{ always() }}
+        # actions/upload-artifact v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: performance-node-${{ matrix.node-version }}-${{ github.sha }}
+          path: artifacts/performance-node-${{ matrix.node-version }}.json
+          if-no-files-found: error
+          retention-days: 30

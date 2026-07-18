@@ -54,7 +54,9 @@ Unconfigured runner commands must fail, not pass with a fake success.
   commit with upstream `main`. This validation requires network access and reports
   drift without changing the pin.
 - performance: run bounded synthetic 16 KiB text and 100-item nested tool-argument
-  benchmarks and fail on coarse median or p95 regression ceilings.
+  benchmarks and fail on coarse median or p95 regression ceilings. An optional
+  `--output artifacts/<file>.json` argument writes bounded trend evidence without
+  payload content.
 - docs: live-looking secret guard for documentation surfaces.
 - smoke: focused core text, JSON-like redaction, reusable profile, OpenAI-compatible
   adapter, OTel metadata mapper, and SDK wrapper smoke tests.

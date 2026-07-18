@@ -27,6 +27,11 @@ repository permissions.
 CI artifacts must not include raw prompts, completions, tool arguments, bearer
 tokens, API keys, private URLs, or customer identifiers.
 
+The CI matrix retains a performance-result JSON artifact for 30 days. It is
+limited to synthetic timing measurements and bounded runtime/workflow metadata.
+Artifact history is diagnostic evidence only; it never promotes a new checked-in
+performance baseline automatically.
+
 ## Validation
 
 - Release blocker status: failing tests, unsafe examples, or unreviewed detector

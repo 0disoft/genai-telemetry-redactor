@@ -28,6 +28,24 @@ The checked-in baseline owns iteration counts and thresholds. Tightening a limit
 requires repeatable CI evidence; loosening one requires a reviewed reason. Security
 and fail-closed behavior still take priority over passing the timing gate.
 
+## Trend Evidence
+
+CI runs the benchmark once more after the repository gate and retains one JSON
+artifact per Node.js matrix entry for 30 days. Each artifact contains only timing
+results, generation time, commit SHA, workflow run identifiers, Node.js version,
+platform, and architecture. It never contains benchmark input, prompts,
+completions, tool arguments, or redacted output.
+
+Generate the same shape locally when investigating a regression:
+
+```text
+pnpm run performance -- --output artifacts/performance-local.json
+```
+
+Results from different runner classes are evidence for review, not an automatic
+replacement for `scripts/performance-baseline.json`. Baseline changes still
+require repeatable evidence from a comparable environment and explicit review.
+
 ## Review Blockers
 
 - A performance shortcut exports content before redaction.

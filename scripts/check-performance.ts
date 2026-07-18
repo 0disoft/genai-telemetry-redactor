@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
@@ -8,6 +8,8 @@ import { redactText } from "../packages/core/src/redact-text.js";
 
 const ROOT = process.cwd();
 const BASELINE_SCHEMA = "genai-telemetry-redactor/performance-baseline/v1";
+const RESULT_SCHEMA = "genai-telemetry-redactor/performance-result/v1";
+const ARTIFACT_DIRECTORY = "artifacts";
 
 type CaseBudget = {
   iterations?: number;
@@ -25,6 +27,30 @@ export type PerformanceCaseResult = {
   medianMs: number;
   p95Ms: number;
   maxMs: number;
+};
+
+export type PerformanceResult = {
+  schemaVersion: typeof RESULT_SCHEMA;
+  generatedAt: string;
+  source: {
+    commit: string | null;
+    workflowRunId: string | null;
+    workflowRunAttempt: number | null;
+  };
+  environment: {
+    nodeVersion: string;
+    platform: NodeJS.Platform;
+    arch: NodeJS.Architecture;
+  };
+  cases: Readonly<Record<string, PerformanceCaseResult>>;
+};
+
+type PerformanceResultContext = {
+  generatedAt?: Date;
+  environment?: NodeJS.ProcessEnv;
+  nodeVersion?: string;
+  platform?: NodeJS.Platform;
+  arch?: NodeJS.Architecture;
 };
 
 export function percentile(values: readonly number[], percent: number): number {
@@ -75,6 +101,62 @@ export function evaluatePerformanceResults(
   return violations;
 }
 
+export function createPerformanceResult(
+  cases: Readonly<Record<string, PerformanceCaseResult>>,
+  context: PerformanceResultContext = {},
+): PerformanceResult {
+  const environment = context.environment ?? process.env;
+  return {
+    schemaVersion: RESULT_SCHEMA,
+    generatedAt: (context.generatedAt ?? new Date()).toISOString(),
+    source: {
+      commit: normalizedCommit(environment.GITHUB_SHA),
+      workflowRunId: normalizedUnsignedIntegerString(environment.GITHUB_RUN_ID),
+      workflowRunAttempt: normalizedPositiveInteger(
+        environment.GITHUB_RUN_ATTEMPT,
+      ),
+    },
+    environment: {
+      nodeVersion: context.nodeVersion ?? process.version,
+      platform: context.platform ?? process.platform,
+      arch: context.arch ?? process.arch,
+    },
+    cases,
+  };
+}
+
+export function resolvePerformanceOutputPath(
+  arguments_: readonly string[],
+  root = ROOT,
+): string | null {
+  const normalizedArguments =
+    arguments_[0] === "--" ? arguments_.slice(1) : arguments_;
+  if (normalizedArguments.length === 0) {
+    return null;
+  }
+  if (
+    normalizedArguments.length !== 2 ||
+    normalizedArguments[0] !== "--output" ||
+    !normalizedArguments[1]
+  ) {
+    throw new Error("usage: performance [--output artifacts/<file>.json]");
+  }
+
+  const artifactRoot = path.resolve(root, ARTIFACT_DIRECTORY);
+  const outputPath = path.resolve(root, normalizedArguments[1]);
+  const relativeOutput = path.relative(artifactRoot, outputPath);
+  if (
+    relativeOutput === "" ||
+    relativeOutput.startsWith(`..${path.sep}`) ||
+    relativeOutput === ".." ||
+    path.isAbsolute(relativeOutput) ||
+    path.extname(outputPath).toLowerCase() !== ".json"
+  ) {
+    throw new Error("performance output must be a JSON file under artifacts/");
+  }
+  return outputPath;
+}
+
 async function runPerformanceCheck(): Promise<void> {
   const baseline = JSON.parse(
     await readFile(
@@ -107,16 +189,40 @@ async function runPerformanceCheck(): Promise<void> {
     };
   }
 
+  const result = createPerformanceResult(results);
+  const serializedResult = `${JSON.stringify(result, null, 2)}\n`;
+  const outputPath = resolvePerformanceOutputPath(process.argv.slice(2));
+  if (outputPath) {
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, serializedResult, "utf8");
+  }
+  process.stdout.write(serializedResult);
+
   const violations = evaluatePerformanceResults(baseline, results);
-  process.stdout.write(
-    `${JSON.stringify({ schemaVersion: BASELINE_SCHEMA, cases: results }, null, 2)}\n`,
-  );
   if (violations.length > 0) {
     for (const violation of violations) {
       process.stderr.write(`Performance check: ${violation}\n`);
     }
     process.exitCode = 1;
   }
+}
+
+function normalizedCommit(value: string | undefined): string | null {
+  return value && /^[0-9a-f]{40}$/i.test(value) ? value.toLowerCase() : null;
+}
+
+function normalizedUnsignedIntegerString(
+  value: string | undefined,
+): string | null {
+  return value && /^(0|[1-9]\d*)$/.test(value) ? value : null;
+}
+
+function normalizedPositiveInteger(value: string | undefined): number | null {
+  if (!value || !/^[1-9]\d*$/.test(value)) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : null;
 }
 
 function benchmarkOperation(caseName: string): () => Promise<number> {
