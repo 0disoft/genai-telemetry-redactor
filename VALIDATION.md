@@ -41,7 +41,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - typecheck: TypeScript no-emit check.
 - build: TypeScript emit to ignored `dist/` for package artifact validation.
 - test: Vitest test suite.
-- contract: live-looking secret guard across docs, packages, and scripts plus
+- contract: live-looking secret guard across docs, packages, scripts, and the
+  final built `dist/` package plus
   package export-surface, public API documentation, dry-run artifact, and packed
   consumer import and executable example guards.
 - compatibility: packs the current package and runs the same ESM runtime and
@@ -53,7 +54,8 @@ Unconfigured runner commands must fail, not pass with a fake success.
 - otel-semconv-drift: compare the pinned OpenTelemetry GenAI semantic-convention
   commit with upstream `main`. This validation requires network access and reports
   drift without changing the pin.
-- performance: run bounded synthetic 16 KiB text and 100-item nested tool-argument
+- performance: run bounded synthetic 16 KiB text, 100-item nested tool-argument,
+  whitespace-rich rolling-stream, and one-code-unit whitespace-free rolling-stream
   benchmarks and fail on coarse median or p95 regression ceilings. An optional
   `--output artifacts/<file>.json` argument writes bounded trend evidence without
   payload content.

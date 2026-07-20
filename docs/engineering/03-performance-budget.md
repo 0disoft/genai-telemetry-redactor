@@ -25,6 +25,8 @@ It is a catastrophic-regression gate, not a hardware benchmark:
 - 100-item nested tool arguments: median at most 120 ms and p95 at most 350 ms.
 - 16 KiB built-in rolling stream redaction in 512-code-unit input chunks:
   median at most 100 ms and p95 at most 300 ms.
+- 16 KiB whitespace-free built-in rolling stream redaction in one-code-unit
+  input chunks: median at most 250 ms and p95 at most 600 ms.
 
 The checked-in baseline owns iteration counts and thresholds. Tightening a limit
 requires repeatable CI evidence; loosening one requires a reviewed reason. Security
@@ -34,7 +36,9 @@ Rolling-stream thresholds include repeated detector execution and output
 assembly across whitespace flushes. They are deliberately broad catastrophic
 regression limits, not a promise of time-to-first-token on every payload. A long
 whitespace-free URL or token is intentionally retained until a delimiter or the
-configured buffer failure boundary.
+configured buffer failure boundary. Appending a chunk without whitespace skips
+the full retained-buffer whitespace scan because no new safe flush boundary can
+exist; the one-code-unit case guards that retained-buffer path.
 
 ## Trend Evidence
 

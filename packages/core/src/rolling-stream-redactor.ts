@@ -12,6 +12,7 @@ import type {
 
 const DEFAULT_MAX_STREAM_BUFFER_LENGTH = 65_536;
 const TRAILING_BEARER_CONTEXT = /(^|[^A-Za-z0-9_])(?:Bearer|Token|Basic)$/i;
+const WHITESPACE = /\s/u;
 
 export type BuiltInRollingTextStreamOptions = Omit<
   RedactionOptions,
@@ -182,8 +183,19 @@ export function createBuiltInRollingTextStreamRedactor(
           );
         }
 
+        const chunkHasWhitespace = WHITESPACE.test(chunk);
+        const candidateLength = buffer.length + chunk.length;
+        if (!chunkHasWhitespace && candidateLength > maxStreamBufferLength) {
+          return failTerminal(
+            "max_stream_buffer_length_exceeded",
+            "Rolling stream redaction exceeded the configured retained buffer length.",
+          );
+        }
+
         const candidateBuffer = buffer + chunk;
-        const flushIndex = findBuiltInSafeFlushIndex(candidateBuffer);
+        const flushIndex = chunkHasWhitespace
+          ? findBuiltInSafeFlushIndex(candidateBuffer)
+          : 0;
         const retainedSuffix = candidateBuffer.slice(flushIndex);
         if (retainedSuffix.length > maxStreamBufferLength) {
           return failTerminal(

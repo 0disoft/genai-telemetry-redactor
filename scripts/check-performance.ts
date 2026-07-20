@@ -320,6 +320,42 @@ function benchmarkOperation(caseName: string): () => Promise<number> {
         return durationMs;
       };
     }
+    case "rolling_stream_whitespace_free_16k": {
+      const input = "a".repeat(16_384);
+      return async () => {
+        const startedAt = performance.now();
+        const stream = createBuiltInRollingTextStreamRedactor({
+          limits: {
+            maxStreamBufferLength: input.length,
+            maxTotalStringLength: input.length,
+          },
+        });
+        const output: string[] = [];
+        for (const codeUnit of input) {
+          const result = await stream.push(codeUnit);
+          if (!result.ok) {
+            throw new Error(
+              "rolling_stream_whitespace_free_16k failed before final flush",
+            );
+          }
+          output.push(result.value.content);
+        }
+        const final = await stream.close();
+        if (!final.ok) {
+          throw new Error(
+            "rolling_stream_whitespace_free_16k failed at final flush",
+          );
+        }
+        output.push(final.value.content);
+        const durationMs = performance.now() - startedAt;
+        if (output.join("") !== input) {
+          throw new Error(
+            "rolling_stream_whitespace_free_16k changed final output",
+          );
+        }
+        return durationMs;
+      };
+    }
     default:
       throw new Error(`unknown performance case: ${caseName}`);
   }

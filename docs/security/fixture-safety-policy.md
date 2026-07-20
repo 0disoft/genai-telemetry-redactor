@@ -7,6 +7,11 @@ Status: Active
 Fixtures, examples, snapshots, docs, and generated artifacts must use synthetic
 values only.
 
+The contract scanner checks source and documentation before publication and
+checks the final built `dist/` package after compilation. Credential-shaped
+telemetry labels are dropped even when their characters otherwise fit the safe
+label alphabet.
+
 ## Allowed Style
 
 - `.invalid` domains.

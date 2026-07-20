@@ -1,6 +1,6 @@
 {
   "name": "genai-telemetry-redactor",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": false,
   "description": "Redact sensitive GenAI telemetry before logs, spans, events, and observability export.",
   "type": "module",
@@ -75,14 +75,14 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "contract": "pnpm run build && tsx scripts/check-no-live-secrets.ts && tsx scripts/check-package-surface.ts && tsx scripts/check-public-api-docs.ts && tsx scripts/check-package-artifact.ts && bun scripts/check-package-consumer.ts && tsx scripts/check-examples.ts",
+    "contract": "pnpm run build && tsx scripts/check-no-live-secrets.ts --include-dist && tsx scripts/check-package-surface.ts && tsx scripts/check-public-api-docs.ts && tsx scripts/check-package-artifact.ts && bun scripts/check-package-consumer.ts && tsx scripts/check-examples.ts",
     "compatibility": "pnpm run build && bun scripts/check-package-compatibility.ts",
     "docs": "tsx scripts/check-no-live-secrets.ts --docs-only",
     "migration-check": "tsx scripts/check-migration.ts",
     "otel-semconv:drift": "tsx scripts/check-otel-genai-semconv-drift.ts",
     "performance": "tsx scripts/check-performance.ts",
     "release-readiness": "tsx scripts/check-release-readiness.ts",
-    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/core/test/buffered-stream-redactor.test.ts packages/core/test/rolling-stream-redactor.test.ts packages/core/test/redaction-profile.test.ts packages/anthropic-messages/test/anthropic-messages.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/otel/test/genai-semconv-conformance.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
+    "smoke": "vitest run packages/core/test/redact-text.test.ts packages/core/test/redact-json-like.test.ts packages/core/test/buffered-stream-redactor.test.ts packages/core/test/rolling-stream-redactor.test.ts packages/core/test/redaction-profile.test.ts packages/core/test/safe-label.test.ts packages/anthropic-messages/test/anthropic-messages.test.ts packages/openai-compatible/test/openai-compatible.test.ts packages/otel/test/genai-metadata.test.ts packages/otel/test/genai-semconv-conformance.test.ts packages/sdk/test/with-redacted-telemetry.test.ts",
     "check": "pnpm run format && pnpm run typecheck && pnpm run test && pnpm run contract && pnpm run migration-check && pnpm run performance && pnpm run docs"
   },
   "devDependencies": {

@@ -82,6 +82,27 @@ describe("createBuiltInRollingTextStreamRedactor", () => {
     });
   });
 
+  it("retains many whitespace-free chunks without changing final output", async () => {
+    const input = "ordinary-segment";
+    const stream = createBuiltInRollingTextStreamRedactor({
+      limits: { maxStreamBufferLength: input.length },
+    });
+
+    for (const codeUnit of input) {
+      const pushed = await stream.push(codeUnit);
+      expect(pushed.ok).toBe(true);
+      if (pushed.ok) {
+        expect(pushed.value.content).toBe("");
+      }
+    }
+
+    const closed = await stream.close();
+    expect(closed.ok).toBe(true);
+    if (closed.ok) {
+      expect(closed.value.content).toBe(input);
+    }
+  });
+
   it("fails closed when a whitespace-free segment exceeds the buffer", async () => {
     const stream = createBuiltInRollingTextStreamRedactor({
       limits: { maxStreamBufferLength: 8 },

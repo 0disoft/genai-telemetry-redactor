@@ -31,6 +31,18 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.5.1
+
+Credential-shaped detector IDs and telemetry labels now also reject GitLab PAT,
+PyPI token, and compact JWT shapes. The release contract scans the final built
+`dist/` package in addition to source and documentation surfaces.
+
+The built-in rolling stream avoids rescanning its retained buffer when an
+appended chunk contains no whitespace, because that chunk cannot introduce a
+new reviewed flush boundary. Retention, fail-closed limits, bearer context, and
+final output semantics are unchanged. Public exports and option shapes are
+unchanged.
+
 ## 0.5.0
 
 The package adds `createBuiltInRollingTextStreamRedactor`,

@@ -15,6 +15,11 @@
       "iterations": 10,
       "maxMedianMs": 100,
       "maxP95Ms": 300
+    },
+    "rolling_stream_whitespace_free_16k": {
+      "iterations": 5,
+      "maxMedianMs": 250,
+      "maxP95Ms": 600
     }
   }
 }
