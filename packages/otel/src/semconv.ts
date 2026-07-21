@@ -1,6 +1,6 @@
 export const OTEL_GENAI_SEMCONV_COMMIT =
-  "c26a2c21d1ee70d5231bd440c7b48d3c94ee506a";
+  "150760c6252a4bb63c49c9915bad11997d316a15";
 export const OTEL_GENAI_SEMCONV_LABEL =
-  "opentelemetry-semconv-genai-c26a2c21d1ee";
+  "opentelemetry-semconv-genai-150760c6252a";
 export const OTEL_GENAI_SEMCONV_STATUS = "development";
 export const OTEL_GENAI_SEMCONV_SOURCE = `https://github.com/open-telemetry/semantic-conventions-genai/commit/${OTEL_GENAI_SEMCONV_COMMIT}`;

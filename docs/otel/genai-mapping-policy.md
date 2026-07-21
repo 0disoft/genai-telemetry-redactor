@@ -59,14 +59,14 @@ customer identifiers.
 - Redaction status and warning codes use closed allowlists at the mapper
   boundary. Unknown runtime values are dropped rather than copied into telemetry
   attributes.
-- The mapper records `opentelemetry-semconv-genai-c26a2c21d1ee`, the full
+- The mapper records `opentelemetry-semconv-genai-150760c6252a`, the full
   upstream commit URL, and `development` as semconv metadata. This is not a
   stability claim.
-- The `c26a2c21d1ee` adoption reviewed six upstream commits. They changed
-  repository automation, the referenced core semantic-conventions version, MCP
-  tooling, review guidance, and agent invocation metrics. None of those commits
-  changed the six official attributes emitted by this mapper, so the mapped
-  attribute inventory remains unchanged.
+- The `150760c6252a` adoption reviewed three upstream commits after
+  `c26a2c21d1ee`. They changed only dependency manifests and lockfiles under
+  reference scenarios. None changed semantic-convention definitions or the six
+  official attributes emitted by this mapper, so the mapped attribute inventory
+  remains unchanged.
 - The package emits metadata objects only. It does not write spans or events, so
   upstream Span Event API migration is outside this mapper's ownership boundary.
 - If report or metadata option inspection throws, the mapper returns a minimal

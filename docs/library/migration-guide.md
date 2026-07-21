@@ -31,6 +31,16 @@ This repository type owns public API surface, package compatibility, semantic ve
 - Package artifacts drift from documented public API.
 - Migration examples contain realistic live-looking credentials or private identifiers.
 
+## 0.5.2
+
+The default OpenTelemetry GenAI mapping provenance now pins upstream commit
+`150760c6252a4bb63c49c9915bad11997d316a15`. The three reviewed upstream
+commits changed only dependency manifests and lockfiles under reference
+scenarios; semantic-convention definitions and the six official attributes
+emitted by the mapper are unchanged. Mapper option and output shapes remain
+compatible, while the observable semconv label and source URL identify the new
+audited snapshot.
+
 ## 0.5.1
 
 Credential-shaped detector IDs and telemetry labels now also reject GitLab PAT,

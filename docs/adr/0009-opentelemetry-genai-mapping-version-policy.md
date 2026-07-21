@@ -12,8 +12,8 @@ explicit.
 
 The mapper records the upstream OpenTelemetry GenAI semantic-convention source
 as Development, not stable. The default mapper label is
-`opentelemetry-semconv-genai-c26a2c21d1ee`, the status is `development`, and the
-source URL pins commit `c26a2c21d1ee70d5231bd440c7b48d3c94ee506a` in
+`opentelemetry-semconv-genai-150760c6252a`, the status is `development`, and the
+source URL pins commit `150760c6252a4bb63c49c9915bad11997d316a15` in
 `open-telemetry/semantic-conventions-genai`.
 
 This label is a mapping provenance marker, not a compatibility promise that the
@@ -36,12 +36,11 @@ issue and closes it after the pin catches up. It also records the status and
 compared commits in the job summary. It does not update source, create a pull
 request, or claim that every upstream commit requires a mapper release.
 
-The `c26a2c21d1ee` review covered the upstream range from
-`93a59e48a9b4` through `c26a2c21d1ee`. The range changed repository
-automation, core semantic-conventions references, MCP tooling, review guidance,
-and agent invocation metrics. The mapper's six official attribute names and
-value types did not change, so this adoption updates provenance without adding
-or removing mapper output.
+The `150760c6252a` review covered the three upstream commits after
+`c26a2c21d1ee`. The range changed only dependency manifests and lockfiles under
+reference scenarios. Semantic-convention definitions and the mapper's six
+official attribute names and value types did not change, so this adoption
+updates provenance without adding or removing mapper output.
 
 ## Consequences
 
