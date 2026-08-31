@@ -22,6 +22,7 @@ export const REDACTION_WARNING_CODES = [
   "stream_closed",
   "stream_already_closed",
   "stream_operation_in_progress",
+  "provider_stream_truncated",
   "redaction_aborted",
   "circular_reference",
   "unsafe_object_key",

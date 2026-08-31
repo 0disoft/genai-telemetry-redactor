@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRedactionProfile, type Detector } from "../../core/src/index.js";
 import {
+  createOpenAICompatibleStreamRedactor,
   redactOpenAICompatibleRequest,
   redactOpenAICompatibleResponse,
   redactOpenAICompatibleStreamEvent,
@@ -586,6 +587,145 @@ describe("OpenAI-compatible adapter", () => {
     expect(JSON.stringify(result.value)).not.toContain("user@example.invalid");
     expect(result.report.warnings).toContainEqual(
       expect.objectContaining({ code: "streaming_content_omitted" }),
+    );
+  });
+
+  it("redacts split OpenAI-compatible stream content only on final close", async () => {
+    const stream = createOpenAICompatibleStreamRedactor({
+      captureContent: true,
+    });
+
+    const firstPush = stream.push({
+      choices: [{ index: 0, delta: { role: "assistant" } }],
+    });
+    const secondPush = stream.push({
+      choices: [{ index: 0, delta: { content: "Contact user@exam" } }],
+    });
+    const thirdPush = stream.push({
+      choices: [
+        {
+          index: 0,
+          delta: { content: "ple.invalid" },
+          finish_reason: "stop",
+        },
+      ],
+    });
+
+    expect(firstPush.ok).toBe(true);
+    expect(secondPush.ok).toBe(true);
+    expect(thirdPush.ok).toBe(true);
+    expect(JSON.stringify([firstPush, secondPush, thirdPush])).not.toContain(
+      "user@example.invalid",
+    );
+
+    const result = await stream.close();
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual({
+      contentOmitted: false,
+      choices: [
+        {
+          index: 0,
+          finish_reason: "stop",
+          message: {
+            role: "assistant",
+            content: "Contact [REDACTED:email]",
+          },
+        },
+      ],
+    });
+    expect(result.report.totalRedactions).toBe(1);
+  });
+
+  it("redacts split OpenAI-compatible tool-call argument JSON", async () => {
+    const stream = createOpenAICompatibleStreamRedactor({
+      captureContent: true,
+    });
+
+    stream.push({
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_example",
+                type: "function",
+                function: {
+                  name: "lookup",
+                  arguments: '{"contact":"user@exam',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    stream.push({
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                function: {
+                  arguments: 'ple.invalid"}',
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    });
+
+    const result = await stream.close();
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    const output = JSON.stringify(result.value);
+    expect(output).toContain("[REDACTED:email]");
+    expect(output).not.toContain("user@example.invalid");
+  });
+
+  it("fails closed when an OpenAI-compatible stream ends before finish", async () => {
+    const stream = createOpenAICompatibleStreamRedactor({
+      captureContent: true,
+    });
+
+    stream.push({
+      choices: [{ index: 0, delta: { content: "user@example.invalid" } }],
+    });
+
+    const result = await stream.close();
+
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("user@example.invalid");
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({ code: "provider_stream_truncated" }),
+    );
+  });
+
+  it("fails closed when an OpenAI-compatible stream exceeds its buffer", () => {
+    const stream = createOpenAICompatibleStreamRedactor({
+      captureContent: true,
+      limits: { maxStreamBufferLength: 4 },
+    });
+
+    const result = stream.push({
+      choices: [{ index: 0, delta: { content: "12345" } }],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.report.warnings).toContainEqual(
+      expect.objectContaining({ code: "max_stream_buffer_length_exceeded" }),
     );
   });
 

@@ -33,6 +33,16 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 ## 0.5.2
 
+The package adds `createOpenAICompatibleStreamRedactor` and related stream result
+types from the root and `./openai-compatible` exports. Existing
+`redactOpenAICompatibleStreamEvent` behavior is unchanged and remains
+metadata-only; callers must pass `{ captureContent: true }` to the new stream
+redactor to receive redacted final aggregate content after `close()`.
+
+Closing an opt-in OpenAI-compatible stream before every observed choice has a
+non-null `finish_reason` now fails closed with `provider_stream_truncated`.
+Chunk `push(event)` calls still return only omitted-content metadata.
+
 The default OpenTelemetry GenAI mapping provenance now pins upstream commit
 `150760c6252a4bb63c49c9915bad11997d316a15`. The three reviewed upstream
 commits changed only dependency manifests and lockfiles under reference

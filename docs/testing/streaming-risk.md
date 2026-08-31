@@ -23,6 +23,18 @@ helper.
 - Emit `streaming_content_omitted` or equivalent warning.
 - Do not export raw chunks.
 
+## OpenAI-Compatible Opt-In
+
+`createOpenAICompatibleStreamRedactor({ captureContent: true })` is an
+adapter-specific final-flush helper. `push(event)` validates OpenAI-compatible
+chunk shape, accumulates per-choice text and tool-call argument fragments, and
+still returns only omitted-content metadata. `close()` returns redacted aggregate
+content only after every observed choice has a non-null `finish_reason`.
+
+Cancellation or early close fails closed with `provider_stream_truncated`.
+Malformed chunks, post-finish content, buffer overflow, detector failure, and
+malformed final tool-call JSON return safe error codes without buffered content.
+
 ## Explicit Buffered Prototype
 
 `createBufferedTextStreamRedactor` is provider-agnostic and final-flush only.

@@ -35,8 +35,13 @@ The initial flush policy is final-only:
 
 The prototype is intentionally not wired into
 `redactOpenAICompatibleStreamEvent`. Provider adapters continue to emit
-metadata-only `streaming_content_omitted` results until adapter-specific stream
-shape fixtures and safe flush semantics are reviewed.
+metadata-only `streaming_content_omitted` results by default.
+
+The OpenAI-compatible adapter now exposes a separate explicit opt-in helper,
+`createOpenAICompatibleStreamRedactor({ captureContent: true })`. It validates
+OpenAI-compatible stream chunk shape, buffers per-choice text and tool-call
+argument fragments, and only returns redacted content from `close()` after every
+observed choice has a non-null `finish_reason`.
 
 ADR 0017 adds a separate built-in-only rolling helper. It does not weaken this
 final-flush contract: custom detectors and reusable profiles still require the
@@ -55,6 +60,10 @@ complete buffered input because they have no proven incremental boundary.
   behavior as `redactText`.
 - Telemetry semantics impact: default streaming telemetry remains metadata-only;
   explicit buffered stream redaction reports final aggregate redaction results.
+- OpenAI adapter impact: early stream close fails closed with
+  `provider_stream_truncated`; malformed chunks, post-finish content, buffer
+  overflow, detector failure, and malformed final tool-call JSON return no
+  buffered content.
 - Migration impact: existing callers are unchanged unless they opt in to the new
   core helper.
 
