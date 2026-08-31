@@ -18,9 +18,10 @@ gateway behavior.
 - Completion and response text.
 - Tool call names only when caller policy marks them content-bearing.
 - Tool call function arguments and nested argument payloads.
-- Provider streaming chunks remain metadata-only until OpenAI-compatible event
-  ordering, cancellation, and content-shape redaction are proven. The core
-  built-in rolling helper alone does not satisfy this adapter gate.
+- Provider streaming chunks remain metadata-only by default. Callers that
+  explicitly opt in can use `createOpenAICompatibleStreamRedactor` to accumulate
+  OpenAI-compatible chunks and receive a redacted final aggregate after a
+  complete stream.
 
 ## Implemented Behavior
 
@@ -63,6 +64,16 @@ gateway behavior.
   usage reported by core, so later fields receive only their remaining budget.
 - `redactOpenAICompatibleStreamEvent` omits chunk content and returns only
   metadata with `streaming_content_omitted`.
+- `createOpenAICompatibleStreamRedactor({ captureContent: true })` tracks
+  per-choice text, message content, and tool-call argument fragments across
+  OpenAI-compatible stream chunks. `push(event)` remains metadata-only; `close()`
+  requires every observed choice to finish and then returns a redacted final
+  aggregate.
+- Stream finalization fails closed with `provider_stream_truncated` if the caller
+  closes before every observed choice has a non-null `finish_reason`. Buffer
+  overflow, malformed JSON tool arguments, unknown content-bearing fields,
+  post-finish content, and unstable repeated tool metadata fail closed without
+  returning buffered content.
 
 ## Unknown Shape Policy
 
@@ -98,4 +109,5 @@ closed. Explicit `undefined` on an optional metadata field is treated as absent.
 
 - A provider SDK becomes a required dependency for the core redaction path.
 - Unknown shape handling exports raw content.
-- Streaming chunks are exported before buffer and chunk-boundary fixtures exist.
+- Streaming chunks are exported by default.
+- Buffered stream final output lacks split-secret and split tool JSON fixtures.

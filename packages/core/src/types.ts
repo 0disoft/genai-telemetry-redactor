@@ -106,6 +106,7 @@ export type SafeRedactionErrorCode =
   | "stream_closed"
   | "stream_already_closed"
   | "stream_operation_in_progress"
+  | "provider_stream_truncated"
   | "overlapping_detection"
   | "redaction_aborted"
   | "circular_reference"

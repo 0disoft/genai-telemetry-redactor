@@ -31,7 +31,7 @@
         "default": "./dist/packages/sdk/src/index.js"
       }
     },
-    "publicApiInventorySha256": "a4185f66dec1ed4d3056958b407d02b8ac2cc73736d830dc871a8254de894ce9",
+    "publicApiInventorySha256": "030244462e998e967278bb0ca35ed544ca2f9c11e9596827825a8711340611da",
     "sdkApiInventorySha256": "7f22cafcda8f7cdb0d1546c5c12440566220ca64d528e29dee8a644cc23605d1",
     "defaultDetectors": [
       {
@@ -81,6 +81,7 @@
       "stream_closed",
       "stream_already_closed",
       "stream_operation_in_progress",
+      "provider_stream_truncated",
       "redaction_aborted",
       "circular_reference",
       "unsafe_object_key",

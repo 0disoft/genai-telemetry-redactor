@@ -12,11 +12,17 @@ import {
 import { resolveRedactionOperationOptions } from "../../core/src/redaction-profile.js";
 import {
   createRedactionReportAccumulator,
+  createEmptyReport,
   type RedactionReportAccumulator,
 } from "../../core/src/report.js";
 import type {
   OpenAICompatibleOptions,
+  OpenAICompatibleStreamChoice,
+  OpenAICompatibleStreamFinalResult,
+  OpenAICompatibleStreamOptions,
+  OpenAICompatibleStreamRedactor,
   OpenAICompatibleStreamRedactionMetadata,
+  OpenAICompatibleStreamToolCall,
 } from "./types.js";
 import {
   LosslessJsonToolArgumentsError,
@@ -71,8 +77,51 @@ const RESPONSE_KEYS = new Set([
 ]);
 const CHOICE_KEYS = new Set(["index", "text", "message", "finish_reason"]);
 const MESSAGE_KEYS = new Set(["role", "content", "tool_calls"]);
-const TOOL_CALL_KEYS = new Set(["id", "type", "function"]);
+const TOOL_CALL_KEYS = new Set(["index", "id", "type", "function"]);
 const FUNCTION_KEYS = new Set(["name", "arguments"]);
+const STREAM_EVENT_KEYS = new Set([
+  "id",
+  "object",
+  "created",
+  "model",
+  "choices",
+  "usage",
+  "system_fingerprint",
+]);
+const STREAM_CHOICE_KEYS = new Set(["index", "delta", "text", "finish_reason"]);
+const STREAM_DELTA_KEYS = new Set(["role", "content", "tool_calls"]);
+const STREAM_TOOL_CALL_KEYS = new Set(["index", "id", "type", "function"]);
+const STREAM_FUNCTION_KEYS = new Set(["name", "arguments"]);
+const DEFAULT_MAX_STREAM_BUFFER_LENGTH = 65_536;
+
+type OpenAICompatibleStreamState = {
+  adapter: AdapterState;
+  choices: Map<number, OpenAICompatibleStreamChoiceState>;
+  maxStreamBufferLength: number;
+  closed: boolean;
+  failed: RedactionResult<never> | undefined;
+};
+
+type OpenAICompatibleStreamChoiceState = {
+  index: number;
+  role: string | undefined;
+  content: string;
+  text: string;
+  sawContent: boolean;
+  sawText: boolean;
+  finishReason: string | null | undefined;
+  finished: boolean;
+  toolCalls: Map<number, OpenAICompatibleStreamToolCallState>;
+};
+
+type OpenAICompatibleStreamToolCallState = {
+  index: number;
+  id: string | undefined;
+  type: string | undefined;
+  name: string | undefined;
+  arguments: string;
+  sawArguments: boolean;
+};
 
 export async function redactOpenAICompatibleRequest<T>(
   input: T,
@@ -151,6 +200,100 @@ export async function redactOpenAICompatibleResponse<T>(
 export function redactOpenAICompatibleStreamEvent<T>(
   _input: T,
 ): RedactionResult<OpenAICompatibleStreamRedactionMetadata> {
+  return omittedStreamEvent();
+}
+
+export function createOpenAICompatibleStreamRedactor(
+  options: OpenAICompatibleStreamOptions = {},
+): OpenAICompatibleStreamRedactor {
+  const streamStateResult = createOpenAICompatibleStreamState(options);
+  if (!streamStateResult.ok) {
+    return failedOpenAICompatibleStreamRedactor(streamStateResult.failure);
+  }
+
+  if (!streamStateResult.value.captureContent) {
+    return metadataOnlyOpenAICompatibleStreamRedactor();
+  }
+
+  const stream = streamStateResult.value.stream;
+
+  return {
+    push(input) {
+      if (stream.failed) {
+        return stream.failed;
+      }
+      if (stream.closed) {
+        return streamFailure(
+          "stream_closed",
+          "OpenAI-compatible stream redaction cannot accept events after close.",
+        );
+      }
+
+      const appendResult = appendOpenAICompatibleStreamEvent(input, stream);
+      if (!appendResult.ok) {
+        stream.failed = appendResult;
+        stream.choices.clear();
+        return appendResult;
+      }
+      return omittedStreamEvent();
+    },
+    async close() {
+      if (stream.failed) {
+        return stream.failed;
+      }
+      if (stream.closed) {
+        return streamFailure(
+          "stream_already_closed",
+          "OpenAI-compatible stream redaction has already been closed.",
+        );
+      }
+
+      stream.closed = true;
+      return finalizeOpenAICompatibleStream(stream);
+    },
+  };
+}
+
+function metadataOnlyOpenAICompatibleStreamRedactor(): OpenAICompatibleStreamRedactor {
+  let closed = false;
+
+  return {
+    push(input) {
+      if (closed) {
+        return streamFailure(
+          "stream_closed",
+          "OpenAI-compatible stream redaction cannot accept events after close.",
+        );
+      }
+      return redactOpenAICompatibleStreamEvent(input);
+    },
+    async close() {
+      if (closed) {
+        return streamFailure(
+          "stream_already_closed",
+          "OpenAI-compatible stream redaction has already been closed.",
+        );
+      }
+      closed = true;
+      return omittedStreamEvent();
+    },
+  };
+}
+
+function failedOpenAICompatibleStreamRedactor(
+  failure: RedactionResult<never>,
+): OpenAICompatibleStreamRedactor {
+  return {
+    push() {
+      return failure;
+    },
+    async close() {
+      return failure;
+    },
+  };
+}
+
+function omittedStreamEvent(): RedactionResult<OpenAICompatibleStreamRedactionMetadata> {
   const warnings: RedactionWarning[] = [{ code: "streaming_content_omitted" }];
   return {
     ok: true,
@@ -165,6 +308,598 @@ export function redactOpenAICompatibleStreamEvent<T>(
       warnings,
     },
     warnings,
+  };
+}
+
+function createOpenAICompatibleStreamState(
+  options: OpenAICompatibleStreamOptions,
+):
+  | {
+      ok: true;
+      value:
+        | { captureContent: false }
+        | { captureContent: true; stream: OpenAICompatibleStreamState };
+    }
+  | { ok: false; failure: RedactionResult<never> } {
+  if (!isRecord(options)) {
+    return { ok: false, failure: invalidAdapterOptions() };
+  }
+
+  const { captureContent = false, ...adapterOptions } = options;
+  if (typeof captureContent !== "boolean") {
+    return { ok: false, failure: invalidAdapterOptions() };
+  }
+
+  const adapterStateResult = createAdapterState(
+    adapterOptions as OpenAICompatibleOptions,
+  );
+  if (!adapterStateResult.ok) {
+    return { ok: false, failure: adapterStateResult.failure };
+  }
+  if (!captureContent) {
+    return { ok: true, value: { captureContent } };
+  }
+
+  return {
+    ok: true,
+    value: {
+      captureContent: true,
+      stream: {
+        adapter: adapterStateResult.value,
+        choices: new Map(),
+        maxStreamBufferLength: Math.max(
+          0,
+          adapterStateResult.value.redaction.limits?.maxStreamBufferLength ??
+            DEFAULT_MAX_STREAM_BUFFER_LENGTH,
+        ),
+        closed: false,
+        failed: undefined,
+      },
+    },
+  };
+}
+
+function appendOpenAICompatibleStreamEvent(
+  input: unknown,
+  stream: OpenAICompatibleStreamState,
+): RedactionResult<void> {
+  const state = stream.adapter;
+
+  try {
+    if (!isRecord(input)) {
+      return unsupportedShape(state);
+    }
+
+    const keyResult = validateAllowedKeys(input, STREAM_EVENT_KEYS, state, "$");
+    if (!keyResult.ok) {
+      return keyResult;
+    }
+
+    const metadataResult = validateResponseMetadata(input, state);
+    if (!metadataResult.ok) {
+      return metadataResult;
+    }
+
+    if (!Array.isArray(input.choices)) {
+      return unsupportedShape(state, "$.choices");
+    }
+
+    const seenChoiceIndexes = new Set<number>();
+    for (const [choicePosition, rawChoice] of input.choices.entries()) {
+      if (!isRecord(rawChoice)) {
+        return unsupportedShape(state, `$.choices[${choicePosition}]`);
+      }
+
+      const choiceKeyResult = validateAllowedKeys(
+        rawChoice,
+        STREAM_CHOICE_KEYS,
+        state,
+        `$.choices[${choicePosition}]`,
+      );
+      if (!choiceKeyResult.ok) {
+        return choiceKeyResult;
+      }
+
+      if (!isOptionalInteger(rawChoice.index)) {
+        return unsupportedShape(state, `$.choices[${choicePosition}].index`);
+      }
+      const choiceIndex =
+        typeof rawChoice.index === "number" ? rawChoice.index : choicePosition;
+      if (seenChoiceIndexes.has(choiceIndex)) {
+        return unsupportedShape(state, `$.choices[${choicePosition}].index`);
+      }
+      seenChoiceIndexes.add(choiceIndex);
+
+      const choiceStateResult = choiceStateFor(
+        stream,
+        choiceIndex,
+        `$.choices[${choicePosition}]`,
+      );
+      if (!choiceStateResult.ok) {
+        return choiceStateResult;
+      }
+      const choiceState = choiceStateResult.value;
+      if (choiceState.finished && choiceHasContent(rawChoice)) {
+        return unsupportedShape(state, `$.choices[${choicePosition}]`);
+      }
+
+      if ("text" in rawChoice && rawChoice.text !== undefined) {
+        if (typeof rawChoice.text !== "string") {
+          return unsupportedShape(state, `$.choices[${choicePosition}].text`);
+        }
+        if (choiceState.sawContent || choiceState.toolCalls.size > 0) {
+          return unsupportedShape(state, `$.choices[${choicePosition}].text`);
+        }
+        const appendResult = appendStreamText(
+          stream,
+          choiceState.text,
+          rawChoice.text,
+          `$.choices[${choicePosition}].text`,
+        );
+        if (!appendResult.ok) {
+          return appendResult;
+        }
+        choiceState.text = appendResult.value;
+        choiceState.sawText = true;
+      }
+
+      if ("delta" in rawChoice) {
+        const deltaResult = appendOpenAICompatibleDelta(
+          rawChoice.delta,
+          stream,
+          choiceState,
+          `$.choices[${choicePosition}].delta`,
+        );
+        if (!deltaResult.ok) {
+          return deltaResult;
+        }
+      }
+
+      if (
+        "finish_reason" in rawChoice &&
+        rawChoice.finish_reason !== undefined
+      ) {
+        if (!isOptionalStringOrNull(rawChoice.finish_reason)) {
+          return unsupportedShape(
+            state,
+            `$.choices[${choicePosition}].finish_reason`,
+          );
+        }
+        if (choiceState.finished) {
+          return unsupportedShape(
+            state,
+            `$.choices[${choicePosition}].finish_reason`,
+          );
+        }
+        const finishReason = rawChoice.finish_reason as string | null;
+        choiceState.finishReason = finishReason;
+        choiceState.finished = finishReason !== null;
+      }
+    }
+
+    return success(undefined, state);
+  } catch {
+    return unsupportedShape(state);
+  }
+}
+
+function appendOpenAICompatibleDelta(
+  delta: unknown,
+  stream: OpenAICompatibleStreamState,
+  choiceState: OpenAICompatibleStreamChoiceState,
+  path: string,
+): RedactionResult<void> {
+  const state = stream.adapter;
+  if (!isRecord(delta)) {
+    return unsupportedShape(state, path);
+  }
+
+  const keyResult = validateAllowedKeys(delta, STREAM_DELTA_KEYS, state, path);
+  if (!keyResult.ok) {
+    return keyResult;
+  }
+
+  if ("role" in delta) {
+    if (!isOptionalString(delta.role)) {
+      return unsupportedShape(state, `${path}.role`);
+    }
+    if (
+      typeof delta.role === "string" &&
+      choiceState.role !== undefined &&
+      choiceState.role !== delta.role
+    ) {
+      return unsupportedShape(state, `${path}.role`);
+    }
+    if (typeof delta.role === "string") {
+      choiceState.role = delta.role;
+    }
+  }
+
+  if (
+    "content" in delta &&
+    delta.content !== undefined &&
+    delta.content !== null
+  ) {
+    if (typeof delta.content !== "string") {
+      return unsupportedShape(state, `${path}.content`);
+    }
+    if (choiceState.sawText) {
+      return unsupportedShape(state, `${path}.content`);
+    }
+    const appendResult = appendStreamText(
+      stream,
+      choiceState.content,
+      delta.content,
+      `${path}.content`,
+    );
+    if (!appendResult.ok) {
+      return appendResult;
+    }
+    choiceState.content = appendResult.value;
+    choiceState.sawContent = true;
+  }
+
+  if ("tool_calls" in delta) {
+    if (!Array.isArray(delta.tool_calls)) {
+      return unsupportedShape(state, `${path}.tool_calls`);
+    }
+    if (choiceState.sawText) {
+      return unsupportedShape(state, `${path}.tool_calls`);
+    }
+    const seenToolIndexes = new Set<number>();
+    for (const [toolPosition, rawToolCall] of delta.tool_calls.entries()) {
+      const toolResult = appendOpenAICompatibleToolCall(
+        rawToolCall,
+        stream,
+        choiceState,
+        `${path}.tool_calls[${toolPosition}]`,
+        seenToolIndexes,
+      );
+      if (!toolResult.ok) {
+        return toolResult;
+      }
+    }
+  }
+
+  return success(undefined, state);
+}
+
+function appendOpenAICompatibleToolCall(
+  rawToolCall: unknown,
+  stream: OpenAICompatibleStreamState,
+  choiceState: OpenAICompatibleStreamChoiceState,
+  path: string,
+  seenToolIndexes: Set<number>,
+): RedactionResult<void> {
+  const state = stream.adapter;
+  if (!isRecord(rawToolCall)) {
+    return unsupportedShape(state, path);
+  }
+
+  const keyResult = validateAllowedKeys(
+    rawToolCall,
+    STREAM_TOOL_CALL_KEYS,
+    state,
+    path,
+  );
+  if (!keyResult.ok) {
+    return keyResult;
+  }
+
+  if (!isOptionalInteger(rawToolCall.index)) {
+    return unsupportedShape(state, `${path}.index`);
+  }
+  const toolIndex =
+    typeof rawToolCall.index === "number" ? rawToolCall.index : 0;
+  if (seenToolIndexes.has(toolIndex)) {
+    return unsupportedShape(state, `${path}.index`);
+  }
+  seenToolIndexes.add(toolIndex);
+
+  const toolStateResult = toolCallStateFor(choiceState, toolIndex, state, path);
+  if (!toolStateResult.ok) {
+    return toolStateResult;
+  }
+  const toolState = toolStateResult.value;
+  const idResult = rememberStableString(
+    toolState.id,
+    rawToolCall.id,
+    `${path}.id`,
+    state,
+  );
+  if (!idResult.ok) {
+    return idResult;
+  }
+  toolState.id = idResult.value;
+
+  const typeResult = rememberStableString(
+    toolState.type,
+    rawToolCall.type,
+    `${path}.type`,
+    state,
+  );
+  if (!typeResult.ok) {
+    return typeResult;
+  }
+  toolState.type = typeResult.value;
+
+  if ("function" in rawToolCall) {
+    if (!isRecord(rawToolCall.function)) {
+      return unsupportedShape(state, `${path}.function`);
+    }
+    const functionKeyResult = validateAllowedKeys(
+      rawToolCall.function,
+      STREAM_FUNCTION_KEYS,
+      state,
+      `${path}.function`,
+    );
+    if (!functionKeyResult.ok) {
+      return functionKeyResult;
+    }
+
+    const nameResult = rememberStableString(
+      toolState.name,
+      rawToolCall.function.name,
+      `${path}.function.name`,
+      state,
+    );
+    if (!nameResult.ok) {
+      return nameResult;
+    }
+    toolState.name = nameResult.value;
+
+    if (
+      "arguments" in rawToolCall.function &&
+      rawToolCall.function.arguments !== undefined
+    ) {
+      if (typeof rawToolCall.function.arguments !== "string") {
+        return unsupportedShape(state, `${path}.function.arguments`);
+      }
+      const appendResult = appendStreamText(
+        stream,
+        toolState.arguments,
+        rawToolCall.function.arguments,
+        `${path}.function.arguments`,
+      );
+      if (!appendResult.ok) {
+        return appendResult;
+      }
+      toolState.arguments = appendResult.value;
+      toolState.sawArguments = true;
+    }
+  }
+
+  return success(undefined, state);
+}
+
+async function finalizeOpenAICompatibleStream(
+  stream: OpenAICompatibleStreamState,
+): Promise<RedactionResult<OpenAICompatibleStreamFinalResult>> {
+  for (const choiceState of stream.choices.values()) {
+    if (!choiceState.finished) {
+      stream.choices.clear();
+      stream.adapter.warnings.push({ code: "provider_stream_truncated" });
+      return createFailure(
+        stream.adapter,
+        "provider_stream_truncated",
+        "OpenAI-compatible stream ended before every choice produced a finish reason.",
+      );
+    }
+  }
+
+  const aggregate = buildOpenAICompatibleStreamAggregate(stream);
+  stream.choices.clear();
+  const result = await redactResponseRecord(aggregate, stream.adapter);
+  if (!result.ok) {
+    return result;
+  }
+  return {
+    ...result,
+    value: {
+      contentOmitted: false,
+      choices: result.value.choices as OpenAICompatibleStreamChoice[],
+    },
+  };
+}
+
+function buildOpenAICompatibleStreamAggregate(
+  stream: OpenAICompatibleStreamState,
+): MutableRecord {
+  const choices: OpenAICompatibleStreamChoice[] = [];
+  for (const choiceState of stream.choices.values()) {
+    const choice: OpenAICompatibleStreamChoice = { index: choiceState.index };
+    if (choiceState.finishReason !== undefined) {
+      choice.finish_reason = choiceState.finishReason;
+    }
+
+    if (choiceState.sawText) {
+      choice.text = choiceState.text;
+    }
+
+    const message: OpenAICompatibleStreamChoice["message"] = {};
+    if (choiceState.role !== undefined) {
+      message.role = choiceState.role;
+    }
+    if (choiceState.sawContent) {
+      message.content = choiceState.content;
+    }
+    if (choiceState.toolCalls.size > 0) {
+      message.tool_calls = buildOpenAICompatibleToolCalls(choiceState);
+    }
+    if (!choiceState.sawText) {
+      choice.message = message;
+    }
+
+    choices.push(choice);
+  }
+  return { choices };
+}
+
+function buildOpenAICompatibleToolCalls(
+  choiceState: OpenAICompatibleStreamChoiceState,
+): OpenAICompatibleStreamToolCall[] {
+  const toolCalls: OpenAICompatibleStreamToolCall[] = [];
+  for (const toolState of choiceState.toolCalls.values()) {
+    const toolCall: OpenAICompatibleStreamToolCall = {
+      index: toolState.index,
+    };
+    if (toolState.id !== undefined) {
+      toolCall.id = toolState.id;
+    }
+    if (toolState.type !== undefined) {
+      toolCall.type = toolState.type;
+    }
+
+    const fn: NonNullable<OpenAICompatibleStreamToolCall["function"]> = {};
+    if (toolState.name !== undefined) {
+      fn.name = toolState.name;
+    }
+
+    if (toolState.sawArguments) {
+      fn.arguments = toolState.arguments;
+    }
+
+    if (Object.keys(fn).length > 0) {
+      toolCall.function = fn;
+    }
+    toolCalls.push(toolCall);
+  }
+  return toolCalls;
+}
+
+function choiceHasContent(choice: MutableRecord): boolean {
+  if (typeof choice.text === "string" && choice.text.length > 0) {
+    return true;
+  }
+  if (!isRecord(choice.delta)) {
+    return false;
+  }
+  return (
+    (typeof choice.delta.content === "string" &&
+      choice.delta.content.length > 0) ||
+    (Array.isArray(choice.delta.tool_calls) &&
+      choice.delta.tool_calls.length > 0)
+  );
+}
+
+function choiceStateFor(
+  stream: OpenAICompatibleStreamState,
+  index: number,
+  path: string,
+): RedactionResult<OpenAICompatibleStreamChoiceState> {
+  const existing = stream.choices.get(index);
+  if (existing) {
+    return success(existing, stream.adapter);
+  }
+  if (stream.choices.size + 1 > stream.adapter.maxTotalNodes) {
+    stream.adapter.warnings.push({ code: "max_total_nodes_exceeded", path });
+    return createFailure(
+      stream.adapter,
+      "max_total_nodes_exceeded",
+      "OpenAI-compatible stream exceeded the configured state entry limit.",
+    );
+  }
+  const created: OpenAICompatibleStreamChoiceState = {
+    index,
+    role: undefined,
+    content: "",
+    text: "",
+    sawContent: false,
+    sawText: false,
+    finishReason: undefined,
+    finished: false,
+    toolCalls: new Map(),
+  };
+  stream.choices.set(index, created);
+  return success(created, stream.adapter);
+}
+
+function toolCallStateFor(
+  choiceState: OpenAICompatibleStreamChoiceState,
+  index: number,
+  state: AdapterState,
+  path: string,
+): RedactionResult<OpenAICompatibleStreamToolCallState> {
+  const existing = choiceState.toolCalls.get(index);
+  if (existing) {
+    return success(existing, state);
+  }
+  if (choiceState.toolCalls.size + 1 > state.maxTotalNodes) {
+    state.warnings.push({ code: "max_total_nodes_exceeded", path });
+    return createFailure(
+      state,
+      "max_total_nodes_exceeded",
+      "OpenAI-compatible stream exceeded the configured state entry limit.",
+    );
+  }
+  const created: OpenAICompatibleStreamToolCallState = {
+    index,
+    id: undefined,
+    type: undefined,
+    name: undefined,
+    arguments: "",
+    sawArguments: false,
+  };
+  choiceState.toolCalls.set(index, created);
+  return success(created, state);
+}
+
+function rememberStableString(
+  current: string | undefined,
+  next: unknown,
+  path: string,
+  state: AdapterState,
+): RedactionResult<string | undefined> {
+  if (next === undefined) {
+    return success(current, state);
+  }
+  if (typeof next !== "string") {
+    return unsupportedShape(state, path);
+  }
+  if (current !== undefined && current !== next) {
+    return unsupportedShape(state, path);
+  }
+  return success(next, state);
+}
+
+function appendStreamText(
+  stream: OpenAICompatibleStreamState,
+  current: string,
+  chunk: string,
+  path: string,
+): RedactionResult<string> {
+  if (current.length + chunk.length > stream.maxStreamBufferLength) {
+    stream.adapter.warnings.push({
+      code: "max_stream_buffer_length_exceeded",
+      path,
+    });
+    return createFailure(
+      stream.adapter,
+      "max_stream_buffer_length_exceeded",
+      "OpenAI-compatible stream exceeded the configured buffer length.",
+    );
+  }
+  return success(current + chunk, stream.adapter);
+}
+
+function streamFailure<T>(
+  code: SafeRedactionError["code"],
+  message: string,
+): RedactionResult<T> {
+  const warnings: RedactionWarning[] = [{ code }];
+  return {
+    ok: false,
+    report: {
+      status: "failed",
+      totalRedactions: 0,
+      countsByReason: {},
+      warnings,
+    },
+    warnings,
+    error: {
+      code,
+      message,
+    },
   };
 }
 
@@ -459,6 +1194,7 @@ async function redactToolCalls(
 
     const clonedToolCall = cloneRecord(toolCall);
     if (
+      !isOptionalInteger(clonedToolCall.index) ||
       !isOptionalString(clonedToolCall.id) ||
       !isOptionalString(clonedToolCall.type)
     ) {

@@ -53,6 +53,7 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `createBufferedTextStreamRedactor`
 - `createBuiltInRollingTextStreamRedactor`
 - `createBuiltInDetectors`
+- `createOpenAICompatibleStreamRedactor`
 - `createRedactionProfile`
 - `createRegexDetector`
 - `defaultReplacementToken`
@@ -62,7 +63,12 @@ This repository type owns public API surface, package compatibility, semantic ve
 - `mapRedactionReportToGenAIMetadata`
 - `OpenAICompatibleOptions`
 - `OpenAICompatibleRedactionOptions`
+- `OpenAICompatibleStreamChoice`
+- `OpenAICompatibleStreamFinalResult`
+- `OpenAICompatibleStreamOptions`
+- `OpenAICompatibleStreamRedactor`
 - `OpenAICompatibleStreamRedactionMetadata`
+- `OpenAICompatibleStreamToolCall`
 - `OtelAttributeValue`
 - `OtelGenAIAttributeMap`
 - `OtelGenAIMetadata`
@@ -155,7 +161,13 @@ This repository type owns public API surface, package compatibility, semantic ve
 
 - `OpenAICompatibleOptions`
 - `OpenAICompatibleRedactionOptions`
+- `OpenAICompatibleStreamChoice`
+- `OpenAICompatibleStreamFinalResult`
+- `OpenAICompatibleStreamOptions`
+- `OpenAICompatibleStreamRedactor`
 - `OpenAICompatibleStreamRedactionMetadata`
+- `OpenAICompatibleStreamToolCall`
+- `createOpenAICompatibleStreamRedactor`
 - `redactOpenAICompatibleRequest`
 - `redactOpenAICompatibleResponse`
 - `redactOpenAICompatibleStreamEvent`
@@ -247,6 +259,11 @@ This repository type owns public API surface, package compatibility, semantic ve
   function arguments.
 - `redactOpenAICompatibleStreamEvent(input)`: metadata-only streaming helper that
   omits chunk content and emits `streaming_content_omitted`.
+- `createOpenAICompatibleStreamRedactor(options)`: explicit opt-in stream helper.
+  Without `captureContent: true`, it stays metadata-only. With
+  `captureContent: true`, `push(event)` buffers OpenAI-compatible text and
+  tool-call argument fragments without returning content, and `close()` returns
+  a redacted aggregate only after each observed choice finishes.
 - `OpenAICompatibleOptions`: core redaction options plus explicit
   `redactToolNames` opt-in for tool names when caller policy treats names as
   content-bearing.
